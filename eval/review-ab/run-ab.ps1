@@ -108,7 +108,7 @@
     pwsh -File eval/review-ab/run-ab.ps1 -DryRun
     pwsh -File eval/review-ab/run-ab.ps1
     pwsh -File eval/review-ab/run-ab.ps1 -Deadvertise
-    pwsh -File eval/review-ab/run-ab.ps1 -Target C:\proj -Base origin/main -Arms banyan
+    pwsh -File eval/review-ab/run-ab.ps1 -Target /path/to/repo -Base origin/main -Arms banyan
 #>
 [CmdletBinding()]
 param(
@@ -293,11 +293,13 @@ function Invoke-Deadvertise {
 }
 
 # Run `node --test` in $dir and return the number of failing tests parsed from
-# the TAP summary (`# fail N`). Returns -1 if it could not be parsed.
+# the TAP summary (`# fail N`). Returns -1 if it could not be parsed. TAP is
+# requested explicitly because Node's default reporter is version-dependent
+# (spec since Node 23).
 function Get-FailingTestCount {
     param([string]$dir)
     Push-Location $dir
-    try { $out = & node --test 2>&1 | Out-String } catch { $out = "node --test threw: $($_.Exception.Message)" } finally { Pop-Location }
+    try { $out = & node --test --test-reporter tap 2>&1 | Out-String } catch { $out = "node --test threw: $($_.Exception.Message)" } finally { Pop-Location }
     $m = [regex]::Match($out, '(?m)^#\s*fail\s+(\d+)')
     if ($m.Success) { return [int]$m.Groups[1].Value }
     return -1
@@ -307,7 +309,7 @@ function Get-FailingTestCount {
 function Get-TotalTestCount {
     param([string]$dir)
     Push-Location $dir
-    try { $out = & node --test 2>&1 | Out-String } catch { $out = '' } finally { Pop-Location }
+    try { $out = & node --test --test-reporter tap 2>&1 | Out-String } catch { $out = '' } finally { Pop-Location }
     $m = [regex]::Match($out, '(?m)^#\s*tests\s+(\d+)')
     if ($m.Success) { return [int]$m.Groups[1].Value }
     return -1

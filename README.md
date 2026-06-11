@@ -15,7 +15,7 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 ## Requirements
 
 - [Claude Code](https://claude.com/claude-code) ≥ 2.1.172 (nested subagents).
-- For the development scripts (`scripts/*.ps1`): [PowerShell 7+](https://github.com/PowerShell/PowerShell) (`pwsh`, cross-platform) and Node.js (the test fixture and the run-ledger scaffolder are zero-dependency Node).
+- For the development scripts (`scripts/*.ps1`): [PowerShell 7+](https://github.com/PowerShell/PowerShell) (`pwsh` — runs on macOS via `brew install --cask powershell`, Linux, and Windows) and Node.js (the test fixture and the run-ledger scaffolder are zero-dependency Node). The plugin itself needs neither at runtime beyond Node for the run-ledger scaffolder.
 
 ## Install
 
