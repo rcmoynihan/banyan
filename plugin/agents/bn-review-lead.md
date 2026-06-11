@@ -136,7 +136,7 @@ Each reviewer's envelope:
   `docs/runs/<run-id>/briefs/learnings.md` and treat its output as context, not findings
   to act on.)
 - `inputs`: the path to `full.diff`, the path to `files.txt`, the base ref, the intent
-  summary, `scope_mode`, and `plan_ref`.
+  summary, and `scope_mode`.
 - `output_format`: JSON per `schemas/findings-schema.json` (`why_it_matters` and
   `evidence` required in the artifact). The brief from learnings is markdown.
 - `boundaries`: read-only review; the single permitted write is `artifact_path`; never
