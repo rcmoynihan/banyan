@@ -1,0 +1,31 @@
+{
+  "name": "banyan",
+  "owner": {
+    "name": "rcmoynihan",
+    "url": "https://github.com/rcmoynihan"
+  },
+  "metadata": {
+    "description": "Banyan marketplace — a hierarchical, self-compounding agent harness for Claude Code, built for nested subagents.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "banyan",
+      "description": "A hierarchical, self-compounding agent harness for Claude Code. Lead agents own whole subtrees and orchestrate their own children; coordination happens through a file-based run ledger; lessons are harvested at the leaves and consolidated by a background curator.",
+      "author": {
+        "name": "rcmoynihan",
+        "url": "https://github.com/rcmoynihan"
+      },
+      "homepage": "https://github.com/rcmoynihan/banyan",
+      "tags": [
+        "compound-engineering",
+        "nested-subagents",
+        "code-review",
+        "agent-harness",
+        "workflow-automation",
+        "knowledge-management"
+      ],
+      "source": "./plugin"
+    }
+  ]
+}
