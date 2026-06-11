@@ -16,14 +16,14 @@ sources or derivatives.
 
 ## Required References
 
-Read `plugin/skills/bn-onboard/references/classification.md` in full before reading any
+Read `skills/bn-onboard/references/classification.md` in full before reading any
 source. Also use:
 
-- `plugin/AGENTS.md` for invariants and protected artifacts.
-- `plugin/skills/bn-conventions/references/knowledge-store.md` for v1 solution enums.
-- `plugin/skills/bn-brainstorm/references/brainstorm-sections.md` for PRD and
+- `AGENTS.md` for invariants and protected artifacts.
+- `skills/bn-conventions/references/knowledge-store.md` for v1 solution enums.
+- `skills/bn-brainstorm/references/brainstorm-sections.md` for PRD and
   requirements derivatives.
-- `plugin/skills/bn-review/references/review-personas.md` for persona eligibility.
+- `skills/bn-review/references/review-personas.md` for persona eligibility.
 
 ## Input
 

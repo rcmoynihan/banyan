@@ -87,11 +87,11 @@ Run inline in the trunk.
    `docs/brainstorms/`, `docs/plans/`, `docs/solutions/`, `docs/runs/`, and the
    manifest itself.
 
-7. Detect the test command using the `/bn-plan` heuristic chain. Prefer package manager
-   scripts (`npm test`, `pnpm test`, `yarn test`), then language-native commands such as
-   `pytest`, `python -m pytest`, `go test ./...`, `cargo test`, `bundle exec rspec`, or a
-   repo-local documented command. Record the chosen command as a ledger Fact and make it
-   the durable convention in the `CLAUDE.md` draft.
+7. Detect the test command using the same heuristic chain as `/bn-plan`:
+   `package.json` `scripts.test`, else `node --test` / `pytest` / `cargo test` /
+   `go test ./...`, else a repo-local documented command, else `none detected`.
+   Record the chosen command as a ledger Fact and make it the durable convention in
+   the `CLAUDE.md` draft.
 
 ## Phase 1 - Discovery and Triage
 
@@ -156,6 +156,10 @@ Surveyor envelope:
 ```text
 === BANYAN ENVELOPE ===
 objective:       Classify the assigned brownfield documentation batch for /bn-onboard.
+inputs:
+  run_id:        <run-id>
+  surveyor:      survey-<n>
+  sources:       <the batch's repo-relative source paths, at most 25>
 artifact_path:   docs/runs/<run-id>/findings/survey-<n>.json
 output_format:   JSON: { "surveyor": "survey-<n>", "docs": [ { "source", "title",
                  "doc_kind", "target_families", "track", "problem_type", "slug",
@@ -224,6 +228,11 @@ Transformer envelope:
 === BANYAN ENVELOPE ===
 objective:       Write approved linked Banyan derivatives for the assigned onboarding
                  sources.
+inputs:
+  run_id:        <run-id>
+  transformer:   transform-<n>
+  assignments:   <at most 8 entries: source, its survey row, and the exact
+                 pre-resolved derivative path or paths>
 artifact_path:   docs/runs/<run-id>/findings/transform-<n>.json
 output_format:   JSON: { "transformer": "transform-<n>", "results": [ { "source",
                  "family", "derivative", "validator", "status", "notes" } ],
