@@ -41,6 +41,8 @@ synthesized output, and read by the trunk / `/bn-grow` gates — invariant 3, ar
 - `review-verdict.md`     -- the review subtree's applied verdict (`bn-review-lead`).
 - `delivery-report.md`    -- the delivery subtree's outcome (`bn-delivery-lead`).
 - `curation-summary.md`   -- the curator's consolidation summary (`bn-knowledge-curator`).
+- `debug-diagnosis.md`    -- the debug subtree's diagnosis (`bn-debug-lead`, investigate mode).
+- `debug-fix-report.md`   -- the debug subtree's fix outcome (`bn-debug-lead`, fix mode).
 
 (The research subtree's report is a brief, so it lives under `briefs/research-brief.md`, not the
 run root.) Each report is single-writer (the named lead). A `/bn-grow` phase gate is "the next

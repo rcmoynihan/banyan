@@ -1,0 +1,9 @@
+{
+  "name": "banyan-debug-scenario",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Planted-bug scenario for verifying the Banyan debug subtree. Zero dependencies.",
+  "scripts": {
+    "test": "node --test"
+  }
+}
