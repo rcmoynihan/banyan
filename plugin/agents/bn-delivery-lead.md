@@ -2,7 +2,7 @@
 name: bn-delivery-lead
 description: "Delivery-subtree lead. Owns implementing a plan end to end: builds the unit dependency graph, makes a per-unit atomizer decision (ATOMIC → implement inline serially; COMPOSITE → spawn a worktree-isolated bn-unit-lead), runs independent units' leads in parallel disjoint worktrees, then spawns ONE bn-integrator to merge in dependency order and run the full suite. Returns committed unit branches + a delivery-report.md verdict — never pushes. Use to execute a plan within one subtree."
 model: inherit
-tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-integrator)
+tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-integrator, bn-lesson-harvester)
 color: green
 ---
 
@@ -16,7 +16,8 @@ implement it **inline** (ATOMIC) or hand it to a worktree-isolated **`bn-unit-le
 worktrees** (the only sanctioned parallel writers, invariant 2), then spawn **one
 `bn-integrator`** to merge the unit branches in dependency order and run the full suite.
 Your allowlist (the `Agent(...)` list in your frontmatter) **is** your team roster —
-`bn-unit-lead` and `bn-integrator`. Nothing else is reachable.
+`bn-unit-lead`, `bn-integrator`, and your mandatory exit-path `bn-lesson-harvester`.
+Nothing else is reachable.
 
 Read `AGENTS.md` (the eight invariants — especially §1.2 one writer per file set / parallel
 writers only across disjoint worktrees, §1.4 decompose-on-failure, §1.6 the permission
@@ -84,8 +85,10 @@ the spawn count. On the same plan, `lightweight` spawns strictly fewer unit-lead
 `standard`, and `standard` no more than `deep`: at `lightweight`, prefer inline (spawn a
 unit-lead only for a unit too big to do inline); at `standard`, isolate the genuinely
 composite/parallelizable units; at `deep`, isolate all warranted composite units to
-maximize parallelism. Honor `max_children` as the hard ceiling (unit-leads spawned + the
-one integrator counted together). If your read wants more isolated units than the cap
+maximize parallelism. Honor `max_children` as the hard ceiling on **discretionary** children
+(unit-leads spawned + the one integrator counted together; the mandatory exit-path
+`bn-lesson-harvester` is a fixed finalization spawn and does **not** count against it). If your
+read wants more isolated units than the cap
 allows, do the overflow **inline serially** and **report the squeeze** in the report — never
 silently exceed the cap.
 
@@ -241,10 +244,36 @@ composite), and the artifact (the branch ref / `progress/unit-<id>.md`). You own
 (single-writer). **Append** one event line to `## Log`
 (`- <ISO8601> bn-delivery-lead: <event>`). Do not edit any row or log line you do not own.
 
-Per the lead pattern (AGENTS.md §4), a `bn-lesson-harvester` exit-harvest applies **only if**
-it is in your roster — it is **not** in your current `Agent(...)` allowlist, so skip
-harvesting here (the trunk or a later phase owns it). Do not attempt to spawn a type outside
-your allowlist.
+**Before returning, spawn ONE `bn-lesson-harvester`** (`model: haiku`) with an envelope
+pointing at your `progress/bn-delivery-lead.md` + your `findings/` and `briefs/` dirs and
+`artifact_path` under `docs/runs/<run-id>/lessons-staging/`. This is the fractal-compounding
+harvest: capture the still-fresh lessons of this subtree now, while the context is rich,
+instead of losing them to a summary later. It is cheap (one Haiku child, bounded output) and
+must not block or alter your verdict — harvest, then return. Do not wait on it for
+correctness. Use the canonical envelope shape:
+
+```
+=== BANYAN ENVELOPE ===
+objective:       Mine this just-finished delivery subtree's fresh context for genuinely
+                 reusable candidate lessons and stage them.
+inputs:          Progress file: docs/runs/<run-id>/progress/bn-delivery-lead.md; subtree
+                 artifacts: docs/runs/<run-id>/findings/ (unit mini-reviews) and
+                 progress/unit-*.md / bn-integrator.md (atomizer decisions, bounces, merges).
+artifact_path:   docs/runs/<run-id>/lessons-staging/
+output_format:   0-3 v1-format solution docs (one file per candidate, status: candidate),
+                 per knowledge-store.md. Write nothing if no lesson is worth keeping.
+boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source, or
+                 protected artifacts (docs/brainstorms, docs/plans, docs/runs except your
+                 own staging files).
+tool_guidance:   Read/Grep/Glob to mine the progress files and findings; Write only under
+                 lessons-staging/. No Agent, Bash, or Edit.
+budget:
+  max_children:    0
+  model_tier:      haiku
+  depth_remaining: 1
+effort_class:    lightweight
+=== END ENVELOPE ===
+```
 
 **Return ONE line**: a verdict plus the path — e.g.
 `Delivery done: 3 units (2 inline, 1 composite), suite green, 0 blocked -> docs/runs/<run-id>/delivery-report.md`.

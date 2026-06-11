@@ -32,7 +32,20 @@ docs/runs/<run-id>/
   findings/            # review findings JSON, one file per reviewer/finding
   briefs/              # research briefs, plan-judge outputs (one file per artifact)
   lessons-staging/     # harvested candidate lessons (consumed by the curator)
+  <report>.md          # a lead's single final report at the run root (see below)
 ```
+
+Run-root **report** artifacts (one per lead/phase, written by the owning lead as its single
+synthesized output, and read by the trunk / `/bn-grow` gates — invariant 3, artifacts over prose):
+
+- `review-verdict.md`     -- the review subtree's applied verdict (`bn-review-lead`).
+- `delivery-report.md`    -- the delivery subtree's outcome (`bn-delivery-lead`).
+- `curation-summary.md`   -- the curator's consolidation summary (`bn-knowledge-curator`).
+
+(The research subtree's report is a brief, so it lives under `briefs/research-brief.md`, not the
+run root.) Each report is single-writer (the named lead). A `/bn-grow` phase gate is "the next
+report file exists + its content passes the gate" — so these run-root files are a defined part of
+the layout, not ad-hoc.
 
 - `ledger.md` is the run's spine: objective, plan reference, durable facts, the
   unit-status table, and an append-only event log. One file per run.

@@ -120,13 +120,17 @@ A **lead** is an agent that owns a subtree end-to-end and returns a verdict, not
   runs its own multi-stage orchestration internally.
 - A lead **reads its children's artifacts**; it does not trust their final-message prose for
   anything load-bearing.
-- A lead honors its budget: it spawns at most `max_children`, steps the model down per
-  `model_tier`, and decrements `depth_remaining` on every spawn. At `depth_remaining: 0` it
-  completes the work inline instead of delegating.
+- A lead honors its budget: it spawns at most `max_children` **discretionary** children, steps
+  the model down per `model_tier`, and decrements `depth_remaining` on every spawn. At
+  `depth_remaining: 0` it completes the work inline instead of delegating.
 - A lead **never edits files outside the scope it owns**, and where multiple children write, it
   partitions their file sets so no two children touch the same files (invariant 2).
-- Before returning, a lead spawns one **`bn-lesson-harvester`** over its still-fresh context to
-  stage candidate lessons (fractal compounding; Phase 6).
+- Before returning — on **every** exit path, including a trivial/zero-spawn fast return — a lead
+  spawns one **`bn-lesson-harvester`** over its still-fresh context to stage candidate lessons
+  (fractal compounding; Phase 6). This harvest is a **mandatory finalization spawn**: it is a
+  single fixed Haiku-class leaf that does **not** count against `max_children` (it must never
+  compete with real work for the cap), and it must not block or alter the lead's verdict —
+  harvest, then return.
 
 The three core leads — `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead` — replace the
 flat pipelines of the v1 hub. The main session stays a near-empty **trunk** that talks to the
