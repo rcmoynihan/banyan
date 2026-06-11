@@ -49,6 +49,7 @@ Each stage is also independently invocable:
 | Skill | What it does |
 | --- | --- |
 | `/bn-brainstorm` | Collaborative requirements dialogue producing a requirements doc that hands off to `/bn-plan` — the front of the loop for fuzzy ideas. |
+| `/bn-onboard` | Onboard an existing repo by classifying the documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The flagship review subtree: reviews a diff, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (commits on a clean tree, never pushes). |
 | `/bn-plan` | A plan from a judge panel: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
 | `/bn-work` | Execute a plan via worktree-isolated unit subtrees plus a single integrator. |
@@ -62,9 +63,20 @@ Each stage is also independently invocable:
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and a live depth-2 nested-spawn + allowlist-enforcement probe. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 
-The plugin ships 36 agents: the four lead subtrees (review, research, delivery, debug) plus `bn-unit-lead`/`bn-integrator`, 18 reviewer/researcher personas vendored from compound-engineering, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, `bn-custom-reviewer` (host-repo review personas via data, not roster edits), the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
+The plugin ships 38 agents: the four lead subtrees (review, research, delivery, debug) plus `bn-unit-lead`/`bn-integrator`, 18 reviewer/researcher personas vendored from compound-engineering, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, `bn-custom-reviewer` (host-repo review personas via data, not roster edits), the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, the `bn-doc-surveyor`/`bn-doc-transformer` onboarding pair, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
 
 ## Workflows
+
+### Onboard an existing repo
+
+```
+/bn-onboard
+```
+
+For repos that need a Banyan-ready knowledge base before task work. The trunk inventories
+the documentation corpus, runs a classification gate, writes linked derivative artifacts,
+bootstraps curator-ready knowledge, drafts repo instructions, and emits an onboarding
+manifest with the artifact graph and handoff paths.
 
 ### Ship a feature end to end
 
@@ -201,7 +213,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 ## Repository layout
 
 ```
-plugin/        the Claude Code plugin (36 agents, 14 skills, schemas, AGENTS.md contract)
+plugin/        the Claude Code plugin (38 agents, 15 skills, schemas, AGENTS.md contract)
 docs/          founding brainstorm, decision records, plans, harness changelog & proposals
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation

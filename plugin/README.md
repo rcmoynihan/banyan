@@ -14,8 +14,8 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (36 agents)
-  skills/                      one skill per directory: bn-*/SKILL.md (14 skills)
+  agents/                      one agent per file: bn-*.md (38 agents)
+  skills/                      one skill per directory: bn-*/SKILL.md (15 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/new-run.mjs
   schemas/                     shared schema files (findings, solution frontmatter)
@@ -35,6 +35,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | --- | --- |
 | `/bn-grow` | The full pipeline: research → plan (judged) → deliver → review → ship gate → background curate, from a small trunk. |
 | `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-plan`. |
+| `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |
 | `/bn-plan` | A plan from a judge panel: prior-biased generators scored by independent judges, synthesized by the trunk. |
 | `/bn-work` | Execute a plan via worktree-isolated unit subtrees and a single integrator. |
@@ -69,6 +70,9 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **PR feedback** — `bn-pr-comment-resolver` (evaluates and locally fixes one disjoint
   file-set's worth of review threads; the `/bn-resolve-pr` trunk does everything
   outward-facing).
+- **Onboarding pair** — `bn-doc-surveyor` is the read-only batch classifier for
+  existing documentation corpora; `bn-doc-transformer` writes linked derivative
+  artifacts. The `/bn-onboard` trunk owns outward-facing work.
 - **Planning panel** — `bn-plan-generator` (one draft per prior: mvp / risk / ops)
   and `bn-plan-judge` (independent rubric scoring).
 - **Compounding loop** — `bn-lesson-harvester` (Haiku-class leaf every lead spawns

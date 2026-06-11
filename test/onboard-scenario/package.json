@@ -1,0 +1,7 @@
+{
+  "name": "banyan-onboard-scenario",
+  "private": true,
+  "scripts": {
+    "test": "node --test"
+  }
+}
