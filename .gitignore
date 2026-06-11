@@ -10,3 +10,6 @@ tmp/
 # python
 __pycache__/
 *.pyc
+
+# eval run outputs (reproducible artifacts; keep the dir, not the runs)
+eval/review-ab/results/*/
