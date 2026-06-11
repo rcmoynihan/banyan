@@ -23,7 +23,7 @@ flowchart TD
   trunk["Main session<br/>intent, gates, user decisions"]
   ledger[("docs/runs/&lt;run-id&gt;<br/>ledger + artifacts")]
 
-  trunk -. "reads gate artifacts" .-> ledger
+  trunk -. reads gate artifacts .-> ledger
   trunk -->|"one envelope"| research["bn-research-lead"]
   trunk -->|"one envelope"| plan["/bn-plan<br/>trunk-written plan"]
   trunk -->|"one envelope"| delivery["bn-delivery-lead"]
@@ -51,8 +51,8 @@ flowchart TD
   delivery --> harvest
   review --> harvest
   debug --> harvest
-  harvest -. "stages candidates" .-> ledger
-  ledger -. "pending lessons" .-> curator["bn-knowledge-curator<br/>sleep-time consolidation"]
+  harvest -. stages candidates .-> ledger
+  ledger -. pending lessons .-> curator["bn-knowledge-curator<br/>sleep-time consolidation"]
 ```
 
 ## Requirements
