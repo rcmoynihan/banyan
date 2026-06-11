@@ -75,10 +75,11 @@ ledger's `## Plan` ref points at it. READ the plan (its `## Implementation Units
 deliver.
 
 **Natural checkpoint (do not hard-block):** this is the right moment for the user to
-approve the plan before code changes. Surface the plan PATH and a one-line summary; let
-the user steer if they want to. Do not block the pipeline with a question tool -- if the
-user does not intervene, proceed to delivery. (Plan is `Status: draft`; delivery consumes
-it next.)
+approve the plan before code changes. Surface the plan PATH, a one-line summary, and any
+`[assumed]` R-IDs with their `(confirm by: ...)` clauses; if none exist, say there are no
+assumed requirements. Let the user steer if they want to. Do not block the pipeline with a
+question tool -- if the user does not intervene, proceed to delivery. (Plan is `Status:
+draft`; delivery consumes it next.)
 
 ## Phase 4 -- Deliver (skill: /bn-work)
 
@@ -100,19 +101,22 @@ Phase 4), reusing THIS run dir. `/bn-review` dispatches `bn-review-lead`, which 
 the reviewer panel, dedupes findings, and fixes-and-verifies them in place, returning an
 applied verdict. It commits on a clean tree; it NEVER pushes.
 
-**GATE:** `docs/runs/<run-id>/review-verdict.md` exists and the test suite is green. READ
-the verdict (the file, not the lead's prose). If the verdict is MISSING, or the suite is
-RED, or material findings remain unaddressed, STOP and surface it -- a red suite or an
-unresolved blocking finding does not pass the gate.
+**GATE:** `docs/runs/<run-id>/review-verdict.md` exists and the test suite is green, OR the
+verdict explicitly carries `UNVERIFIED (no test command)`. READ the verdict (the file, not
+the lead's prose). If the verdict is MISSING, or the suite is RED, or material findings
+remain unaddressed, STOP and surface it -- a red suite or an unresolved blocking finding
+does not pass the gate. If the gate passes via `UNVERIFIED (no test command)`, surface that
+marker to the user; never treat it as green.
 
 ## Phase 6 -- Ship gate (permission cliff, invariant 6)
 
 Present the review verdict to the user. **The pipeline NEVER pushes and NEVER opens a
 PR.** Push / PR is a SEPARATE, explicit `bn-ship` step the USER invokes after reading the
 record -- it is a trunk-level, foreground, permission-worthy action that stays the user's
-call (invariant 6). State this clearly: the work is committed per unit and review-clean
-on its branch, but it has NOT been shipped, and shipping is the user's next deliberate
-step. Do not push here under any circumstances.
+call (invariant 6). State the review verdict's actual commit status: committed, applied
+uncommitted, report-only, or unverified. When the verdict carries
+`UNVERIFIED (no test command)`, say the review fixes are not committed by the review lead
+and the result is not suite-green. Do not push here under any circumstances.
 
 ## Phase 7 -- Curate handoff (non-blocking)
 
@@ -134,11 +138,10 @@ consolidates knowledge files only and pushes nothing.
 ## Phase 8 -- Present
 
 Give the user a SHORT narrative: what was built, the phase outcomes (research brief ->
-plan -> delivery -> review verdict), the ship gate (committed, review-clean, NOT pushed --
-ship is yours), and the curation handoff state (background started, or run
-`/bn-curate <run-id>`). Point at the ledger path `docs/runs/<run-id>/ledger.md` -- it
-tells the full story; the brief, plan, delivery report, and verdict all live under that
-run dir.
+plan -> delivery -> review verdict), the ship gate (the verdict's commit status, NOT
+pushed -- ship is yours), and the curation handoff state (background started, or run
+`/bn-curate <run-id>`). Point at the ledger path `docs/runs/<run-id>/ledger.md` -- it tells
+the full story; the brief, plan, delivery report, and verdict all live under that run dir.
 
 **Trunk-stays-small target.** For a medium feature, the trunk should have spent a SMALL
 fraction of its context window on the whole grow -- target under 20%. The trunk holds the
@@ -155,7 +158,8 @@ lines). The trunk checks the gate before proceeding:
 - research -> `briefs/research-brief.md` exists
 - plan     -> `docs/plans/...-plan.md` exists and `ledger.md` `## Plan` points at it
 - deliver  -> `delivery-report.md` exists, code changed, units done (not blocked)
-- review   -> `review-verdict.md` exists and the suite is green
+- review   -> `review-verdict.md` exists and the suite is green, OR the verdict explicitly
+  carries `UNVERIFIED (no test command)` surfaced to the user
 
 If a gate is NOT met -- no brief, no plan, blocked units, a red suite, a missing verdict --
 STOP at that gate and surface it to the user with the run dir and what failed. Do NOT

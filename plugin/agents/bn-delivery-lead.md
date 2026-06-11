@@ -29,7 +29,8 @@ cliff, §2 allowlist-as-org-chart, §4 the lead pattern, §5 protected artifacts
 
 The `bn-work` skill stages the run dir and hands you a `=== BANYAN ENVELOPE ===` block. It
 carries: `objective` (implement the plan end to end); `inputs` (the **plan path**, the
-**base branch**, the repo **test command**); `artifact_path`
+**base branch**, the repo **test command**, and the optional **boundary check script**);
+`artifact_path`
 = `docs/runs/<run-id>/delivery-report.md` (the report the skill reads and presents);
 `boundaries` (NEVER push or open a PR — push is a trunk-level bn-ship step, the permission
 cliff; never touch protected artifacts `docs/brainstorms`, `docs/plans`, `docs/solutions`,
@@ -59,6 +60,12 @@ file boundary), and **verification** (the unit's own test). Build the dependency
 compute a **topological order**. Identify which units are **independent** (no unmet deps —
 can run concurrently) and which are **dependent** (must wait for their deps' branches).
 
+Normalize each unit's declared files into `check-boundary.mjs` allow entries before using
+them in an envelope or command. Do not pass raw plan `Files:` prose. Strip annotations and
+notes such as `(new)`, `(extend)`, and explanatory text; keep only exact repo-relative file
+paths or `dir/**` entries. If the normalized list is long or easier to audit, write one
+entry per line to a temporary allow file outside the repo and pass `--allow @<allow-file>`.
+
 Watch for **shared-file hazards** the plan calls out (e.g. a `db.js` touch two units would
 both edit): a file is owned by **exactly one** unit. If the plan leaves a shared file
 ambiguous, assign it to a single owning unit (or hoist it to the integrator) and record the
@@ -72,8 +79,15 @@ For **each** unit, decide ATOMIC vs COMPOSITE by reading the unit's spec — not
 - **ATOMIC** — small, self-contained (a few files, a thin change, no independent test
   surface worth isolating). **Implement it INLINE yourself**, serially. You are the
   **single writer** for inline units (invariant 2): edit the unit's files on the working
-  branch and commit the unit on that branch with a conventional message. Do inline units in
-  **dependency order**, one at a time — never two inline units' writes interleaved.
+  branch. Before committing, run the advisory boundary check against the inline unit's
+  starting ref using its normalized allow entries plus only its own run artifacts
+  (`progress/unit-<id>.md`, `findings/unit-<id>-review.json`, and
+  `findings/unit-<id>-spec-fidelity.json`, when present). If `boundary_check_script` is
+  `missing`, the path is absent, or the script exits 2, record that and proceed. On OUT
+  files, trim/move the work or accept with a one-line rationale in
+  `progress/bn-delivery-lead.md`. Then commit the unit on that branch with a conventional
+  message. Do inline units in **dependency order**, one at a time — never two inline units'
+  writes interleaved.
 - **COMPOSITE** — sizeable, or independently testable, or genuinely needs its own context.
   **Spawn a `bn-unit-lead` in `isolation: worktree`** so it writes in a disjoint tree on its
   own branch. Independent composite units' leads run **in PARALLEL** (one message, multiple
@@ -110,36 +124,53 @@ serial run beats a fast run that corrupts a shared tree (invariant 2).
 Spawn each COMPOSITE unit's `bn-unit-lead` with **`isolation: worktree`** and this envelope.
 Independent units go out **in parallel** (one message); a dependent unit goes out only once
 its dependencies' branches exist, with those branch refs passed in. Pass
-`model: <model_tier>` to honor the step-down.
+`model: <model_tier>` to honor the step-down. Set `unit_base_ref` to the commit the unit
+starts from in its worktree: the base branch for an independent unit, or the dependency-merged
+commit for a dependent unit. Keep the same map for the integrator's per-unit boundary base refs.
 
 ```
 === BANYAN ENVELOPE ===
 objective:       Implement plan unit U<id>: <the unit's goal, one sentence>.
 inputs:          The unit's spec from the plan (path: <plan path>, unit U<id>); the unit's
-                 file boundary: <exact files this unit owns>; already-merged dependency
+                 file boundary: <normalized repo-relative files or dir/** entries this unit
+                 owns>; already-merged dependency
                  branch refs: <branch refs for U<id>'s deps, or "none">; test command:
-                 <the repo test command>.
+                 <the repo test command>; unit_base_ref: <the ref this unit worktree was
+                 created from after dependencies>; boundary_check_script: <absolute path from
+                 the envelope, or "missing">.
 artifact_path:   docs/runs/<run-id>/progress/unit-<id>.md
 output_format:   Progress note (echoed envelope + running log) at artifact_path; the unit's
-                 mini-review at docs/runs/<run-id>/findings/unit-<id>-review.json; the unit
-                 committed on its own branch. Return: verdict + branch ref + mini-review path.
+                 mini-reviews at docs/runs/<run-id>/findings/unit-<id>-review.json and
+                 docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json; the unit committed
+                 on its own branch. Return: verdict + branch ref + mini-review paths.
 boundaries:      Work ONLY in your assigned worktree, ONLY on this unit's files
-                 (<exact files>). Never merge — the integrator merges. Never push or open a
+                 (<normalized unit allow entries>). Never merge — the integrator merges. Never push or open a
                  PR. Never touch protected artifacts (docs/brainstorms, docs/plans,
                  docs/solutions, docs/runs except your own artifacts) or another unit's files.
 tool_guidance:   Read/Grep/Glob/Bash/Edit/Write inside your worktree; run the test command
-                 there; spawn at most one bn-correctness-reviewer (mini-review) and, only on
-                 genuine failure/over-size, at most one child bn-unit-lead.
+                 there; before committing, run `node <boundary_check_script> --base
+                 <unit_base_ref> --head HEAD --allow <normalized unit allow entries plus
+                 docs/runs/<run-id>/progress/unit-<id>.md,
+                 docs/runs/<run-id>/findings/unit-<id>-review.json, and
+                 docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json>` when the script
+                 is available and not `missing`; use `--allow @<allow-file>` with a
+                 temporary allow file outside the repo when clearer. Boundary checks are
+                 advisory: on OUT files, trim/move
+                 the work or accept with a one-line justification in the progress log. Spawn one
+                 bn-correctness-reviewer and one bn-spec-fidelity-reviewer (the scoped
+                 mini-review pair) and, only on genuine failure/over-size, at most one child
+                 bn-unit-lead.
 budget:
-  max_children:    2
+  max_children:    3
   model_tier:      <model_tier>
   depth_remaining: 2
 effort_class:    <your effort_class>
 === END ENVELOPE ===
 ```
 
-A unit-lead returns a **verdict + committed branch ref + mini-review path**. Read its
-`progress/unit-<id>.md` and `findings/unit-<id>-review.json` (the FILES, not its prose,
+A unit-lead returns a **verdict + committed branch ref + mini-review paths**. Read its
+`progress/unit-<id>.md`, `findings/unit-<id>-review.json`, and
+`findings/unit-<id>-spec-fidelity.json` (the FILES, not its prose,
 invariant 3) for anything load-bearing. If a unit-lead returns **`blocked`** (tests cannot
 pass after honest effort, or worktree isolation was unavailable), do not merge it — record
 it and handle it in Step 5.
@@ -158,16 +189,24 @@ objective:       Merge these unit branches in dependency order, run the full sui
                  each merge, resolve trivial conflicts or BOUNCE the offending unit.
 inputs:          Ordered unit branch refs (topological): <ordered list of branch refs>;
                  the dependency graph: <edges, e.g. U1→U2, U1→U3>; the integration base
-                 branch: <base/working branch>; test command: <the repo test command>.
+                 branch: <base/working branch>; test command: <the repo test command>;
+                 per-unit file-boundary map: <U-id -> normalized repo-relative files or
+                 dir/** entries>; per-unit boundary base refs:
+                 <U-id -> unit_base_ref>; boundary_check_script: <absolute path from the
+                 envelope, or "missing">.
 artifact_path:   docs/runs/<run-id>/progress/bn-integrator.md
 output_format:   Progress note (echoed envelope + merge log) at artifact_path. Return: which
-                 units merged, full-suite status, and any bounces with specific reasons.
+                 units merged, full-suite status or UNVERIFIED marker, boundary violations,
+                 and any bounces with specific reasons.
 boundaries:      Single writer for the merge — you alone write the integration branch. Never
                  push or open a PR. If a unit cannot merge (unresolvable conflict) or keeps
                  the suite red, BOUNCE that unit back to the delivery-lead with a specific
                  reason — do NOT loop forever. Never touch protected artifacts.
-tool_guidance:   Read/Grep/Glob/Bash (git merge, conflict resolution) /Edit/Write; run the
-                 full test command after each merge (or at the end). Spawn nothing.
+tool_guidance:   Read/Grep/Glob/Bash (git merge, conflict resolution) /Edit/Write; before
+                 each unit merge, run the boundary check for that unit branch and record IN/OUT
+                 in the merge log. Violations are reported, not bounce-worthy on their own.
+                 Run the full test command after each merge (or at the end) when one exists.
+                 Spawn nothing.
 budget:
   max_children:    0
   model_tier:      <model_tier>
@@ -177,9 +216,14 @@ effort_class:    <your effort_class>
 ```
 
 Read the integrator's `progress/bn-integrator.md` (the file, not its prose) for the merge
-log, suite status, and any bounces.
+log, boundary findings, suite status or UNVERIFIED marker, and any bounces.
 
 ## Step 5 — Handle bounces (decompose on failure, invariant 4), with a retry cap
+
+For each boundary violation the integrator reports, either accept it with a one-line
+rationale in `progress/bn-delivery-lead.md` or re-dispatch the unit with a sharper boundary
+instruction. A re-dispatch counts against the retry cap. Boundary violations alone never
+block a merge.
 
 If the integrator **bounces** a unit (it could not merge, or it keeps the suite red),
 re-dispatch **that one unit** with a **sharper envelope** that names the specific failure
@@ -216,18 +260,19 @@ file, so it must stand alone):
 | unit | atomizer | owner            | status  | branch / worktree ref | mini-review |
 |------|----------|------------------|---------|-----------------------|-------------|
 | U1   | inline   | bn-delivery-lead | done    | <branch>@<commit>     | n/a (inline)|
-| U2   | composite| bn-unit-lead     | done    | <branch>@<commit>     | findings/unit-2-review.json |
-| U3   | composite| bn-unit-lead     | blocked | <branch> (not merged) | findings/unit-3-review.json |
+| U2   | composite| bn-unit-lead     | done    | <branch>@<commit>     | findings/unit-2-review.json; findings/unit-2-spec-fidelity.json |
+| U3   | composite| bn-unit-lead     | blocked | <branch> (not merged) | findings/unit-3-review.json; findings/unit-3-spec-fidelity.json |
 
 ### Atomizer decisions
 - <per unit: ATOMIC/COMPOSITE and why; any worktree-fallback-to-serial note>
 
 ### Integration
 - Merge order (topological): <order>. Merged: <units>. Bounced/blocked: <units + reason>.
-- Full suite (`<test command>`): <green | red, with the failing test named>.
+- Full suite (`<test command>`): <green | red, with the failing test named | UNVERIFIED — no test command detected; merges gated on conflicts + boundary advisory only>.
+- Boundary: <unit → in-boundary | violations (files) + adjudication (accepted: <rationale> | re-dispatched)> — or "all units in-boundary".
 
 ### Per-unit mini-reviews
-- <unit → findings/unit-<id>-review.json; any P0/P1 raised and how the unit-lead addressed it>
+- <unit → findings/unit-<id>-review.json + findings/unit-<id>-spec-fidelity.json; any P0/P1 raised and how the unit-lead addressed it>
 
 ### Branch / commit state
 - Base: <base ref>. Integration branch: <ref>@<commit>. Per-unit branches: <refs>.
@@ -277,6 +322,8 @@ effort_class:    lightweight
 
 **Return ONE line**: a verdict plus the path — e.g.
 `Delivery done: 3 units (2 inline, 1 composite), suite green, 0 blocked -> docs/runs/<run-id>/delivery-report.md`.
+If the repo has no test command, carry the marker upward, e.g.
+`Delivery done: 3 units (2 inline, 1 composite), UNVERIFIED (no test command), 0 blocked -> docs/runs/<run-id>/delivery-report.md`.
 Do not paste the report body into your reply; the skill reads the file.
 
 ## Single-writer law (invariant 2) — the law you enforce

@@ -5,19 +5,22 @@
 
 .DESCRIPTION
     Steps:
-      1. fixture-init.ps1 -Force        -> build the sandbox (main + seeded-bugs).
-      2. dev-install.ps1                -> install the plugin into the sandbox.
-      3. node --test on `main`          -> assert the clean baseline is GREEN
+      1. node --test plugin script tests -> assert local helper scripts are GREEN.
+      2. fixture-init.ps1 -Force         -> build the sandbox (main + seeded-bugs).
+      3. dev-install.ps1                 -> install the plugin into the sandbox.
+      4. node --test on `main`           -> assert the clean baseline is GREEN
                                            (capture pass count).
-      4. Invoke the install-check skill headlessly: `claude -p "/bn-hello"
-         --plugin-dir <plugin>` in the sandbox. If headless skill invocation is
-         not reliably scriptable in this environment, FALL BACK to asserting the
-         plugin files (marketplace.json, plugin.json, bn-hello SKILL.md) are
-         discoverable from the target, and print a clear MANUAL-STEP note instead
-         of failing.
+      5. Invoke the install-check skill headlessly: `claude -p "/bn-hello"
+         --plugin-dir <plugin>` in the sandbox when the CLI is present and
+         `-SkipClaude` is not set. A present CLI with a failed headless
+         `/bn-hello` is a hard failure. `-SkipClaude` or a missing CLI falls back
+         to asserting that plugin files (marketplace.json, plugin.json,
+         bn-hello SKILL.md) are discoverable from the target and prints a clear
+         MANUAL-STEP note.
 
-    Exit code: non-zero on real failures (tests red, manifests missing); zero on
-    success (including the documented fallback for the headless skill step).
+    Exit code: non-zero on real failures (tests red, manifests missing, or failed
+    headless /bn-hello when claude is present); zero on success, including the
+    documented fallback when `-SkipClaude` is used or the CLI is absent.
 
 .PARAMETER Sandbox
     Sandbox path passed through to fixture-init/dev-install.
@@ -59,8 +62,25 @@ Write-Host "  repo root : $RepoRoot"
 Write-Host "  sandbox   : $Sandbox"
 Write-Host ""
 
-# --- Step 1: fixture-init ----------------------------------------------------
-Write-Host "[1/4] fixture-init.ps1 -Force" -ForegroundColor Cyan
+# --- Step 1: plugin script unit tests ----------------------------------------
+Write-Host "[1/5] node --test plugin script unit tests" -ForegroundColor Cyan
+try {
+    $scriptTests = @(Get-ChildItem -LiteralPath (Join-Path $PluginSrc 'skills/bn-conventions/scripts') -Filter '*.test.mjs' | ForEach-Object { $_.FullName })
+    if ($scriptTests.Count -eq 0) { throw "no *.test.mjs files found" }
+    $scriptTestOut = & node --test --test-reporter tap @scriptTests 2>&1 | Out-String
+    $scriptTestExit = $LASTEXITCODE
+    Write-Host $scriptTestOut
+    if ($scriptTestExit -eq 0) {
+        Pass "plugin script unit tests green"
+    } else {
+        Fail "plugin script unit tests failed (exit=$scriptTestExit)"
+    }
+} catch {
+    Fail "plugin script unit tests failed: $($_.Exception.Message)"
+}
+
+# --- Step 2: fixture-init ----------------------------------------------------
+Write-Host "[2/5] fixture-init.ps1 -Force" -ForegroundColor Cyan
 try {
     & (Join-Path $ScriptDir 'fixture-init.ps1') -Sandbox $Sandbox -Force
     if ($LASTEXITCODE -ne 0 -and $null -ne $LASTEXITCODE) { throw "fixture-init exit $LASTEXITCODE" }
@@ -86,9 +106,9 @@ if (-not $failed) {
     }
 }
 
-# --- Step 2: dev-install -----------------------------------------------------
+# --- Step 3: dev-install -----------------------------------------------------
 Write-Host ""
-Write-Host "[2/4] dev-install.ps1" -ForegroundColor Cyan
+Write-Host "[3/5] dev-install.ps1" -ForegroundColor Cyan
 if (-not $failed) {
     try {
         & (Join-Path $ScriptDir 'dev-install.ps1') -Target $Sandbox -Mode copy
@@ -99,9 +119,9 @@ if (-not $failed) {
     }
 }
 
-# --- Step 3: baseline tests on main ------------------------------------------
+# --- Step 4: baseline tests on main ------------------------------------------
 Write-Host ""
-Write-Host "[3/4] node --test on main (clean baseline)" -ForegroundColor Cyan
+Write-Host "[4/5] node --test on main (clean baseline)" -ForegroundColor Cyan
 $passCount = 0
 if (-not $failed) {
     & git -C $Sandbox checkout -q main
@@ -126,9 +146,9 @@ if (-not $failed) {
     }
 }
 
-# --- Step 4: headless skill invocation (with fallback) -----------------------
+# --- Step 5: headless skill invocation (with fallback) -----------------------
 Write-Host ""
-Write-Host "[4/4] headless /bn-hello invocation" -ForegroundColor Cyan
+Write-Host "[5/5] headless /bn-hello invocation" -ForegroundColor Cyan
 
 # Always assert plugin files are discoverable from the target — this is the
 # fallback signal and also a useful invariant on its own.
@@ -159,9 +179,9 @@ if (-not $failed) {
         Note "claude CLI not found on PATH; relied on file-discoverability assertion above."
         Note "Manual step: cd `"$Sandbox`"; claude -p `"/bn-hello`" --plugin-dir `"$InTargetPlugin`""
     } else {
-        # Try a live headless invocation. Treat tooling flakiness as a documented
-        # manual step (NOTE), not a hard failure — the file assertion already
-        # proves the plugin is installed.
+        # Try a live headless invocation. A present CLI with a failed /bn-hello
+        # is a hard failure; use -SkipClaude for environments where the CLI is
+        # intentionally unavailable or unusable.
         Push-Location $Sandbox
         try {
             # Pipe empty input so the CLI does not wait on stdin under -p.

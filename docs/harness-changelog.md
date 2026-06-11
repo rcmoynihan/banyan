@@ -37,7 +37,19 @@ nothing in this section is applied. Format: `| <date> | <one-line> | <run-ids> |
 
 ## Applied changes
 
-_None yet._
+### 2026-06-11 -- Four anti-pitfall improvements
+
+- **Change:** Added `bn-spec-fidelity-reviewer` and wired it into unit mini-reviews and
+  spec-bearing review panels.
+- **Change:** Added `check-boundary.mjs` with unit tests and advisory boundary adjudication
+  in the delivery/integration flow.
+- **Change:** Tagged plan requirements as `[confirmed]` or `[assumed]`, with confirmation
+  clauses surfaced at plan checkpoints.
+- **Change:** Added explicit `UNVERIFIED (no test command)` propagation for degraded
+  validation paths.
+- **Evidence (run-ids):** n/a (direct maintainer change)
+- **Proposal:** n/a (direct maintainer change)
+- **Applied by:** maintainer
 
 **Human-only section.** Only a human writes here, after reviewing a Proposed entry, editing the
 `plugin/` file themselves, and merging. The agent never writes to this section. Use the entry

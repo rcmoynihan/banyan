@@ -19,6 +19,15 @@ depends on both.
 Scope is deliberately tiny and fully testable with the built-in `node --test`
 runner so a delivery run produces a green suite without external dependencies.
 
+## Requirements
+
+- **R1 [confirmed]:** Customers can maintain a per-user wishlist of SKUs with add,
+  remove, and list operations.
+- **R2 [confirmed]:** Customers can move a wished SKU into an existing cart, removing
+  it from the wishlist when the cart add succeeds.
+- **R3 [assumed]:** The fixture exposes a helper that reports the current total value
+  of a wishlist. (confirm by: fixture consumers need a wishlist total display or API)
+
 ## Design invariants
 
 - Zero new dependencies — `node:test` + `node:assert` only.
