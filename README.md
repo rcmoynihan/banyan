@@ -20,4 +20,45 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 
 ## Status
 
-Pre-implementation. Phase 0 (plugin scaffold) is next; the first real milestone is the review subtree (U8) and its A/B evaluation against `/ce-code-review` (U9).
+**Implemented — all 8 phases / units U1–U16 built and reviewed.** The plugin is loadable
+(`30` agents, `8` skills) and the full `/bn-grow` pipeline is wired end to end.
+
+### What's here
+
+Skills (invoke as `/bn-<name>`):
+
+- `/bn-grow` — the full pipeline: research → plan (judged) → deliver → review → ship gate → background curate, from a small trunk (replaces `/lfg`).
+- `/bn-review` — the flagship review subtree: reviews, dedupes, and fixes-and-verifies findings in place, returning an applied verdict (commits on a clean tree, never pushes).
+- `/bn-plan` — a plan from a judge panel (prior-biased generators scored by independent judges), v1-compatible output.
+- `/bn-work` — execute a plan via worktree-isolated unit subtrees + a single integrator.
+- `/bn-curate` — consolidate harvested lessons into `docs/solutions/` (sleep-time compute).
+- `/bn-tune` — mine run data for recurring harness failures; propose evidence-cited diffs to Banyan itself (never self-applies).
+- `/bn-conventions`, `/bn-hello` — the conventions index and a smoke-test skill.
+
+Agents: three lead subtrees (`bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`) plus
+`bn-unit-lead`/`bn-integrator`, the 17 vendored v1 reviewer/researcher personas, the
+`bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge` workers, the
+`bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, and the `bn-harness-engineer`.
+
+### Verification
+
+- **Live-proven:** the review subtree (U8) ran headlessly end-to-end against the fixture —
+  found and fixed all 12 seeded bugs, suite green, safe commit. Nested subagent spawning is
+  empirically confirmed in this runtime.
+- **The gate (U9):** an A/B vs `/ce-code-review`, replicated over an advertised and a fair
+  de-advertised run, gave a **qualified GO** — detection parity, applied-and-verified fixes
+  from a ~7–8× smaller trunk footprint, at comparable cost. See
+  [`eval/review-ab/results/SCORECARD.md`](eval/review-ab/results/SCORECARD.md).
+- **Every phase** passed an independent Codex review before commit; the remaining
+  subtrees are static- + Codex-verified, with their full live runs (research two-hop trail,
+  delivery worktrees, harvest→curate cycle, end-to-end `/bn-grow`, the harness-engineer on
+  ≥5 accumulated runs) documented as the natural next-step verifications.
+
+### Try it
+
+```
+# add Banyan as a local marketplace, then enable it
+claude plugin marketplace add <path-to-this-repo>
+# or, for development against the fixture:
+pwsh scripts/smoke.ps1        # builds the fixture sandbox, installs the plugin, runs /bn-hello
+```
