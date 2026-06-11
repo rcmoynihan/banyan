@@ -26,7 +26,7 @@ claude plugin marketplace add <path-to-this-repo>
 claude plugin install banyan
 ```
 
-Restart or reload the `claude` session, then verify with `/bn-hello` — it prints the installed Banyan version.
+Restart or reload the `claude` session, then verify with `/bn-hello` — it prints the installed Banyan version. For the full capability check (environment floor, asset integrity, and a live depth-2 nested-spawn probe), run `/bn-doctor`.
 
 For development against the seeded-bug test fixture instead:
 
@@ -48,15 +48,21 @@ Each stage is also independently invocable:
 
 | Skill | What it does |
 | --- | --- |
+| `/bn-brainstorm` | Collaborative requirements dialogue producing a requirements doc that hands off to `/bn-plan` — the front of the loop for fuzzy ideas. |
 | `/bn-review` | The flagship review subtree: reviews a diff, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (commits on a clean tree, never pushes). |
 | `/bn-plan` | A plan from a judge panel: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
 | `/bn-work` | Execute a plan via worktree-isolated unit subtrees plus a single integrator. |
+| `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel fresh-context investigators, confirm the causal chain, then fix test-first on your say-so. |
+| `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
+| `/bn-ship` | Commit → push → PR with an adaptive, value-first description — the one place in Banyan allowed to push. |
+| `/bn-resolve-pr` | Resolve PR review feedback: parallel resolvers fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
 | `/bn-curate` | Consolidate harvested lessons into `docs/solutions/` (sleep-time compute; runs in the background after `/bn-grow`). |
 | `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself — proposals only, a human applies them. |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
+| `/bn-doctor` | Capability check: environment floor, asset integrity, and a live depth-2 nested-spawn + allowlist-enforcement probe. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 
-The plugin ships 29 agents: the three lead subtrees plus `bn-unit-lead`/`bn-integrator`, 17 reviewer/researcher personas vendored from compound-engineering, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge` workers, the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, and the `bn-harness-engineer`. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
+The plugin ships 36 agents: the four lead subtrees (review, research, delivery, debug) plus `bn-unit-lead`/`bn-integrator`, 18 reviewer/researcher personas vendored from compound-engineering, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, `bn-custom-reviewer` (host-repo review personas via data, not roster edits), the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
 
 ## Workflows
 
@@ -76,9 +82,22 @@ tail -f docs/runs/<run-id>/ledger.md
 ```
 
 The pipeline ends at a **ship gate**: the work is committed locally, reviewed, and green,
-but pushing or opening a PR is a step you take yourself. Lesson curation runs in the
-background afterward. A run halted mid-pipeline resumes from its ledger once the blocker
-is cleared.
+but pushing or opening a PR is a step you take yourself — `/bn-ship` when you're ready.
+Lesson curation runs in the background afterward. A run halted mid-pipeline resumes from
+its ledger once the blocker is cleared.
+
+### Brainstorm first
+
+```
+/bn-brainstorm what if rate limits were configurable per customer tier?
+```
+
+For ideas that aren't yet feature descriptions. A collaborative dialogue — one question
+per turn, scope-tiered rigor probes, 2-3 concrete approaches with a recommendation —
+ending in a requirements document under `docs/brainstorms/` strong enough that planning
+doesn't have to invent product behavior. The handoff menu flows straight into `/bn-plan`
+(or `/bn-work` for lightweight, well-defined changes); for grounding questions a short
+scan can't answer, it can dispatch the research subtree and fold the brief in.
 
 ### Review a change
 
@@ -93,7 +112,57 @@ finding gets an owner that independently verifies, fixes, and re-tests it, and t
 returns an **applied verdict** — fixes committed on a clean tree, never pushed. Run it
 before opening a PR or as a final pass over `/bn-work` output. Effort scales with the
 diff: a trivial change gets an inline check; a large or sensitive one (auth, payments,
-migrations) gets the full panel plus the adversarial reviewer.
+migrations) gets the full panel plus the adversarial reviewer. Host repos can extend the
+panel with their own reviewer personas — files under `docs/review-personas/`, no plugin
+edits (see [`docs/review-personas/`](docs/review-personas/)).
+
+### Debug a failure
+
+```
+/bn-debug the orders test fails: stock drifts negative after a failed checkout
+/bn-debug 1234        # a GitHub issue
+```
+
+Distributed debugging with the discipline single-context debugging loses under
+pressure: the subtree reproduces first, ranks falsifiable hypotheses, and tests them in
+**parallel fresh-context investigators** that write their predictions down *before*
+running anything — so a refuted hypothesis is evidence, not wasted work. Nothing is
+fixed until every link of the causal chain carries tested evidence; then you choose
+**Fix now** (regression test first, minimal fix, suite green, committed but never
+pushed), **Diagnosis only**, or **Rethink design** (hands off to `/bn-brainstorm`). A
+confirmed fix stages a bug-track solution doc, so the knowledge store compounds from
+every debugging session.
+
+### Ship it
+
+```
+/bn-commit            # a well-crafted local commit (never pushes)
+/bn-ship              # commit -> push -> PR, with a value-first description
+/bn-ship 1234         # rewrite an existing PR's description
+```
+
+`/bn-ship` is **the one place in Banyan allowed to push or open a PR** — trunk-level,
+foreground, with you present; every subtree stops at the permission cliff and reports
+instead. It handles branch safety (stale base, unpushed commits, dirty trees), builds
+commits per `/bn-commit`'s doctrine, and writes PR descriptions that explain what the
+diff cannot show. Use it after `/bn-grow`'s ship gate, after a standalone `/bn-review`,
+or any time the work is ready to leave your machine.
+
+### Resolve PR feedback
+
+```
+/bn-resolve-pr                # all unresolved threads on the current branch's PR
+/bn-resolve-pr 1234           # a PR by number
+/bn-resolve-pr <thread-url>   # exactly one thread
+```
+
+Works the review feedback like a colleague would: triage (bot boilerplate silently
+dropped), parallel resolver agents fixing valid findings on disjoint file sets, one
+combined validation run, one commit, one push — then replies with quoted context and
+resolves the threads. Feedback that doesn't hold gets a `not addressing` reply with
+evidence; harmful suggestions get `declined` with the harm named; judgment calls come
+back to you with options and a lean. Stops after two fix-verify cycles and surfaces the
+pattern instead of churning.
 
 ### Plan first, execute when you're ready
 
@@ -121,7 +190,7 @@ own test-fix loop and mini-review, and a single integrator merging in dependency
 Every lead stages candidate lessons before it returns; curation promotes the keepers into
 the `docs/solutions/` knowledge store, where future runs retrieve them. `/bn-grow`
 dispatches curation automatically — run `/bn-curate` manually after standalone
-`/bn-review` or `/bn-work` runs. `/bn-tune` mines accumulated run ledgers and transcripts
+`/bn-review`, `/bn-work`, `/bn-debug`, or `/bn-resolve-pr` runs. `/bn-tune` mines accumulated run ledgers and transcripts
 for recurring harness failures and writes evidence-cited proposals to
 `docs/harness-proposals/`; it never edits the plugin itself — you review and apply.
 
@@ -132,7 +201,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 ## Repository layout
 
 ```
-plugin/        the Claude Code plugin (29 agents, 8 skills, schemas, AGENTS.md contract)
+plugin/        the Claude Code plugin (36 agents, 14 skills, schemas, AGENTS.md contract)
 docs/          founding brainstorm, decision records, plans, harness changelog & proposals
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation

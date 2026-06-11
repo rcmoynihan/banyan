@@ -63,6 +63,21 @@ path within the pinned compound-engineering checkout.
 | plugin/agents/bn-web-researcher.md | plugins/compound-engineering/agents/ce-web-researcher.md | researcher |
 | plugin/agents/bn-deployment-verifier.md | plugins/compound-engineering/agents/ce-deployment-verification-agent.md | researcher |
 | scripts/validate-frontmatter.py | plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py | persistence |
+| plugin/skills/bn-commit/SKILL.md | plugins/compound-engineering/skills/ce-commit/SKILL.md | lifecycle |
+| plugin/skills/bn-ship/SKILL.md | plugins/compound-engineering/skills/ce-commit-push-pr/SKILL.md | lifecycle |
+| plugin/skills/bn-ship/references/branch-creation.md | plugins/compound-engineering/skills/ce-commit-push-pr/references/branch-creation.md | lifecycle |
+| plugin/skills/bn-ship/references/pr-description-writing.md | plugins/compound-engineering/skills/ce-commit-push-pr/references/pr-description-writing.md | lifecycle |
+| plugin/skills/bn-resolve-pr/SKILL.md | plugins/compound-engineering/skills/ce-resolve-pr-feedback/SKILL.md | pr-feedback |
+| plugin/skills/bn-resolve-pr/references/full-mode.md | plugins/compound-engineering/skills/ce-resolve-pr-feedback/references/full-mode.md | pr-feedback |
+| plugin/skills/bn-resolve-pr/references/targeted-mode.md | plugins/compound-engineering/skills/ce-resolve-pr-feedback/references/targeted-mode.md | pr-feedback |
+| plugin/agents/bn-pr-comment-resolver.md | plugins/compound-engineering/agents/ce-pr-comment-resolver.md | pr-feedback |
+| plugin/agents/bn-previous-comments-reviewer.md | plugins/compound-engineering/agents/ce-previous-comments-reviewer.md | pr-feedback |
+| plugin/skills/bn-brainstorm/SKILL.md | plugins/compound-engineering/skills/ce-brainstorm/SKILL.md | brainstorm |
+| plugin/skills/bn-brainstorm/references/brainstorm-sections.md | plugins/compound-engineering/skills/ce-brainstorm/references/brainstorm-sections.md | brainstorm |
+| plugin/skills/bn-brainstorm/references/synthesis-summary.md | plugins/compound-engineering/skills/ce-brainstorm/references/synthesis-summary.md | brainstorm |
+| plugin/skills/bn-brainstorm/references/markdown-rendering.md | plugins/compound-engineering/skills/ce-brainstorm/references/markdown-rendering.md | brainstorm |
+| plugin/skills/bn-brainstorm/references/universal-brainstorming.md | plugins/compound-engineering/skills/ce-brainstorm/references/universal-brainstorming.md | brainstorm |
+| plugin/skills/bn-brainstorm/references/handoff.md | plugins/compound-engineering/skills/ce-brainstorm/references/handoff.md | brainstorm |
 
 > `scripts/validate-frontmatter.py` is `ported`, not `verbatim`: it carries one minimal,
 > logged plumbing edit (directory-walk support; validation *rules* unchanged). It is excluded
@@ -75,6 +90,13 @@ path within the pinned compound-engineering checkout.
 |---|---|---|
 | plugin/schemas/solution-frontmatter.yaml | plugins/compound-engineering/skills/ce-compound/references/schema.yaml | persistence |
 | plugin/schemas/findings-schema.json | plugins/compound-engineering/skills/ce-code-review/references/findings-schema.json | persistence |
+| plugin/skills/bn-resolve-pr/scripts/get-pr-comments | plugins/compound-engineering/skills/ce-resolve-pr-feedback/scripts/get-pr-comments | pr-feedback |
+| plugin/skills/bn-resolve-pr/scripts/get-thread-for-comment | plugins/compound-engineering/skills/ce-resolve-pr-feedback/scripts/get-thread-for-comment | pr-feedback |
+| plugin/skills/bn-resolve-pr/scripts/reply-to-pr-thread | plugins/compound-engineering/skills/ce-resolve-pr-feedback/scripts/reply-to-pr-thread | pr-feedback |
+| plugin/skills/bn-resolve-pr/scripts/resolve-pr-thread | plugins/compound-engineering/skills/ce-resolve-pr-feedback/scripts/resolve-pr-thread | pr-feedback |
+| plugin/skills/bn-debug/references/investigation-techniques.md | plugins/compound-engineering/skills/ce-debug/references/investigation-techniques.md | debug |
+| plugin/skills/bn-debug/references/anti-patterns.md | plugins/compound-engineering/skills/ce-debug/references/anti-patterns.md | debug |
+| plugin/skills/bn-debug/references/defense-in-depth.md | plugins/compound-engineering/skills/ce-debug/references/defense-in-depth.md | debug |
 
 ## (d) Edit logs
 
@@ -89,3 +111,7 @@ this wave is in flight.
 | [`edits/agents-conditional.md`](./edits/agents-conditional.md) | The 6 conditional reviewers: security, performance, api-contract, data-migration, reliability, adversarial. |
 | [`edits/agents-researchers.md`](./edits/agents-researchers.md) | The 5 researcher/utility agents: repo-researcher, best-practices-researcher, framework-docs-researcher, web-researcher, deployment-verifier. |
 | [`edits/persistence.md`](./edits/persistence.md) | The persistence layer: solution-frontmatter.yaml + findings-schema.json (verbatim) and validate-frontmatter.py (ported — directory-walk plumbing edit). |
+| [`edits/lifecycle.md`](./edits/lifecycle.md) | The lifecycle skills: bn-commit and bn-ship (+ its two references). |
+| [`edits/pr-feedback.md`](./edits/pr-feedback.md) | The PR-feedback assets: bn-resolve-pr (SKILL + 2 references; the 4 scripts are verbatim) and the resolver / previous-comments agents. |
+| [`edits/brainstorm.md`](./edits/brainstorm.md) | The brainstorm skill: bn-brainstorm SKILL + 5 references (html-rendering not vendored). |
+| [`edits/debug.md`](./edits/debug.md) | The debug doctrine references (verbatim — zero edits recorded) and the note on why ce-debug/SKILL.md itself is not vendored. |
