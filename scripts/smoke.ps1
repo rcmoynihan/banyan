@@ -187,6 +187,9 @@ if (-not $failed) {
     }
 }
 
+Note "Doctor: for the full capability check (incl. the live depth-2 nested-spawn probe),"
+Note "  run interactively in the sandbox: claude --plugin-dir `"$InTargetPlugin`" then /bn-doctor"
+
 # --- Summary -----------------------------------------------------------------
 Write-Host ""
 Write-Host "=== Smoke summary ===" -ForegroundColor Cyan
