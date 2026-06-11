@@ -112,7 +112,7 @@
       "group": "persistence"
     },
     {
-      "local": "scripts/validate-frontmatter.py",
+      "local": "plugin/skills/bn-conventions/scripts/validate-frontmatter.py",
       "upstream": "plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py",
       "mode": "ported",
       "group": "persistence"

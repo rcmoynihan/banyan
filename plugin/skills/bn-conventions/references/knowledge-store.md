@@ -108,9 +108,9 @@ rules above.
 
 ## YAML safety (silent-corruption avoidance)
 
-Strict YAML parsers silently misread some unquoted scalars. The vendored
-validator (`scripts/validate-frontmatter.py`) catches these before they corrupt
-a doc. To stay clean:
+Strict YAML parsers silently misread some unquoted scalars. The packaged
+validator (`skills/bn-conventions/scripts/validate-frontmatter.py`) catches
+these before they corrupt a doc. To stay clean:
 
 - Wrap any array-of-strings item (`symptoms`, `applies_when`, `tags`,
   `related_components`, or any array field) in double quotes when it starts with
@@ -208,5 +208,6 @@ broken. Omit process exhaust (no "captured at phase X", no "next steps").
   is discarded during synthesis.
 - Search `docs/solutions/` before writing a new solution so memory compounds
   rather than fragmenting into near-duplicates.
-- Validate any doc you write: `python scripts/validate-frontmatter.py <path>`
+- Validate any doc you write:
+  `python ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-frontmatter.py <path>`
   (or point it at the directory). A non-zero exit means fix and retry.

@@ -14,6 +14,8 @@ Reproducible targets for exercising Banyan's subtrees.
 - **`onboard-scenario/`** — a compact repo-documentation corpus with classified
   source docs, linked derivative targets, curator bootstrap material, instruction
   drafts, and a manifest target for exercising `/bn-onboard`.
+- **`curate-scenario/`** — a staged-lesson corpus with one duplicate candidate
+  and one novel candidate, for exercising `/bn-curate` merge-vs-promote behavior.
 - **`debug-scenario/`** — a planted single-bug app whose failing test blames the
   wrong module (the assertion points at inventory; the defect is the orders
   rollback), for exercising `bn-debug-lead` and `bn-hypothesis-investigator`.

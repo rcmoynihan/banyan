@@ -55,7 +55,7 @@ Source documents:
 ### U5: Persistence layer compatibility
 - **Goal:** Banyan reads/writes the v1 knowledge store format exactly.
 - **Dependencies:** U3.
-- **Files:** `plugin/schemas/solution-frontmatter.yaml` (vendored), `scripts/validate-frontmatter.py` (vendored), `plugin/skills/bn-conventions/references/knowledge-store.md` (the docs/solutions taxonomy, category list, two-track doc structure).
+- **Files:** `plugin/schemas/solution-frontmatter.yaml` (vendored), `plugin/skills/bn-conventions/scripts/validate-frontmatter.py` (vendored), `scripts/validate-frontmatter.py` (repo-root launcher), `plugin/skills/bn-conventions/references/knowledge-store.md` (the docs/solutions taxonomy, category list, two-track doc structure).
 - **Verification:** Validator passes on seeded fixture solutions; a doc written by a Banyan agent passes the vendored validator.
 
 ## Phase 2 — The coordination substrate

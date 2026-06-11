@@ -62,7 +62,7 @@ path within the pinned compound-engineering checkout.
 | plugin/agents/bn-framework-docs-researcher.md | plugins/compound-engineering/agents/ce-framework-docs-researcher.md | researcher |
 | plugin/agents/bn-web-researcher.md | plugins/compound-engineering/agents/ce-web-researcher.md | researcher |
 | plugin/agents/bn-deployment-verifier.md | plugins/compound-engineering/agents/ce-deployment-verification-agent.md | researcher |
-| scripts/validate-frontmatter.py | plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py | persistence |
+| plugin/skills/bn-conventions/scripts/validate-frontmatter.py | plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py | persistence |
 | plugin/skills/bn-commit/SKILL.md | plugins/compound-engineering/skills/ce-commit/SKILL.md | lifecycle |
 | plugin/skills/bn-ship/SKILL.md | plugins/compound-engineering/skills/ce-commit-push-pr/SKILL.md | lifecycle |
 | plugin/skills/bn-ship/references/branch-creation.md | plugins/compound-engineering/skills/ce-commit-push-pr/references/branch-creation.md | lifecycle |
@@ -79,9 +79,10 @@ path within the pinned compound-engineering checkout.
 | plugin/skills/bn-brainstorm/references/universal-brainstorming.md | plugins/compound-engineering/skills/ce-brainstorm/references/universal-brainstorming.md | brainstorm |
 | plugin/skills/bn-brainstorm/references/handoff.md | plugins/compound-engineering/skills/ce-brainstorm/references/handoff.md | brainstorm |
 
-> `scripts/validate-frontmatter.py` is `ported`, not `verbatim`: it carries one minimal,
-> logged plumbing edit (directory-walk support; validation *rules* unchanged). It is excluded
-> from `vendor.ps1 -Sync` and reported as intentionally-edited by `-Status`. See
+> `plugin/skills/bn-conventions/scripts/validate-frontmatter.py` is `ported`, not
+> `verbatim`: it carries logged packaging and directory-walk support; validation
+> rules track upstream parser-safety checks. It is excluded from `vendor.ps1 -Sync`
+> and reported as intentionally-edited by `-Status`. See
 > [`edits/persistence.md`](./edits/persistence.md).
 
 ### Verbatim files (mode: `verbatim` — copied unchanged; syncable via `vendor.ps1 -Sync`)

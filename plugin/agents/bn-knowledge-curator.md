@@ -90,9 +90,9 @@ dimensions.
   - **STRIP the `status: candidate` key** so the promoted doc is byte-clean v1 schema. This is
     non-negotiable: `status:` is Banyan-internal staging bookkeeping, not part of the v1
     contract, and the committed store must stay byte-for-byte v1-compatible (invariant 8).
-  - **Validate** the promoted (or merged) doc with the vendored validator:
-    `python ${CLAUDE_PLUGIN_ROOT}/../scripts/validate-frontmatter.py <path>` (or point it at a
-    file you just wrote). A **non-zero exit means do not keep the doc as-is**: fix the
+  - **Validate** the promoted (or merged) doc with the packaged validator:
+    `python ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-frontmatter.py <path>`
+    (or point it at a file you just wrote). A **non-zero exit means do not keep the doc as-is**: fix the
     parser-safety issue it names (usually quoting an array item or scalar) and re-run; if you
     cannot make it pass, **skip the promotion** and leave the candidate in staging with a note.
     **Never write an invalid doc** into the store.

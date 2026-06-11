@@ -97,7 +97,7 @@ Quote YAML scalars and array items per `knowledge-store.md`. Validate every stag
 candidate with:
 
 ```bash
-python ${CLAUDE_PLUGIN_ROOT}/../scripts/validate-frontmatter.py <path>
+python ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-frontmatter.py <path>
 ```
 
 If the validator path is unresolvable, set `validator: "unavailable"` in the outcome JSON
