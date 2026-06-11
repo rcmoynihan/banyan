@@ -80,6 +80,21 @@ its path from wherever you are, e.g. `node <plugin>/skills/bn-conventions/script
    `## Log`, `## Open questions`). Fill the objective and plan ref; append the opening
    log line.
 
+## The boundary check
+
+`scripts/check-boundary.mjs` is the delivery subtree's advisory boundary instrument: it
+reports which files changed between two refs fall inside or outside an allowed file set.
+
+```
+node scripts/check-boundary.mjs --base <ref> [--head <ref>] --allow <paths,dir/**|@file> [--cwd <dir>]
+```
+
+Exit 0 = all in-boundary, 1 = violations, 2 = usage/git error. Allow entries are exact
+repo-relative paths or `dir/**` prefixes only. `bn-unit-lead`, `bn-delivery-lead`, and
+`bn-integrator` run it before commits and merges; violations are adjudicated by the
+owning lead (accepted with a recorded rationale, or fixed), never auto-blocked. Its
+unit tests live beside it (`check-boundary.test.mjs`, run via `node --test`).
+
 ## Reminders
 
 - `docs/runs/` is committed and is a protected artifact (AGENTS.md section 5): never

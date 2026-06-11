@@ -17,7 +17,8 @@ plugin/
   agents/                      one agent per file: bn-*.md (39 agents)
   skills/                      one skill per directory: bn-*/SKILL.md (15 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
-                               knowledge-store specs) + scripts/new-run.mjs
+                               knowledge-store specs) + scripts/ (run scaffolder,
+                               boundary check + its tests, frontmatter validator)
   schemas/                     shared schema files (findings, solution frontmatter)
   AGENTS.md                    Banyan's standing conventions contract
   README.md                    this file
