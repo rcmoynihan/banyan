@@ -1,6 +1,6 @@
 ---
 name: bn-doctor
-description: "Capability doctor: checks the host environment (Claude Code >= 2.1.172, pwsh, node, gh, python3), verifies plugin assets are discoverable and well-formed, and runs a LIVE depth-2 nested-spawn probe plus an allowlist-enforcement probe. Prints a green/yellow/red checklist and leaves no files behind."
+description: "Capability doctor: checks the host environment (Claude Code >= 2.1.172, node, gh, python3, pwsh), verifies plugin assets are discoverable and well-formed, and runs a LIVE depth-2 nested-spawn probe plus an allowlist-enforcement probe. Prints a green/yellow/red checklist and leaves no files behind."
 argument-hint: "[--static  (skip the live probe)]"
 ---
 
@@ -20,10 +20,10 @@ argument contains `--static`, skip Check 3 entirely (note it as YELLOW / skipped
 | probe | requirement | on failure |
 |---|---|---|
 | `claude --version` | parses to a version `>= 2.1.172` (the nested-subagent floor) | RED (also RED if the binary is missing or the version is unparseable) |
-| `pwsh -v` | present (the dev scripts are PowerShell 7) | RED |
 | `node -v` | present (the run-ledger scaffolder and fixtures are Node) | RED |
 | `gh --version` | present (PR-facing skills: `/bn-ship`, `/bn-resolve-pr`) | YELLOW — only PR flows are affected |
 | `python3 --version` | present (the solution-doc frontmatter validator) | YELLOW — only validation is affected |
+| `pwsh -v` | present (PowerShell 7 runs the Banyan *repo's own* dev scripts) | YELLOW — plugin runtime never uses it; only Banyan-repo development is affected |
 
 ## Check 2 — Plugin assets (structural)
 
@@ -98,8 +98,8 @@ Print one table and stop — no files are left behind, nothing else is written:
 | check                      | status | detail                                  |
 |----------------------------|--------|-----------------------------------------|
 | claude >= 2.1.172          | GREEN  | 2.1.180                                 |
-| pwsh / node                | GREEN  | 7.4 / v22                               |
-| gh / python3               | YELLOW | gh missing: /bn-ship, /bn-resolve-pr    |
+| node                       | GREEN  | v22                                     |
+| gh / python3 / pwsh        | YELLOW | gh missing: /bn-ship, /bn-resolve-pr    |
 | plugin manifest + assets   | GREEN  | banyan v0.1.0; 36 agents, 14 skills     |
 | frontmatter name = stem    | GREEN  | all agents                              |
 | depth-2 nested spawn       | GREEN  | token round-tripped                     |

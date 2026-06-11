@@ -49,7 +49,7 @@ To exercise the arms on realistic diffs, point the harness at any local git
 repo and a base ref:
 
 ```
-pwsh -File eval/review-ab/run-ab.ps1 -Target C:\path\to\repo -Base origin/main
+pwsh -File eval/review-ab/run-ab.ps1 -Target /path/to/repo -Base origin/main
 ```
 
 Requirements for a real target:

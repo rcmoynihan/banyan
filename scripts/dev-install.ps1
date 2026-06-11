@@ -35,9 +35,11 @@
     The script is IDEMPOTENT: re-running re-syncs the copy and leaves settings
     unchanged if already present.
 
-    Mode `copy` (default on Windows) physically copies the plugin tree — reliable
-    because Windows symlinks require elevation/developer mode. Mode `symlink`
-    creates a directory junction/symlink for fast iteration when permitted.
+    Mode `copy` (the default) physically copies the plugin tree — reliable
+    everywhere, including Windows where symlinks require elevation/developer
+    mode. Mode `symlink` links the plugin dir for fast iteration (no re-install
+    after edits); it works without elevation on macOS/Linux and falls back to
+    copy when link creation is denied.
 
 .PARAMETER Target
     Target project path. Default: the fixture sandbox tmp/fixture-sandbox.
@@ -47,7 +49,7 @@
 
 .EXAMPLE
     pwsh scripts/dev-install.ps1
-    pwsh scripts/dev-install.ps1 -Target C:\path\to\project -Mode symlink
+    pwsh scripts/dev-install.ps1 -Target /path/to/project -Mode symlink
 #>
 [CmdletBinding()]
 param(

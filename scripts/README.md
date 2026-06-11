@@ -1,7 +1,11 @@
 # scripts/
 
 Development and maintenance scripts. The PowerShell scripts require
-[PowerShell 7+](https://github.com/PowerShell/PowerShell) (`pwsh`, cross-platform).
+[PowerShell 7+](https://github.com/PowerShell/PowerShell) (`pwsh`) and run on
+macOS, Linux, and Windows — install via `brew install --cask powershell`
+(macOS), your package manager (Linux), or `winget install Microsoft.PowerShell`
+(Windows). Only this dev loop needs `pwsh`; the plugin itself (`plugin/`) never
+uses it.
 
 | Script | Purpose |
 | --- | --- |

@@ -1,0 +1,7 @@
+# Every text file is checked out with LF on all platforms, regardless of the
+# clone's core.autocrlf. Load-bearing in three places:
+#   - plugin/skills/bn-resolve-pr/scripts/* are bash; CRLF breaks them under Git Bash.
+#   - plugin/skills/bn-conventions/scripts/new-run.mjs runs under node on every platform.
+#   - scripts/vendor.ps1 -Status byte-compares verbatim-vendored files against the
+#     pinned upstream blobs; CRLF working trees would report false drift.
+* text=auto eol=lf

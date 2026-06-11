@@ -107,7 +107,9 @@ if (-not $failed) {
     & git -C $Sandbox checkout -q main
     Push-Location $Sandbox
     try {
-        $testOut = & node --test 2>&1 | Out-String
+        # TAP is requested explicitly: the parse below reads the TAP summary lines,
+        # and Node's default reporter is version-dependent (spec since Node 23).
+        $testOut = & node --test --test-reporter tap 2>&1 | Out-String
     } finally {
         Pop-Location
     }
