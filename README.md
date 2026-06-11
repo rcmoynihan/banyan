@@ -12,6 +12,49 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 - **Delegation envelopes.** Every spawn carries an objective, an artifact path, boundaries, and a budget (children, model tier, remaining depth).
 - **The laws still hold.** Reads parallelize, writes serialize, one writer per file set, decompose on failure rather than eagerly.
 
+## Current nesting shape
+
+Most workers are leaves. The current nesting advantage is that lead agents own
+their internal orchestration, while the trunk holds intent, gates, and user-facing
+decisions.
+
+```mermaid
+flowchart TD
+  trunk["Main session<br/>intent, gates, user decisions"]
+  ledger[("docs/runs/&lt;run-id&gt;<br/>ledger + artifacts")]
+
+  trunk -. "reads gate artifacts" .-> ledger
+  trunk -->|"one envelope"| research["bn-research-lead"]
+  trunk -->|"one envelope"| plan["/bn-plan<br/>trunk-written plan"]
+  trunk -->|"one envelope"| delivery["bn-delivery-lead"]
+  trunk -->|"one envelope"| review["bn-review-lead"]
+  trunk -->|"one envelope"| debug["bn-debug-lead"]
+
+  research -->|"parallel briefs"| researchers["repo / learnings / docs / web researchers<br/>leaves"]
+  research -->|"only for unresolved threads"| chaser["bn-thread-chaser<br/>recursive investigator"]
+  chaser -->|"depth remains"| chaser2["bn-thread-chaser<br/>one more hop"]
+
+  plan -->|"parallel drafts"| generators["plan generators<br/>leaves"]
+  plan -->|"independent scores"| judges["plan judges<br/>leaves"]
+
+  delivery -->|"composite units"| unit["bn-unit-lead<br/>worktree unit owner"]
+  unit -->|"scoped check"| miniReview["bn-correctness-reviewer<br/>leaf mini-review"]
+  unit -->|"failure or context pressure"| subUnit["bn-unit-lead<br/>single recursive split"]
+  delivery -->|"merge gate"| integrator["bn-integrator<br/>single merge writer"]
+
+  review -->|"parallel findings"| reviewers["reviewer panel<br/>leaves"]
+  review -->|"disjoint file sets"| owners["bn-finding-owner<br/>verify/fix/retest leaves"]
+
+  debug -->|"parallel hypotheses"| investigators["bn-hypothesis-investigator<br/>leaves"]
+
+  research --> harvest["bn-lesson-harvester<br/>mandatory leaf"]
+  delivery --> harvest
+  review --> harvest
+  debug --> harvest
+  harvest -. "stages candidates" .-> ledger
+  ledger -. "pending lessons" .-> curator["bn-knowledge-curator<br/>sleep-time consolidation"]
+```
+
 ## Requirements
 
 - [Claude Code](https://claude.com/claude-code) ≥ 2.1.172 (nested subagents).
