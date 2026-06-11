@@ -11,6 +11,9 @@ Reproducible targets for exercising Banyan's subtrees.
   doc that names a migration that names a config whose real value is the buried
   leaf fact), for exercising `bn-research-lead` and `bn-thread-chaser`. See its
   README.
+- **`onboard-scenario/`** — a compact repo-documentation corpus with classified
+  source docs, linked derivative targets, curator bootstrap material, instruction
+  drafts, and a manifest target for exercising `/bn-onboard`.
 - **`debug-scenario/`** — a planted single-bug app whose failing test blames the
   wrong module (the assertion points at inventory; the defect is the orders
   rollback), for exercising `bn-debug-lead` and `bn-hypothesis-investigator`.
