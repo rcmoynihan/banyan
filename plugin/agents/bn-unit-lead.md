@@ -109,8 +109,8 @@ pressure — never preemptively because the budget allows it:
 - **Escalate as `blocked`** — if the tests **cannot** pass after honest effort (you have
   exhausted reasonable fixes), **STOP** and return `blocked` with the **specific failure**
   (the failing test name + the reason it resists a fix within your file boundary). **Do NOT
-  loop forever** — a genuinely failing unit terminating as `blocked` is the U12
-  failure-injection criterion. A red unit reported honestly beats an infinite fix loop.
+  loop forever** — a genuinely failing unit must terminate as `blocked`. A red unit
+  reported honestly beats an infinite fix loop.
 
 ## Step 5 — Commit the unit on its branch
 

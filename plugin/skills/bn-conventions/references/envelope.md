@@ -207,14 +207,12 @@ allowlist no matter what an envelope says, and it can never exceed `max_children
 or go below `depth_remaining: 0` even for a type the allowlist permits.
 
 > **Empirical caveat (verify before relying).** `Agent(agent_type)` allowlist
-> semantics in *nested* contexts are still under-verified on Claude Code 2.1.172
-> (AGENTS.md section 2, and the plan's upstream-watch note). The trunk runs a
-> Phase 2 nested-spawn probe to check whether a nested allowlist is actually
-> enforced by the harness; the full allowlist-enforcement test lands at U8. Until
-> then, **do not** assume the runtime blocks an off-roster spawn -- the
-> prompt-level contract in this envelope (child cap, depth floor, declared types)
-> is the load-bearing guarantee. If the harness ignores nested allowlists, depth
-> and child accounting fall back entirely to the envelope discipline above.
+> semantics in *nested* contexts are under-verified on Claude Code 2.1.172
+> (AGENTS.md section 2). **Do not** assume the runtime blocks an off-roster
+> spawn -- the prompt-level contract in this envelope (child cap, depth floor,
+> declared types) is the load-bearing guarantee. If the harness ignores nested
+> allowlists, depth and child accounting fall back entirely to the envelope
+> discipline above.
 
 ---
 

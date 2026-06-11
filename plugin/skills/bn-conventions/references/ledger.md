@@ -97,7 +97,7 @@ facts from a child's final-message prose (invariant 3).
   exhaust. (It is also a protected artifact -- AGENTS.md section 5 -- so no agent may
   delete or gitignore it.)
 - **`lessons-staging/` is the one transient area.** It holds candidates between
-  harvest and promotion. The knowledge curator (U14) reads each candidate, promotes
+  harvest and promotion. The knowledge curator reads each candidate, promotes
   the keepers into `docs/solutions/` (stripping `status: candidate`), and empties the
   staging dir. Everything else under `docs/runs/<run-id>/` persists indefinitely.
 - A fresh run dir is seeded with `.gitkeep` files in the empty subdirs so the layout
@@ -168,9 +168,9 @@ Notes on the template:
 5. **The owning lead updates its unit's row** in the `## Units` table (single-writer)
    and **appends** an event line to `## Log` as the unit advances.
 6. **Before returning, each lead spawns a harvester** that drops candidate lessons
-   into `lessons-staging/` (fractal compounding; U13). The lead never edits another
+   into `lessons-staging/` (fractal compounding). The lead never edits another
    lead's progress file or another unit's status row.
-7. **Later, the curator** (U14) consumes `lessons-staging/`, promotes keepers to
+7. **Later, the curator** consumes `lessons-staging/`, promotes keepers to
    `docs/solutions/`, and empties staging. The rest of the run dir is committed and
    kept as the permanent record.
 

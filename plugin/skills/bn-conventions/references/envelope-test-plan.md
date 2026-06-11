@@ -1,10 +1,9 @@
 # Envelope budget test plan
 
-This is the documented fixture test plan for the delegation envelope's budget
-behaviors (see `envelope.md`). The behaviors are prompt-level disciplines, not
-runtime-enforced, so they can only be tested once real leads exist to honor them.
-These tests become executable at U8 (the `bn-review-lead` is the first real lead)
-and run against the fixture repo (`test/fixture-repo/`).
+This is the fixture test plan for the delegation envelope's budget behaviors (see
+`envelope.md`). The behaviors are prompt-level disciplines, not runtime-enforced,
+so they are tested through a real lead honoring them: the tests run against the
+fixture repo (`test/fixture-repo/`) via the review subtree (`bn-review-lead`).
 
 Every PASS criterion is **observable from the run ledger** -- no instrumentation
 beyond what a Banyan run already writes. A lead echoes its envelope into
@@ -70,17 +69,9 @@ On the same input, a `lightweight` run must spawn strictly fewer agents than a
 
 ---
 
-## Status
+## Scope note
 
-These four behaviors are **executed at U8 against the fixture repo**, as part of the
-`bn-review-lead` verification (plan U8: "a lead given `max_children: 2` spawns <=2; a
-child given `depth_remaining: 0` completes inline; envelope echoed in progress
-files"; plan cross-cut "effort scaling ... assert in fixture tests"). Until a real
-lead exists there is nothing to honor the envelope, so these remain a documented plan
-rather than a running suite.
-
-Related but out of scope here: whether the harness *itself* enforces the
-`Agent(agent_type)` allowlist in nested contexts is a separate empirical question
-(the Phase 2 nested-spawn probe; full allowlist-enforcement test also at U8). These
+Whether the harness *itself* enforces the `Agent(agent_type)` allowlist in nested
+contexts is a separate empirical question (see the caveat in `envelope.md`). These
 four tests assume only the prompt-level envelope discipline, not runtime allowlist
 enforcement.

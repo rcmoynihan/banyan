@@ -115,10 +115,10 @@ Evaluate the four gate conditions (protocol section 5) on the FIXTURE target:
 
 Real-PR targets do not contradict the fixture verdict: `<yes | no - explain>`
 
-**VERDICT: GO / NO-GO** for Phase 4.
+**VERDICT: GO / NO-GO**
 
-Reasoning (2-4 sentences, cite the numbers above; if NO-GO, name what U8 should
-rework - reviewer selection, dedup/confidence gate, or finding-owner
-verification):
+Reasoning (2-4 sentences, cite the numbers above; if NO-GO, name what the review
+subtree should rework - reviewer selection, dedup/confidence gate, or
+finding-owner verification):
 
 `<...>`

@@ -1,8 +1,8 @@
 # Banyan — agent & skill conventions
 
 Banyan is a Claude Code plugin: a hierarchical, self-compounding agent harness built for
-**nested subagents** (Claude Code ≥ 2.1.172, depth 5). It replaces the hub-and-spoke
-orchestration of a flat agent fleet with **lead agents that own whole subtrees**, a
+**nested subagents** (Claude Code ≥ 2.1.172, depth 5). Instead of hub-and-spoke
+orchestration of a flat agent fleet, it uses **lead agents that own whole subtrees**, a
 **file-based run ledger**, **delegation envelopes with budgets**, and **fractal lesson
 harvesting**.
 
@@ -62,9 +62,8 @@ Rules:
   allowlist bounds *which* types are reachable; the envelope bounds *how many* and *how deep*.
 
 > **Empirical note (verify before relying):** `Agent(agent_type)` allowlist semantics in *nested*
-> contexts are still under-documented for 2.1.172. The Phase 2 envelope fixture test
-> (`test/`) verifies them empirically before any lead depends on them. If the harness ignores a
-> nested allowlist, depth/child accounting falls back to the prompt-level contract in the envelope.
+> contexts are under-documented for 2.1.172. If the harness ignores a nested allowlist,
+> depth/child accounting falls back to the prompt-level contract in the envelope.
 
 ---
 
@@ -127,14 +126,14 @@ A **lead** is an agent that owns a subtree end-to-end and returns a verdict, not
   partitions their file sets so no two children touch the same files (invariant 2).
 - Before returning — on **every** exit path, including a trivial/zero-spawn fast return — a lead
   spawns one **`bn-lesson-harvester`** over its still-fresh context to stage candidate lessons
-  (fractal compounding; Phase 6). This harvest is a **mandatory finalization spawn**: it is a
+  (fractal compounding). This harvest is a **mandatory finalization spawn**: it is a
   single fixed Haiku-class leaf that does **not** count against `max_children` (it must never
   compete with real work for the cap), and it must not block or alter the lead's verdict —
   harvest, then return.
 
-The three core leads — `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead` — replace the
-flat pipelines of the v1 hub. The main session stays a near-empty **trunk** that talks to the
-user, holds intent, and dispatches leads.
+The three core leads are `bn-review-lead`, `bn-research-lead`, and `bn-delivery-lead`. The
+main session stays a near-empty **trunk** that talks to the user, holds intent, and
+dispatches leads.
 
 ---
 

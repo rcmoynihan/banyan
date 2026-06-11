@@ -84,9 +84,8 @@ red), then **BOUNCE that unit**:
   that do **not** depend on the bounced one; units that **do** depend on it cannot land and
   are reported as blocked-on-bounce.
 
-This non-looping bounce is the U12 failure-injection criterion on the integrator side: a unit
-that will not integrate terminates as a **reported bounce**, never an infinite merge/retry
-loop.
+The bounce is non-looping by contract: a unit that will not integrate terminates as a
+**reported bounce**, never an infinite merge/retry loop.
 
 ## Step 4 — Permission cliff (invariant 6): NEVER push
 

@@ -186,11 +186,10 @@ patterns you DROPPED for insufficient evidence. State the floor honestly.
 - Spawn nothing -- you are a leaf (no `Agent(...)` allowlist).
 - Degrade gracefully when transcripts are absent: mine the ledgers alone.
 
-## U16 acceptance test (live -- documented follow-up, not run here)
+## Acceptance standard (live)
 
-The real acceptance test needs **>=5 accumulated grow-runs** of ledger data, which the repo does
-not yet have (no `docs/runs/` corpus exists at build time). The documented live test: on >=5 runs
-of accumulated data, the harness engineer produces **>=1 actionable, evidence-cited proposal a
-human judges correct**. This is a SOFT gate -- U16 is exploratory (Phase 7, the moonshot). Until a
-corpus accumulates, this agent is verified statically (frontmatter, no-Edit/no-Agent, the
-evidence-floor contract). Run the live test once >=5 grow-runs exist.
+The standard you are held to: on **>=5 accumulated grow-runs** of ledger data, produce **>=1
+actionable, evidence-cited proposal a human judges correct**. This is a SOFT gate --
+harness-tuning is exploratory. With fewer than 5 runs the evidence floor (>=2 cited
+occurrences) is rarely reachable; report "insufficient run data" rather than forcing a
+proposal from thin evidence.

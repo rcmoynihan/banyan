@@ -3,8 +3,9 @@
 .SYNOPSIS
     A/B capture harness: run Banyan's /bn-review and compound-engineering's
     /ce-code-review over the SAME diff, in isolated sandboxes, and record every
-    artifact a judge needs to score them (see eval/review-ab/protocol.md). This
-    is the U9 go/no-go gate instrument. It CAPTURES only; it does NOT score.
+    artifact a judge needs to score them (see eval/review-ab/protocol.md). It
+    CAPTURES only; it does NOT score -- scoring against the protocol's GO/NO-GO
+    rule is a separate, judgeable step (SCORECARD-template.md).
 
 .DESCRIPTION
     ASSUMPTIONS (documented per the unit brief):
@@ -148,7 +149,7 @@ $OutDir = [System.IO.Path]::GetFullPath($OutDir)
 # Sandboxes live under tmp/ (gitignored). One per arm, per run.
 $SandboxRoot = Join-Path $RepoRoot ("tmp/review-ab/$RunId")
 
-Write-Host "=== Banyan A/B review harness (U9) ===" -ForegroundColor Cyan
+Write-Host "=== Banyan A/B review harness ===" -ForegroundColor Cyan
 Write-Host "  repo root   : $RepoRoot"
 Write-Host "  target      : $(if ([string]::IsNullOrWhiteSpace($Target)) { 'FIXTURE (fixture-init seeded-bugs)' } else { $Target })"
 Write-Host "  base ref    : $Base"

@@ -30,10 +30,10 @@ Resolve which runs the agent will mine, and how many there are.
 - **A run-id range or count arg** -> narrow to that subset (a count picks the N most recent
   runs; a range picks the runs in it).
 
-Count the runs in scope. This unit is EXPLORATORY: the pattern floor needs accumulated data
-to separate a real recurring failure from a one-off.
+Count the runs in scope. Harness-tuning is EXPLORATORY: the pattern floor needs accumulated
+data to separate a real recurring failure from a one-off.
 
-- **WARN if fewer than 5 runs are available.** State plainly that U16 is exploratory and the
+- **WARN if fewer than 5 runs are available.** State plainly that harness-tuning is exploratory and the
   pattern floor (>=2-3 occurrences across runs) needs accumulated data -- with < 5 runs the
   agent will likely find few or no actionable patterns, and that is the expected, honest
   outcome, not a failure. Offer to proceed anyway (the agent will mine what exists and report

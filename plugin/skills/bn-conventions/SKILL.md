@@ -21,13 +21,13 @@ Read the one you need; do not read them all by reflex.
   and the `ledger.md` template. Read this to **open, resume, inspect, or write to a
   run** -- before creating a run dir, editing the unit-status table, appending to
   the log, or writing a progress note.
-- **`references/envelope.md`** -- the delegation-envelope spec and template (created
-  by U7; forward-reference). Read this to **construct or honor a spawn envelope**:
-  objective, artifact path, output format, boundaries, tool guidance, and the
-  budget (`max_children` / `model_tier` / `depth_remaining`). Every lead echoes its
-  envelope into its progress file on start. Its companion
-  **`references/envelope-test-plan.md`** is the budget-behavior test plan (max_children
-  cap, depth-floor inline, envelope echo, effort scaling) executed against the fixture at U8.
+- **`references/envelope.md`** -- the delegation-envelope spec and template. Read
+  this to **construct or honor a spawn envelope**: objective, artifact path, output
+  format, boundaries, tool guidance, and the budget (`max_children` / `model_tier` /
+  `depth_remaining`). Every lead echoes its envelope into its progress file on start.
+  Its companion **`references/envelope-test-plan.md`** is the budget-behavior test
+  plan (max_children cap, depth-floor inline, envelope echo, effort scaling),
+  exercised against the fixture through the review subtree.
 - **`references/knowledge-store.md`** -- the `docs/solutions/` schema (v1-compatible):
   frontmatter contract, the two tracks (bug / knowledge), category taxonomy, and YAML
   safety rules. Read this to **write or curate a solution doc**, or a candidate lesson

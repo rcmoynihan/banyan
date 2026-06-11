@@ -9,9 +9,8 @@ argument-hint: "[feature/task description | path to a research brief]"
 The trunk's planning procedure. The TRUNK is the **single writer of the plan** (invariant 2)
 — there is no plan-lead agent. This skill has the trunk orchestrate a panel directly: spawn
 approach **generators** with different priors, score their drafts with a **judge panel**,
-then the trunk **synthesizes the winner and writes the plan itself**. This replaces v1's weak
-"deepening pass" with a real judge panel (N generators with different priors, scored by cheap
-independent judges, synthesized from the winner).
+then the trunk **synthesizes the winner and writes the plan itself**. Independent judges
+provide the external signal a plan needs — an agent rereading its own draft does not.
 
 Lightweight efforts **skip the panel entirely** — the trunk drafts directly. The effort
 classification *must* change the spawn count (0 vs. 5+), and that is observable in the ledger.

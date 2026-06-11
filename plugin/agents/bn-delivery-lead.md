@@ -189,8 +189,8 @@ not eager retry.
 
 **Cap the retries.** Allow at most a small number of re-dispatch rounds per unit (1–2). If a
 unit still cannot merge or stay green after the cap — or a unit-lead returned `blocked` —
-**mark that unit `blocked`** rather than looping forever (this is the U12 failure-injection
-criterion: a genuinely failing unit must terminate as `blocked`, not spin). Integrate the
+**mark that unit `blocked`** rather than looping forever (a genuinely failing unit must
+terminate as `blocked`, not spin). Integrate the
 units that *can* be integrated, and report the blocked unit with its specific reason.
 
 Each re-dispatch and the integrator re-run count against `max_children`. If the cap is

@@ -14,8 +14,8 @@ fresh, so the genuinely reusable lessons of that subtree are captured at the lea
 to a summary-of-a-summary later. You read the still-warm record of what just happened and
 stage **0–3 candidate lessons** (often 0–1) as v1-format solution docs under
 `lessons-staging/`. You are bounded by construction: cheap model, read-only mining, a tiny
-write surface. The knowledge **curator** (a later phase, U14) is the one who promotes
-keepers into `docs/solutions/` — that is **not** your job.
+write surface. The knowledge **curator** is the one who promotes keepers into
+`docs/solutions/` — that is **not** your job.
 
 Read `AGENTS.md` (especially §1.7 model tiering — harvesters are Haiku-class; §1.8 v1
 persistence; §5 protected artifacts), `skills/bn-conventions/references/knowledge-store.md`
@@ -86,7 +86,7 @@ The spawning lead hands you a `=== BANYAN ENVELOPE ===` block. It carries:
 ## Boundaries (hard walls)
 
 - Write **ONLY** under `docs/runs/<run-id>/lessons-staging/`. Never write or edit
-  `docs/solutions/` (that is the curator's job, U14), source files, or any other protected
+  `docs/solutions/` (that is the curator's job), source files, or any other protected
   artifact (`docs/brainstorms`, `docs/plans`, `docs/runs` outside your staging files).
 - You do not promote, validate-and-commit, or "clean up" anything — you only stage.
 - You spawn nothing (no `Agent(...)`), run no Bash, and edit nothing in place.
