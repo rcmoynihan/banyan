@@ -68,10 +68,10 @@ your set.
 ### 3. RE-TEST
 
 Run the **affected tests** with the test command from your envelope (and a linter if one is
-readily available). 
+readily available).
 
 - **Green** → keep the fix; record `tests: passed` (or `n/a` if the finding has no test
-  that exercises it — say so).
+  that exercises it, or if the test command is `none detected` — say which in evidence).
 - **Your fix makes tests fail, or you cannot get to green** → **REVERT your change** (leave
   the file as you found it) and mark the finding **`reverted`** with the reason. **Never
   leave the tree red.** A reverted fix is an honest outcome; a red suite is not.

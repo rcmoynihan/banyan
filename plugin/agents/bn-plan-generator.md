@@ -85,9 +85,10 @@ Write to your `artifact_path` a full plan in the v1 structure (match
 <2-4 sentences: what the change delivers and the done condition.>
 
 ## Requirements
-- **R1:** <a single testable requirement the plan must satisfy>
-- **R2:** <...>
-(Stable R-IDs. Each unit's verification should trace back to one or more R-IDs.)
+- **R1 [confirmed]:** <a single testable requirement grounded in the brief, repo evidence,
+  or the user's words>
+- **R2 [assumed]:** <an inferred requirement that fills a spec gap> (confirm by: <one clause>)
+(Stable R-IDs. Every R-ID is tagged. Each unit's verification should trace back to one or more R-IDs.)
 
 ## Design invariants   (include only if the task warrants standing constraints)
 - <constraint that applies to every unit, e.g. "zero new deps", "one writer per file set">
@@ -116,6 +117,9 @@ Rules for the draft:
 
 - **Stable U-IDs** (`U1`, `U2`, …) and **R-IDs** (`R1`, …); every unit lists `Goal`,
   `Dependencies`, `Files`, `Approach`, `Verification`. This is the v1 contract.
+- **Every requirement is tagged**: `[confirmed]` when grounded in the brief, repo evidence,
+  or the user's words; `[assumed]` when inferred to fill a spec gap, with an inline
+  `(confirm by: ...)` clause.
 - **Every unit must be verifiable** — name the actual test command or check, not "tests
   pass". Weak verification is the easiest thing for a judge to dock you on.
 - **Honor one-writer-per-file-set (invariant 2):** when units could run as parallel

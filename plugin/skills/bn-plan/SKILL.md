@@ -70,8 +70,9 @@ generator embed this envelope verbatim, filling the prior and the draft path:
 objective:       Draft a full v1-compatible implementation plan for the task, biased by
                  your assigned prior.
 artifact_path:   docs/runs/<run-id>/briefs/plan-draft-<prior>.md
-output_format:   A v1-compatible plan: ## Requirements (R-IDs); ## Implementation Units with
-                 stable U-IDs, each with Goal/Dependencies/Files/Approach/Verification;
+output_format:   A v1-compatible plan: ## Requirements (tagged R-IDs: [confirmed] or
+                 [assumed] with inline (confirm by: ...) clauses); ## Implementation Units with stable
+                 U-IDs, each with Goal/Dependencies/Files/Approach/Verification;
                  ## Sequencing; ## Verification (whole feature). Design invariants if warranted.
 inputs:
   task:            <the task description>
@@ -165,7 +166,8 @@ fixture plan):
 - A header block (title; `**Date:** … · **Plan ID:** NNN · **Type:** <type> · **Status:** draft`)
   and a short overview.
 - A **`## Requirements`** section with stable **R-IDs** (`R1`, `R2`, …) — testable
-  requirements the plan satisfies.
+  requirements the plan satisfies. Every R-ID carries `[confirmed]` or `[assumed]`; each
+  `[assumed]` requirement includes an inline `(confirm by: ...)` clause.
 - **`## Design invariants`** — only if the task warrants standing constraints across units.
 - **`## Implementation Units`** — each unit a `### U<N>: <name>` with **stable U-IDs** and the
   v1 fields: **Goal**, **Dependencies** (U-IDs), **Files** (real repo paths, disjoint per unit
@@ -178,8 +180,10 @@ fixture plan):
 **Synthesize, don't transcribe.** For standard/deep: build primarily from the **winning
 draft**, then **graft the best runner-up ideas** the judges named (Step 4's graft list) — e.g.
 adopt the winner's unit decomposition but pull in a runner-up's rollback unit or risk spike.
-Resolve any conflict in the winner's favor. For **lightweight** (panel skipped): the trunk
-drafts the plan directly from the brief + task, same structure.
+Keep each requirement's `[confirmed]` or `[assumed]` tag with the R-ID it describes, and
+add confirm-by clauses for any assumed requirements introduced by grafted ideas. Resolve any
+conflict in the winner's favor. For **lightweight** (panel skipped): the trunk drafts the
+plan directly from the brief + task, same structure, tagging every trunk-authored R-ID.
 
 Then **record provenance in the ledger**: set U1's row to `done` (artifact = the plan path),
 and append a `## Log` line noting the plan path, the `effort_class`, and — for standard/deep —
@@ -195,6 +199,8 @@ Present a **short** summary to the user:
 - the `effort_class`, and — for standard/deep — the winning prior, the judges' mean scores,
   and which runner-up ideas were grafted; for lightweight, that the **panel was skipped** (and
   that this is visible in the ledger);
+- every `[assumed]` R-ID with its `(confirm by: ...)` clause; if none exist, say there are
+  no assumed requirements;
 - a one-line pointer to the run dir (`docs/runs/<run-id>/`) for the drafts and score sheets.
 
 Do not paste the whole plan into the reply — point at the file (invariant 3). Note that the

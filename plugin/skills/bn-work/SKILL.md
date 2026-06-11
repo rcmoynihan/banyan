@@ -53,6 +53,9 @@ Detect the facts the lead needs; surface anything that would move the user's tre
   `cargo test` (rust), `go test ./...` (go). "none detected" is a valid value -- record
   what you found.
 - **Repo root.** `git rev-parse --show-toplevel` for the scaffolder `--root`.
+- **Boundary check script.** Resolve the absolute path
+  `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/check-boundary.mjs` and record it
+  for the lead. If it is missing, set `boundary_check_script` to `missing`.
 
 ## Step 3: Open the run ledger
 
@@ -70,9 +73,9 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug>
   command under `## Facts / Context`, and append an opening `## Log` line.
 - Seed the `## Units` table from the plan's Implementation Units -- one row per U-ID,
   owner `bn-delivery-lead`, status `pending`, artifact `docs/runs/<run-id>/progress/unit-<U>.md`
-  (the unit-lead's progress artifact; its scoped mini-review lands separately at
-  `findings/unit-<U>-review.json`). The lead owns these rows from here on (single-writer);
-  the trunk does not rewrite them after dispatch.
+  (the unit-lead's progress artifact; its scoped mini-review pair lands separately at
+  `findings/unit-<U>-review.json` and `findings/unit-<U>-spec-fidelity.json`). The lead owns
+  these rows from here on (single-writer); the trunk does not rewrite them after dispatch.
 
 ## Step 4: Build the envelope and spawn bn-delivery-lead
 
@@ -86,13 +89,15 @@ objective:       Implement the plan end to end for run <run-id>: per-unit atomiz
                  and a single integrator merging in dependency order. Commit per unit.
 artifact_path:   docs/runs/<run-id>/delivery-report.md
 output_format:   Markdown delivery report: units done/blocked, merge + suite status,
-                 per-unit mini-review summary (findings/unit-*-review.json), and the
-                 final branch/commit state. Writes progress/ and ledger Units rows too.
+                 per-unit mini-review summary (findings/unit-*-review.json and
+                 findings/unit-*-spec-fidelity.json), and the final branch/commit state.
+                 Writes progress/ and ledger Units rows too.
 inputs:
   plan_path:       <docs/plans/...-plan.md>
   base_branch:     <current branch from Step 2>
   test_command:    <detected repo test command, or "none detected">
   repo_root:       <repo root>
+  boundary_check_script: <absolute path from Step 2, or "missing">
 boundaries:      NEVER push or open a PR -- push/PR is the trunk-level bn-ship step
                  (permission cliff, invariant 6); REPORT the need upward, do not fail
                  silently against it. NEVER switch the user's checked-out branch without
@@ -118,8 +123,9 @@ effort_class:    <lightweight | standard | deep>
 - **effort_class by plan size/risk:** 1-2 trivial units -> `lightweight`; several units
   -> `standard`; many units, OR any plan with migrations / auth / payments -> `deep`.
 - The envelope is the whole contract: the plan path, the base branch, the detected test
-  command, and the repo root all travel inside it. The lead re-reads the plan and owns
-  the whole implement/test/review/merge subtree -- the trunk does not decompose units.
+  command, the boundary check script, and the repo root all travel inside it. The lead
+  re-reads the plan and owns the whole implement/test/review/merge subtree -- the trunk
+  does not decompose units.
 
 ## Step 5: Present the result
 
@@ -128,9 +134,13 @@ the lead's final-message prose -- invariant 3) and present to the user:
 
 - **units done / blocked** -- which U-IDs landed, which are blocked and why;
 - **merge + suite status** -- did the integrator merge all units in dependency order,
-  and did the test command pass on the integrated result;
-- **per-unit mini-review summary** -- the gist from each `findings/unit-*-review.json`
-  (any residual findings the unit-leads could not resolve);
+  and did the test command pass on the integrated result, or is the result
+  `UNVERIFIED (no test command)`;
+- **per-unit mini-review summary** -- the gist from each `findings/unit-*-review.json` and
+  `findings/unit-*-spec-fidelity.json` (any residual findings the unit-leads could not
+  resolve);
+- **boundary findings** -- any OUT files reported by the lead or integrator, plus the
+  lead's adjudication for each accepted violation or re-dispatch;
 - **branch / commit state** -- the per-unit branches and commits, and the integrated
   branch the work now sits on.
 

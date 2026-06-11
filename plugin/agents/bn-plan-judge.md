@@ -65,6 +65,9 @@ Score **every** draft on all four criteria. Each score is an integer **1–5** w
 | **Scope discipline** | Is the scope tight and justified — no gold-plating, no missing essentials? Are deferrals explicit? Does it ship the right amount? |
 | **Verification quality** | Does every unit name a concrete, runnable check that proves it done (a real test command, not "tests pass")? Does whole-feature verification tie back to the requirements? |
 
+`[assumed]` requirements count against feasibility and verification quality in proportion
+to how much of the plan depends on them.
+
 Then a **total** per draft (sum of the four, out of 20). Show your scores in a table:
 
 ```markdown
@@ -89,7 +92,8 @@ Write a **one-paragraph comparative verdict** that:
   the final plan even if that draft does not win (this is what lets the trunk synthesize,
   not just pick);
 - flags any **fatal flaw** in any draft (a cyclic dependency, an unverifiable unit, a missing
-  essential) so the trunk does not graft a broken idea.
+  essential, or a load-bearing `[assumed]` requirement presented without a confirmation path)
+  so the trunk does not graft a broken idea.
 
 ## Step 4 — Write the score sheet, return a verdict plus the path
 

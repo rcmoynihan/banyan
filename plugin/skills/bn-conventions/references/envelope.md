@@ -163,6 +163,16 @@ work is genuinely too big for one context, or context pressure forces a split --
 never preemptively because the budget *allows* it. A generous `depth_remaining` is
 a ceiling, not a target. Most subtrees stay shallow.
 
+## Degraded validation (`test_command: "none detected"`)
+
+Test-command detection stays cheap and finite. When an envelope carries
+`test_command: "none detected"`, every consumer treats validation as unavailable:
+it never claims the suite was run, green, or passed; it names the missing validation
+in its artifact; and it propagates an explicit `UNVERIFIED (no test command)` marker
+upward in its verdict line. If a plan unit names its own runnable `Verification`
+check, the unit runs that check as a substitute and records exactly what ran. The
+upward marker remains because the repo-level validation spine is unavailable.
+
 ---
 
 ## effort_class -> spawn-count scaling
