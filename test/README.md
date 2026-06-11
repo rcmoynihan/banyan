@@ -11,3 +11,7 @@ Reproducible targets for exercising Banyan's subtrees.
   doc that names a migration that names a config whose real value is the buried
   leaf fact), for exercising `bn-research-lead` and `bn-thread-chaser`. See its
   README.
+- **`debug-scenario/`** — a planted single-bug app whose failing test blames the
+  wrong module (the assertion points at inventory; the defect is the orders
+  rollback), for exercising `bn-debug-lead` and `bn-hypothesis-investigator`.
+  One test red by design; see its README for the answer key and live-run hygiene.
