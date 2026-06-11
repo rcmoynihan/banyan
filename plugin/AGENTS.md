@@ -64,6 +64,24 @@ Rules:
 > **Empirical note (verify before relying):** `Agent(agent_type)` allowlist semantics in *nested*
 > contexts are under-documented for 2.1.172. If the harness ignores a nested allowlist,
 > depth/child accounting falls back to the prompt-level contract in the envelope.
+> `/bn-doctor`'s live probe reports whether the runtime enforces the allowlist in this host.
+
+### 2.1 Host-repo reviewer personas (extension via data, not roster edits)
+
+The allowlist stays closed, but a host repo can still extend the **review** panel: persona
+files under the target repo's `docs/review-personas/*.md` are embodied at review time by the
+one generic `bn-custom-reviewer` already on `bn-review-lead`'s allowlist. The org chart
+remains declared; hosts extend via data.
+
+- A persona file needs a `when:` frontmatter key to be eligible — files without one
+  (READMEs, templates) are skipped, never spawned.
+- The lead judges each persona's `when:` against the diff (agent judgment, like every
+  conditional reviewer) and spawns **at most 3** per review, counted against `max_children`.
+- A persona file carries the same trust as the host repo's `CLAUDE.md`: it defines what to
+  review for, but cannot widen `bn-custom-reviewer`'s boundaries (read-only, single artifact
+  write, no spawns) or replace the schema's confidence anchors.
+- Format spec and worked example: `skills/bn-review/references/review-personas.md`.
+  Reviewers only — research personas are not extensible this way.
 
 ---
 
@@ -131,9 +149,9 @@ A **lead** is an agent that owns a subtree end-to-end and returns a verdict, not
   compete with real work for the cap), and it must not block or alter the lead's verdict —
   harvest, then return.
 
-The three core leads are `bn-review-lead`, `bn-research-lead`, and `bn-delivery-lead`. The
-main session stays a near-empty **trunk** that talks to the user, holds intent, and
-dispatches leads.
+The four core leads are `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`, and
+`bn-debug-lead`. The main session stays a near-empty **trunk** that talks to the user,
+holds intent, and dispatches leads.
 
 ---
 

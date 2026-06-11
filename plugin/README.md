@@ -14,8 +14,8 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (29 agents)
-  skills/                      one skill per directory: bn-*/SKILL.md (8 skills)
+  agents/                      one agent per file: bn-*.md (36 agents)
+  skills/                      one skill per directory: bn-*/SKILL.md (14 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/new-run.mjs
   schemas/                     shared schema files (findings, solution frontmatter)
@@ -34,29 +34,41 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | Skill | What it does |
 | --- | --- |
 | `/bn-grow` | The full pipeline: research → plan (judged) → deliver → review → ship gate → background curate, from a small trunk. |
+| `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-plan`. |
 | `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |
 | `/bn-plan` | A plan from a judge panel: prior-biased generators scored by independent judges, synthesized by the trunk. |
 | `/bn-work` | Execute a plan via worktree-isolated unit subtrees and a single integrator. |
+| `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel investigators, confirm the causal chain, then fix test-first on your say-so. |
+| `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
+| `/bn-ship` | Commit → push → PR with an adaptive, value-first description. The one place in Banyan allowed to push. |
+| `/bn-resolve-pr` | Resolve PR review feedback: parallel resolver agents fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
 | `/bn-curate` | Consolidate harvested lessons into `docs/solutions/`. |
 | `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself (human-applied only). |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
+| `/bn-doctor` | Capability check: environment floor, asset integrity, and a live depth-2 nested-spawn + allowlist-enforcement probe. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 
 ## Agents
 
-- **Leads** — `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`: each owns a
-  subtree end-to-end and returns a verdict plus artifact paths. Their `Agent(...)`
-  allowlists are their team rosters.
+- **Leads** — `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`,
+  `bn-debug-lead`: each owns a subtree end-to-end and returns a verdict plus artifact
+  paths. Their `Agent(...)` allowlists are their team rosters.
 - **Delivery workers** — `bn-unit-lead` (one implementation unit in an isolated
   worktree: implement → test-fix → mini-review → commit), `bn-integrator` (single
   writer for the merge; runs the full suite; never pushes).
 - **Reviewer panel** — 6 always-on reviewers (correctness, testing, maintainability,
-  project standards, agent-native, learnings) and 6 conditional reviewers (security,
-  performance, API contract, data migration, reliability, adversarial), vendored from
-  compound-engineering. `bn-finding-owner` fixes-and-verifies one confirmed finding.
-- **Researchers** — repo, best-practices, framework-docs, and web researchers
-  (read-only leaves), plus `bn-thread-chaser` (recursive, depth-gated) and
-  `bn-deployment-verifier`.
+  project standards, agent-native, learnings) and 7 conditional reviewers (security,
+  performance, API contract, data migration, reliability, adversarial, plus
+  previous-comments for PR-mode reviews), vendored from compound-engineering;
+  `bn-custom-reviewer` embodies host-repo persona files (AGENTS.md §2.1).
+  `bn-finding-owner` fixes-and-verifies one confirmed finding.
+- **Researchers & investigators** — repo, best-practices, framework-docs, and web
+  researchers (read-only leaves), `bn-thread-chaser` (recursive, depth-gated),
+  `bn-deployment-verifier`, and `bn-hypothesis-investigator` (tests ONE debug
+  hypothesis with predictions-before-evidence).
+- **PR feedback** — `bn-pr-comment-resolver` (evaluates and locally fixes one disjoint
+  file-set's worth of review threads; the `/bn-resolve-pr` trunk does everything
+  outward-facing).
 - **Planning panel** — `bn-plan-generator` (one draft per prior: mvp / risk / ops)
   and `bn-plan-judge` (independent rubric scoring).
 - **Compounding loop** — `bn-lesson-harvester` (Haiku-class leaf every lead spawns
@@ -64,6 +76,8 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
   `docs/solutions/`).
 - **`bn-harness-engineer`** — mines run ledgers and transcripts for recurring harness
   failures and writes proposals to `docs/harness-proposals/`; never self-applies.
+- **Doctor probes** — `bn-probe` + `bn-probe-leaf` (Haiku-class pair `/bn-doctor` uses
+  to verify live depth-2 nesting and allowlist enforcement; health-check only).
 
 ## Install for development
 
@@ -75,7 +89,9 @@ Two scripts under the repo-root `scripts/` directory drive the dev loop:
   `/bn-hello` headlessly (`claude -p`) to confirm the load path works.
 
 After installing, open a `claude` session in the sandbox and run `/bn-hello`; it
-should confirm Banyan is installed and print its version.
+should confirm Banyan is installed and print its version. For the full capability
+check — environment floor, asset integrity, and the live depth-2 nested-spawn probe —
+run `/bn-doctor`.
 
 ## Add as a marketplace
 

@@ -3,25 +3,257 @@
   "pinned_sha": "4719dc509fdc45656a830e3ed6060f674e206076",
   "date_pinned": "2026-06-10",
   "files": [
-    { "local": "plugin/agents/bn-correctness-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-correctness-reviewer.md", "mode": "ported", "group": "always-on" },
-    { "local": "plugin/agents/bn-testing-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-testing-reviewer.md", "mode": "ported", "group": "always-on" },
-    { "local": "plugin/agents/bn-maintainability-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-maintainability-reviewer.md", "mode": "ported", "group": "always-on" },
-    { "local": "plugin/agents/bn-project-standards-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-project-standards-reviewer.md", "mode": "ported", "group": "always-on" },
-    { "local": "plugin/agents/bn-agent-native-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-agent-native-reviewer.md", "mode": "ported", "group": "always-on" },
-    { "local": "plugin/agents/bn-learnings-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-learnings-researcher.md", "mode": "ported", "group": "always-on" },
-    { "local": "plugin/agents/bn-security-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-security-reviewer.md", "mode": "ported", "group": "conditional" },
-    { "local": "plugin/agents/bn-performance-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-performance-reviewer.md", "mode": "ported", "group": "conditional" },
-    { "local": "plugin/agents/bn-api-contract-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-api-contract-reviewer.md", "mode": "ported", "group": "conditional" },
-    { "local": "plugin/agents/bn-data-migration-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-data-migration-reviewer.md", "mode": "ported", "group": "conditional" },
-    { "local": "plugin/agents/bn-reliability-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-reliability-reviewer.md", "mode": "ported", "group": "conditional" },
-    { "local": "plugin/agents/bn-adversarial-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-adversarial-reviewer.md", "mode": "ported", "group": "conditional" },
-    { "local": "plugin/agents/bn-repo-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-repo-research-analyst.md", "mode": "ported", "group": "researcher" },
-    { "local": "plugin/agents/bn-best-practices-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-best-practices-researcher.md", "mode": "ported", "group": "researcher" },
-    { "local": "plugin/agents/bn-framework-docs-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-framework-docs-researcher.md", "mode": "ported", "group": "researcher" },
-    { "local": "plugin/agents/bn-web-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-web-researcher.md", "mode": "ported", "group": "researcher" },
-    { "local": "plugin/agents/bn-deployment-verifier.md", "upstream": "plugins/compound-engineering/agents/ce-deployment-verification-agent.md", "mode": "ported", "group": "researcher" },
-    { "local": "plugin/schemas/solution-frontmatter.yaml", "upstream": "plugins/compound-engineering/skills/ce-compound/references/schema.yaml", "mode": "verbatim", "group": "persistence" },
-    { "local": "scripts/validate-frontmatter.py", "upstream": "plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py", "mode": "ported", "group": "persistence" },
-    { "local": "plugin/schemas/findings-schema.json", "upstream": "plugins/compound-engineering/skills/ce-code-review/references/findings-schema.json", "mode": "verbatim", "group": "persistence" }
+    {
+      "local": "plugin/agents/bn-correctness-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-correctness-reviewer.md",
+      "mode": "ported",
+      "group": "always-on"
+    },
+    {
+      "local": "plugin/agents/bn-testing-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-testing-reviewer.md",
+      "mode": "ported",
+      "group": "always-on"
+    },
+    {
+      "local": "plugin/agents/bn-maintainability-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-maintainability-reviewer.md",
+      "mode": "ported",
+      "group": "always-on"
+    },
+    {
+      "local": "plugin/agents/bn-project-standards-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-project-standards-reviewer.md",
+      "mode": "ported",
+      "group": "always-on"
+    },
+    {
+      "local": "plugin/agents/bn-agent-native-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-agent-native-reviewer.md",
+      "mode": "ported",
+      "group": "always-on"
+    },
+    {
+      "local": "plugin/agents/bn-learnings-researcher.md",
+      "upstream": "plugins/compound-engineering/agents/ce-learnings-researcher.md",
+      "mode": "ported",
+      "group": "always-on"
+    },
+    {
+      "local": "plugin/agents/bn-security-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-security-reviewer.md",
+      "mode": "ported",
+      "group": "conditional"
+    },
+    {
+      "local": "plugin/agents/bn-performance-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-performance-reviewer.md",
+      "mode": "ported",
+      "group": "conditional"
+    },
+    {
+      "local": "plugin/agents/bn-api-contract-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-api-contract-reviewer.md",
+      "mode": "ported",
+      "group": "conditional"
+    },
+    {
+      "local": "plugin/agents/bn-data-migration-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-data-migration-reviewer.md",
+      "mode": "ported",
+      "group": "conditional"
+    },
+    {
+      "local": "plugin/agents/bn-reliability-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-reliability-reviewer.md",
+      "mode": "ported",
+      "group": "conditional"
+    },
+    {
+      "local": "plugin/agents/bn-adversarial-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-adversarial-reviewer.md",
+      "mode": "ported",
+      "group": "conditional"
+    },
+    {
+      "local": "plugin/agents/bn-repo-researcher.md",
+      "upstream": "plugins/compound-engineering/agents/ce-repo-research-analyst.md",
+      "mode": "ported",
+      "group": "researcher"
+    },
+    {
+      "local": "plugin/agents/bn-best-practices-researcher.md",
+      "upstream": "plugins/compound-engineering/agents/ce-best-practices-researcher.md",
+      "mode": "ported",
+      "group": "researcher"
+    },
+    {
+      "local": "plugin/agents/bn-framework-docs-researcher.md",
+      "upstream": "plugins/compound-engineering/agents/ce-framework-docs-researcher.md",
+      "mode": "ported",
+      "group": "researcher"
+    },
+    {
+      "local": "plugin/agents/bn-web-researcher.md",
+      "upstream": "plugins/compound-engineering/agents/ce-web-researcher.md",
+      "mode": "ported",
+      "group": "researcher"
+    },
+    {
+      "local": "plugin/agents/bn-deployment-verifier.md",
+      "upstream": "plugins/compound-engineering/agents/ce-deployment-verification-agent.md",
+      "mode": "ported",
+      "group": "researcher"
+    },
+    {
+      "local": "plugin/schemas/solution-frontmatter.yaml",
+      "upstream": "plugins/compound-engineering/skills/ce-compound/references/schema.yaml",
+      "mode": "verbatim",
+      "group": "persistence"
+    },
+    {
+      "local": "scripts/validate-frontmatter.py",
+      "upstream": "plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py",
+      "mode": "ported",
+      "group": "persistence"
+    },
+    {
+      "local": "plugin/schemas/findings-schema.json",
+      "upstream": "plugins/compound-engineering/skills/ce-code-review/references/findings-schema.json",
+      "mode": "verbatim",
+      "group": "persistence"
+    },
+    {
+      "local": "plugin/skills/bn-commit/SKILL.md",
+      "upstream": "plugins/compound-engineering/skills/ce-commit/SKILL.md",
+      "mode": "ported",
+      "group": "lifecycle"
+    },
+    {
+      "local": "plugin/skills/bn-ship/SKILL.md",
+      "upstream": "plugins/compound-engineering/skills/ce-commit-push-pr/SKILL.md",
+      "mode": "ported",
+      "group": "lifecycle"
+    },
+    {
+      "local": "plugin/skills/bn-ship/references/branch-creation.md",
+      "upstream": "plugins/compound-engineering/skills/ce-commit-push-pr/references/branch-creation.md",
+      "mode": "ported",
+      "group": "lifecycle"
+    },
+    {
+      "local": "plugin/skills/bn-ship/references/pr-description-writing.md",
+      "upstream": "plugins/compound-engineering/skills/ce-commit-push-pr/references/pr-description-writing.md",
+      "mode": "ported",
+      "group": "lifecycle"
+    },
+    {
+      "local": "plugin/skills/bn-resolve-pr/SKILL.md",
+      "upstream": "plugins/compound-engineering/skills/ce-resolve-pr-feedback/SKILL.md",
+      "mode": "ported",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/skills/bn-resolve-pr/references/full-mode.md",
+      "upstream": "plugins/compound-engineering/skills/ce-resolve-pr-feedback/references/full-mode.md",
+      "mode": "ported",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/skills/bn-resolve-pr/references/targeted-mode.md",
+      "upstream": "plugins/compound-engineering/skills/ce-resolve-pr-feedback/references/targeted-mode.md",
+      "mode": "ported",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/skills/bn-resolve-pr/scripts/get-pr-comments",
+      "upstream": "plugins/compound-engineering/skills/ce-resolve-pr-feedback/scripts/get-pr-comments",
+      "mode": "verbatim",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/skills/bn-resolve-pr/scripts/get-thread-for-comment",
+      "upstream": "plugins/compound-engineering/skills/ce-resolve-pr-feedback/scripts/get-thread-for-comment",
+      "mode": "verbatim",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/skills/bn-resolve-pr/scripts/reply-to-pr-thread",
+      "upstream": "plugins/compound-engineering/skills/ce-resolve-pr-feedback/scripts/reply-to-pr-thread",
+      "mode": "verbatim",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/skills/bn-resolve-pr/scripts/resolve-pr-thread",
+      "upstream": "plugins/compound-engineering/skills/ce-resolve-pr-feedback/scripts/resolve-pr-thread",
+      "mode": "verbatim",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/agents/bn-pr-comment-resolver.md",
+      "upstream": "plugins/compound-engineering/agents/ce-pr-comment-resolver.md",
+      "mode": "ported",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/agents/bn-previous-comments-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-previous-comments-reviewer.md",
+      "mode": "ported",
+      "group": "pr-feedback"
+    },
+    {
+      "local": "plugin/skills/bn-brainstorm/SKILL.md",
+      "upstream": "plugins/compound-engineering/skills/ce-brainstorm/SKILL.md",
+      "mode": "ported",
+      "group": "brainstorm"
+    },
+    {
+      "local": "plugin/skills/bn-brainstorm/references/brainstorm-sections.md",
+      "upstream": "plugins/compound-engineering/skills/ce-brainstorm/references/brainstorm-sections.md",
+      "mode": "ported",
+      "group": "brainstorm"
+    },
+    {
+      "local": "plugin/skills/bn-brainstorm/references/synthesis-summary.md",
+      "upstream": "plugins/compound-engineering/skills/ce-brainstorm/references/synthesis-summary.md",
+      "mode": "ported",
+      "group": "brainstorm"
+    },
+    {
+      "local": "plugin/skills/bn-brainstorm/references/markdown-rendering.md",
+      "upstream": "plugins/compound-engineering/skills/ce-brainstorm/references/markdown-rendering.md",
+      "mode": "ported",
+      "group": "brainstorm"
+    },
+    {
+      "local": "plugin/skills/bn-brainstorm/references/universal-brainstorming.md",
+      "upstream": "plugins/compound-engineering/skills/ce-brainstorm/references/universal-brainstorming.md",
+      "mode": "ported",
+      "group": "brainstorm"
+    },
+    {
+      "local": "plugin/skills/bn-brainstorm/references/handoff.md",
+      "upstream": "plugins/compound-engineering/skills/ce-brainstorm/references/handoff.md",
+      "mode": "ported",
+      "group": "brainstorm"
+    },
+    {
+      "local": "plugin/skills/bn-debug/references/investigation-techniques.md",
+      "upstream": "plugins/compound-engineering/skills/ce-debug/references/investigation-techniques.md",
+      "mode": "verbatim",
+      "group": "debug"
+    },
+    {
+      "local": "plugin/skills/bn-debug/references/anti-patterns.md",
+      "upstream": "plugins/compound-engineering/skills/ce-debug/references/anti-patterns.md",
+      "mode": "verbatim",
+      "group": "debug"
+    },
+    {
+      "local": "plugin/skills/bn-debug/references/defense-in-depth.md",
+      "upstream": "plugins/compound-engineering/skills/ce-debug/references/defense-in-depth.md",
+      "mode": "verbatim",
+      "group": "debug"
+    }
   ]
 }
