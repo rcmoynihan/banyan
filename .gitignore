@@ -6,3 +6,7 @@ Thumbs.db
 # local scratch
 *.local.*
 tmp/
+
+# python
+__pycache__/
+*.pyc

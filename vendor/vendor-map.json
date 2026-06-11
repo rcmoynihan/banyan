@@ -1,0 +1,27 @@
+{
+  "upstream_repo": "https://github.com/EveryInc/compound-engineering-plugin",
+  "pinned_sha": "4719dc509fdc45656a830e3ed6060f674e206076",
+  "date_pinned": "2026-06-10",
+  "files": [
+    { "local": "plugin/agents/bn-correctness-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-correctness-reviewer.md", "mode": "ported", "group": "always-on" },
+    { "local": "plugin/agents/bn-testing-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-testing-reviewer.md", "mode": "ported", "group": "always-on" },
+    { "local": "plugin/agents/bn-maintainability-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-maintainability-reviewer.md", "mode": "ported", "group": "always-on" },
+    { "local": "plugin/agents/bn-project-standards-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-project-standards-reviewer.md", "mode": "ported", "group": "always-on" },
+    { "local": "plugin/agents/bn-agent-native-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-agent-native-reviewer.md", "mode": "ported", "group": "always-on" },
+    { "local": "plugin/agents/bn-learnings-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-learnings-researcher.md", "mode": "ported", "group": "always-on" },
+    { "local": "plugin/agents/bn-security-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-security-reviewer.md", "mode": "ported", "group": "conditional" },
+    { "local": "plugin/agents/bn-performance-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-performance-reviewer.md", "mode": "ported", "group": "conditional" },
+    { "local": "plugin/agents/bn-api-contract-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-api-contract-reviewer.md", "mode": "ported", "group": "conditional" },
+    { "local": "plugin/agents/bn-data-migration-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-data-migration-reviewer.md", "mode": "ported", "group": "conditional" },
+    { "local": "plugin/agents/bn-reliability-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-reliability-reviewer.md", "mode": "ported", "group": "conditional" },
+    { "local": "plugin/agents/bn-adversarial-reviewer.md", "upstream": "plugins/compound-engineering/agents/ce-adversarial-reviewer.md", "mode": "ported", "group": "conditional" },
+    { "local": "plugin/agents/bn-repo-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-repo-research-analyst.md", "mode": "ported", "group": "researcher" },
+    { "local": "plugin/agents/bn-best-practices-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-best-practices-researcher.md", "mode": "ported", "group": "researcher" },
+    { "local": "plugin/agents/bn-framework-docs-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-framework-docs-researcher.md", "mode": "ported", "group": "researcher" },
+    { "local": "plugin/agents/bn-web-researcher.md", "upstream": "plugins/compound-engineering/agents/ce-web-researcher.md", "mode": "ported", "group": "researcher" },
+    { "local": "plugin/agents/bn-deployment-verifier.md", "upstream": "plugins/compound-engineering/agents/ce-deployment-verification-agent.md", "mode": "ported", "group": "researcher" },
+    { "local": "plugin/schemas/solution-frontmatter.yaml", "upstream": "plugins/compound-engineering/skills/ce-compound/references/schema.yaml", "mode": "verbatim", "group": "persistence" },
+    { "local": "scripts/validate-frontmatter.py", "upstream": "plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py", "mode": "ported", "group": "persistence" },
+    { "local": "plugin/schemas/findings-schema.json", "upstream": "plugins/compound-engineering/skills/ce-code-review/references/findings-schema.json", "mode": "verbatim", "group": "persistence" }
+  ]
+}

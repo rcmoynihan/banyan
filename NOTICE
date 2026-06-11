@@ -1,0 +1,14 @@
+Banyan
+Copyright (c) 2026 rcmoynihan
+Licensed under the MIT License (see LICENSE).
+
+This product incorporates leaf assets (reviewer/researcher agent personas and
+persistence-layer schemas/scripts) harvested from EveryInc's compound-engineering
+plugin, which is licensed under the MIT License.
+
+  Upstream: https://github.com/EveryInc/compound-engineering-plugin
+  Pinned at SHA: 4719dc509fdc45656a830e3ed6060f674e206076
+
+The vendored files, their upstream provenance, and every local edit are recorded
+in vendor/MANIFEST.md. The upstream MIT license text is reproduced verbatim in
+LICENSES/compound-engineering-MIT.txt.
