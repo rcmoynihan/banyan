@@ -114,24 +114,31 @@ call (invariant 6). State this clearly: the work is committed per unit and revie
 on its branch, but it has NOT been shipped, and shipping is the user's next deliberate
 step. Do not push here under any circumstances.
 
-## Phase 7 -- Curate (background)
+## Phase 7 -- Curate handoff (non-blocking)
 
-Dispatch `/bn-curate` (or the `bn-knowledge-curator` agent) in the BACKGROUND to
-consolidate this run's `docs/runs/<run-id>/lessons-staging/` candidates into
-`docs/solutions/` (promoting keepers, stripping `status: candidate`, emptying staging).
-The `bn-lesson-harvester` already fired at each subtree boundary throughout the grow, so
-staging is already populated; this is the sleep-time consolidation, not a blocking step.
-Because it runs in the background, it inherits the permission cliff -- it consolidates
-knowledge files only and pushes nothing. Note that curation is dispatched and that its
-result lands asynchronously; do not wait on it to present.
+Prepare curation for this run's `docs/runs/<run-id>/lessons-staging/` candidates. The
+`bn-lesson-harvester` already fired at each subtree boundary throughout the grow, so
+staging is already populated; curation is sleep-time consolidation, not a grow gate.
+
+Use the lightest available handoff:
+
+- If the runtime provides a real detached/background invocation mechanism, dispatch
+  `/bn-curate <run-id>` (or the `bn-knowledge-curator` agent with `/bn-curate`'s envelope)
+  through that mechanism and do not wait for it.
+- If no detached/background mechanism is available, append the handoff to the ledger and
+  present `/bn-curate <run-id>` as the follow-up command.
+
+Do not claim a background curator is running unless one was actually started. Curation
+consolidates knowledge files only and pushes nothing.
 
 ## Phase 8 -- Present
 
 Give the user a SHORT narrative: what was built, the phase outcomes (research brief ->
 plan -> delivery -> review verdict), the ship gate (committed, review-clean, NOT pushed --
-ship is yours), and that curation is running in the background. Point at the ledger path
-`docs/runs/<run-id>/ledger.md` -- it tells the full story; the brief, plan, delivery
-report, and verdict all live under that run dir.
+ship is yours), and the curation handoff state (background started, or run
+`/bn-curate <run-id>`). Point at the ledger path `docs/runs/<run-id>/ledger.md` -- it
+tells the full story; the brief, plan, delivery report, and verdict all live under that
+run dir.
 
 **Trunk-stays-small target.** For a medium feature, the trunk should have spent a SMALL
 fraction of its context window on the whole grow -- target under 20%. The trunk holds the

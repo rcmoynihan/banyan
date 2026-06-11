@@ -31,12 +31,13 @@ HEAD:<upstream-path> | diff - <local-path>`.
   review lead depend on. Not edited.
 - Byte-match vs pinned SHA: CLEAN (no diff).
 
-### 3. `scripts/validate-frontmatter.py` -- VENDORED WITH MINIMAL PLUMBING EDIT
+### 3. `plugin/skills/bn-conventions/scripts/validate-frontmatter.py` -- VENDORED WITH PLUGIN PACKAGING
 
 - Upstream: `plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py`
-- Mode: copied from the pinned SHA, then one minimal *file-location plumbing*
-  edit applied. The per-file validation RULES are byte-identical to upstream.
-- Byte-match vs pinned SHA: DIFFERS (intentional; the plumbing edit below).
+- Mode: ported from the pinned SHA. The parser-safety checks match upstream's
+  delimiter and scalar-quoting rules, and the Banyan copy also accepts a
+  directory target.
+- Byte-match vs pinned SHA: DIFFERS (intentional; packaged under `plugin/`).
 
 #### Schema-location investigation (no edit needed)
 
@@ -51,28 +52,19 @@ The vendored `solution-frontmatter.yaml` remains the human/agent-facing contract
 (summarized in `plugin/skills/bn-conventions/references/knowledge-store.md`); the
 script is independent of it by design.
 
-#### The one plumbing edit: directory-walk support
+#### Packaging and directory-walk support
 
 - What: upstream `main()` accepted exactly one argument and required it to be a
   single file (`if len(argv) != 2` then `os.path.isfile`). The U5 contract
   requires the validator to accept "a given solution markdown file **or a
   directory of them**" and exit non-zero on any violation.
-- Change: the per-file validation body was extracted verbatim into a new
-  `validate_file(doc_path) -> int` function (its checks unchanged, line-for-line).
-  A new `main()` dispatches on the argument: a file path calls `validate_file`
-  directly (upstream behavior preserved); a directory is walked with `os.walk`
-  for every `*.md` beneath it, each validated via `validate_file`, returning
-  exit 1 if ANY file fails and exit 0 if all pass. A directory with no `.md`
-  files is a usage error (exit 2). The module docstring's Usage line was updated
-  to document the directory mode and to flag this edit.
+- Change: the plugin-packaged script dispatches on the argument: a file path
+  validates directly; a directory is walked for every `*.md` beneath it, each
+  validated via `validate_file`, returning exit 1 if ANY file fails and exit 0
+  if all pass. A directory with no `.md` files is a usage error (exit 2).
 - Why: minimal plumbing to meet the file-location contract without touching any
   validation rule. Directory iteration changes *which* files are checked, not
-  *how* each is checked -- every regex/delimiter rule is byte-identical to
-  upstream. Single-file invocation is unchanged, so any existing caller that
-  passes one file path behaves exactly as before.
-- Rationale for ownership of the edit: this is the only divergence; it is
-  isolated to argument handling and a directory walk, both of which are
-  re-derivable from upstream if the pin is bumped.
+  *how* each is checked.
 
 ## Verification performed (U5)
 

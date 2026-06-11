@@ -1,167 +1,19 @@
 #!/usr/bin/env python3
-"""Validate ce-compound docs/solutions/ frontmatter for parser-safety issues.
+"""Run Banyan's plugin-packaged frontmatter validator."""
 
-Usage:
-    python3 validate-frontmatter.py <doc-path-or-dir>
-
-    <doc-path-or-dir> may be a single markdown file or a directory. When a
-    directory is given, every `*.md` file beneath it (recursively) is
-    validated and the process exits non-zero if ANY file fails. [Banyan
-    plumbing edit — see vendor/edits/persistence.md. The per-file checks
-    below are byte-identical to upstream; only the argument handling and
-    directory walk were added so the validator can be pointed at
-    docs/solutions/ as a whole.]
-
-Exit codes:
-    0 — frontmatter passes all checks
-    1 — validation failure (diagnostics on stderr)
-    2 — usage error (bad arguments, missing file)
-
-Scope: this script catches *parser-safety* issues — frontmatter that strict
-YAML parsers will silently misread. It does NOT validate against the
-schema's required-field or enum-value rules; that's a separate concern. The
-intent is to prevent the silent-data-loss bug class where YAML's quoting
-rules truncate or reframe scalar values without raising.
-
-Checks (regex-based, no YAML parser dependency):
-    1. File starts and ends frontmatter with `---` lines (matched as full
-       lines, not substrings — `----` and `---extra` are rejected)
-    2. No top-level scalar value contains ` #` unquoted (silent comment
-       truncation — what Codex caught on PR #695)
-    3. No top-level scalar value contains `: ` unquoted (mapping confusion —
-       what surfaced in a 2026-04-16 plan doc's `title:` field)
-
-The script does NOT flag values starting with YAML reserved indicators
-(`` ` ``, `*`, `&`, `!`, etc.) because those produce loud parser errors
-downstream rather than silent corruption — they're already caught by
-whatever consumes the doc. This validator's purpose is silent-corruption
-prevention, not lint.
-
-Pure-stdlib (no PyYAML or other third-party deps). Runs in <50ms typical.
-Designed to produce concrete, actionable error messages so the calling
-agent can fix and retry without ambiguity.
-"""
-import os
-import re
-import sys
+from pathlib import Path
+import runpy
 
 
-def usage_fail(msg: str) -> "NoReturn":
-    sys.stderr.write(f"validate-frontmatter: {msg}\n")
-    sys.exit(2)
-
-
-def validate_file(doc_path: str) -> int:
-    with open(doc_path) as f:
-        text = f.read()
-
-    issues: list[str] = []
-
-    # Check 1: frontmatter delimiters. Match the delimiter as a complete
-    # line whose stripped content is exactly `---` — substring matching
-    # (e.g. `text.find("\n---", 4)`) would falsely accept `----` or
-    # `---extra` as a terminator and let malformed docs slip through to
-    # downstream parsers that require a strict `---` line.
-    lines = text.split("\n")
-    if not lines or lines[0].rstrip() != "---":
-        sys.stderr.write(
-            f"FAIL: {doc_path}\n"
-            f"  file does not start with '---' frontmatter delimiter line\n"
-        )
-        return 1
-
-    end_idx: int | None = None
-    for i in range(1, len(lines)):
-        if lines[i].rstrip() == "---":
-            end_idx = i
-            break
-
-    if end_idx is None:
-        sys.stderr.write(
-            f"FAIL: {doc_path}\n"
-            f"  frontmatter not closed (no '---' line after the opening delimiter)\n"
-        )
-        return 1
-
-    fm_text = "\n".join(lines[1:end_idx])
-
-    # Checks 2 & 3: silent-corruption quoting risks on top-level scalar
-    # fields. We scan line-by-line and only flag top-level mapping entries
-    # (no leading whitespace) whose value isn't already quoted/structured.
-    for lineno, line in enumerate(fm_text.split("\n"), start=2):
-        stripped = line.lstrip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        if ":" not in line:
-            continue
-        # Top-level mapping keys only — skip nested values, array items
-        if line.startswith((" ", "\t")):
-            continue
-        # Skip pure list-marker lines like "- item" (these can't be top-level
-        # in our frontmatter convention, but be defensive)
-        if stripped.startswith("- "):
-            continue
-
-        key, _, val = line.partition(":")
-        val_stripped = val.strip()
-        if not val_stripped:
-            # Key with no value on this line — likely a parent of a nested
-            # block (`tags:` followed by `- foo`). Nothing to validate here.
-            continue
-        # Already quoted or structured (block scalar, flow collection)
-        if val_stripped[0] in '"\'[{|>':
-            continue
-
-        if re.search(r"\s#", val_stripped):
-            issues.append(
-                f"line {lineno}: '{key.strip()}' value contains ' #' — quote it. "
-                "YAML treats space-then-# as a comment delimiter and silently "
-                "drops the rest of the value."
-            )
-        if re.search(r":\s", val_stripped):
-            issues.append(
-                f"line {lineno}: '{key.strip()}' value contains ': ' — quote it. "
-                "Strict YAML parsers may treat this as a nested mapping."
-            )
-
-    if issues:
-        sys.stderr.write(f"FAIL: {doc_path}\n")
-        for issue in issues:
-            sys.stderr.write(f"  {issue}\n")
-        return 1
-
-    print(f"OK: {doc_path}")
-    return 0
-
-
-def main(argv: list[str]) -> int:
-    if len(argv) != 2:
-        usage_fail(f"usage: {os.path.basename(argv[0])} <doc-path-or-dir>")
-
-    target = argv[1]
-
-    # Single file: validate it directly (upstream behavior).
-    if os.path.isfile(target):
-        return validate_file(target)
-
-    # Directory: validate every *.md beneath it; fail if ANY file fails.
-    if os.path.isdir(target):
-        md_files = []
-        for root, _dirs, files in os.walk(target):
-            for name in sorted(files):
-                if name.endswith(".md"):
-                    md_files.append(os.path.join(root, name))
-        if not md_files:
-            usage_fail(f"no .md files found under directory: {target}")
-        worst = 0
-        for path in sorted(md_files):
-            rc = validate_file(path)
-            if rc != 0:
-                worst = 1
-        return worst
-
-    usage_fail(f"file not found: {target}")
+VALIDATOR_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "plugin"
+    / "skills"
+    / "bn-conventions"
+    / "scripts"
+    / "validate-frontmatter.py"
+)
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    runpy.run_path(str(VALIDATOR_PATH), run_name="__main__")

@@ -85,7 +85,7 @@ In a `claude` session inside the repo you want to work on:
 /bn-grow <feature or task description>
 ```
 
-`/bn-grow` runs the full pipeline — research → plan (judged) → deliver → review → ship gate → background curate — coordinating through a run ledger at `docs/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
+`/bn-grow` runs the full pipeline — research → plan (judged) → deliver → review → ship gate → curation handoff — coordinating through a run ledger at `docs/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
 
 Each stage is also independently invocable:
 
@@ -100,7 +100,7 @@ Each stage is also independently invocable:
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description — the one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolvers fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
-| `/bn-curate` | Consolidate harvested lessons into `docs/solutions/` (sleep-time compute; runs in the background after `/bn-grow`). |
+| `/bn-curate` | Consolidate harvested lessons into `docs/solutions/` (sleep-time compute; receives the `/bn-grow` curation handoff). |
 | `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself — proposals only, a human applies them. |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and a live depth-2 nested-spawn + allowlist-enforcement probe. |
@@ -138,8 +138,8 @@ tail -f docs/runs/<run-id>/ledger.md
 
 The pipeline ends at a **ship gate**: the work is committed locally, reviewed, and green,
 but pushing or opening a PR is a step you take yourself — `/bn-ship` when you're ready.
-Lesson curation runs in the background afterward. A run halted mid-pipeline resumes from
-its ledger once the blocker is cleared.
+Lesson curation is handed off afterward without blocking the ship gate. A run halted
+mid-pipeline resumes from its ledger once the blocker is cleared.
 
 ### Brainstorm first
 
@@ -243,11 +243,13 @@ own test-fix loop and mini-review, and a single integrator merging in dependency
 ```
 
 Every lead stages candidate lessons before it returns; curation promotes the keepers into
-the `docs/solutions/` knowledge store, where future runs retrieve them. `/bn-grow`
-dispatches curation automatically — run `/bn-curate` manually after standalone
-`/bn-review`, `/bn-work`, `/bn-debug`, or `/bn-resolve-pr` runs. `/bn-tune` mines accumulated run ledgers and transcripts
-for recurring harness failures and writes evidence-cited proposals to
-`docs/harness-proposals/`; it never edits the plugin itself — you review and apply.
+the `docs/solutions/` knowledge store, where future runs retrieve them. `/bn-grow` ends
+with a non-blocking curation handoff: it starts `/bn-curate <run-id>` only when a real
+background mechanism is available, otherwise it gives you that follow-up command. Run
+`/bn-curate` manually after standalone `/bn-review`, `/bn-work`, `/bn-debug`, or
+`/bn-resolve-pr` runs. `/bn-tune` mines accumulated run ledgers and transcripts for
+recurring harness failures and writes evidence-cited proposals to `docs/harness-proposals/`;
+it never edits the plugin itself — you review and apply.
 
 ## Evaluation
 

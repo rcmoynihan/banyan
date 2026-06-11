@@ -33,7 +33,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 
 | Skill | What it does |
 | --- | --- |
-| `/bn-grow` | The full pipeline: research → plan (judged) → deliver → review → ship gate → background curate, from a small trunk. |
+| `/bn-grow` | The full pipeline: research → plan (judged) → deliver → review → ship gate → curation handoff, from a small trunk. |
 | `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-plan`. |
 | `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |
