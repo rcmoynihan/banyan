@@ -172,7 +172,7 @@ docs/runs/<run-id>/curation-summary.md`
   it -- report the need instead (permission cliff, invariant 6).
 - Spawn nothing -- you are a leaf (no `Agent(...)` allowlist).
 
-## U14 acceptance test (run later by the trunk, not here)
+## Acceptance test (run by the trunk, not by you)
 
 Seed a staging dir with two candidates: (a) a **near-duplicate** of an existing
 `docs/solutions/` doc (same module/component/overlapping tags+symptoms -- e.g. another take on

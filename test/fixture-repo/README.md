@@ -1,9 +1,9 @@
 # Banyan fixture repo
 
 A small, realistic, **zero-dependency** Node.js app that is the standing test bed
-for every Banyan unit (review, research, delivery, harvesting). It exists to give
-later phases a real git repo with a reviewable diff, seeded knowledge, and a tiny
-plan — without any npm install or external packages.
+for Banyan's subtrees (review, research, delivery, harvesting). It provides a real
+git repo with a reviewable diff, seeded knowledge, and a tiny plan — without any
+npm install or external packages.
 
 ## The app
 
@@ -32,8 +32,8 @@ is green: every test passes.
 
 ## Baseline vs seeded split
 
-The review subtree (U8/U9) needs a real diff between a clean branch and a buggy
-branch. We represent that **without hand-authored `.patch` files**:
+The review subtree (and its A/B eval) needs a real diff between a clean branch and
+a buggy branch. The fixture represents that **without hand-authored `.patch` files**:
 
 - `src/` + `test/` here are the **CLEAN baseline**. `node --test` passes green.
 - `.fixture/seeded/<same relative path>` holds **whole-file replacements** that
@@ -58,16 +58,17 @@ These live in the clean baseline so they exist on `main` and `seeded-bugs`:
 - `docs/solutions/<category>/<slug>.md` — v1-schema solution docs (validate
   against the compound-engineering `schema.yaml`). One of them
   (`inventory-oversell-off-by-one`) is directly relevant to a seeded bug
-  (BUG-04), so the U4 learnings-researcher retrieval test can surface it.
+  (BUG-04), so the learnings-researcher retrieval test can surface it.
 - `docs/plans/2026-06-10-001-feat-fixture-plan.md` — a tiny v1-style plan with
-  three Implementation Units, for the U12 delivery tests.
+  three Implementation Units, for the delivery-subtree tests.
 
 ## What uses this fixture
 
-- **U4** — learnings-researcher retrieves `docs/solutions/.../inventory-oversell-off-by-one.md`.
-- **U8/U9** — review subtree runs against `seeded-bugs`; recall scored vs `.fixture/BUG-INVENTORY.md`.
-- **U10** — research subtree (a planted multi-hop trail can be added later).
-- **U12** — delivery subtree executes `docs/plans/2026-06-10-001-feat-fixture-plan.md`.
-- **U13** — lesson harvester runs over a review of this fixture.
+- **Learnings researcher** — retrieves `docs/solutions/.../inventory-oversell-off-by-one.md`.
+- **Review subtree + A/B eval** (`eval/review-ab/`) — runs against `seeded-bugs`; recall scored vs `.fixture/BUG-INVENTORY.md`.
+- **Delivery subtree** — executes `docs/plans/2026-06-10-001-feat-fixture-plan.md`.
+- **Lesson harvester** — runs over a review of this fixture.
+
+(The research subtree has its own planted trail in `test/research-scenario/`.)
 
 See `.fixture/BUG-INVENTORY.md` for the bug list and the test-coverage mapping.

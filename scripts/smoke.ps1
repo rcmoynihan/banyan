@@ -9,11 +9,12 @@
       2. dev-install.ps1                -> install the plugin into the sandbox.
       3. node --test on `main`          -> assert the clean baseline is GREEN
                                            (capture pass count).
-      4. Invoke the stub skill headlessly: `claude -p "/bn-hello" --plugin-dir
-         <plugin>` in the sandbox. If headless skill invocation is not reliably
-         scriptable in this environment, FALL BACK to asserting the plugin files
-         (marketplace.json, plugin.json, bn-hello SKILL.md) are discoverable from
-         the target, and print a clear MANUAL-STEP note instead of failing.
+      4. Invoke the install-check skill headlessly: `claude -p "/bn-hello"
+         --plugin-dir <plugin>` in the sandbox. If headless skill invocation is
+         not reliably scriptable in this environment, FALL BACK to asserting the
+         plugin files (marketplace.json, plugin.json, bn-hello SKILL.md) are
+         discoverable from the target, and print a clear MANUAL-STEP note instead
+         of failing.
 
     Exit code: non-zero on real failures (tests red, manifests missing); zero on
     success (including the documented fallback for the headless skill step).
@@ -125,7 +126,7 @@ if (-not $failed) {
 
 # --- Step 4: headless skill invocation (with fallback) -----------------------
 Write-Host ""
-Write-Host "[4/4] headless stub-skill invocation" -ForegroundColor Cyan
+Write-Host "[4/4] headless /bn-hello invocation" -ForegroundColor Cyan
 
 # Always assert plugin files are discoverable from the target — this is the
 # fallback signal and also a useful invariant on its own.
@@ -176,11 +177,10 @@ if (-not $failed) {
         if ($claudeExit -eq 0 -and $claudeOut -match '(?i)banyan') {
             Pass "headless /bn-hello ran and mentioned Banyan"
         } else {
-            # Phase 0 verification requires smoke to run the stub skill headlessly
-            # (see docs/plans/2026-06-10-001-feat-banyan-core-plan.md, U2). When the
-            # claude CLI is present and not explicitly skipped, a failed /bn-hello is
-            # a HARD failure -- silently passing would hide a broken skill-dispatch
-            # path. Use -SkipClaude to opt out on machines where the CLI is unusable.
+            # When the claude CLI is present and not explicitly skipped, a failed
+            # /bn-hello is a HARD failure -- silently passing would hide a broken
+            # skill-dispatch path. Use -SkipClaude to opt out on machines where the
+            # CLI is unusable.
             Fail "headless /bn-hello did not return a clean Banyan greeting (exit=$claudeExit). Re-run with -SkipClaude only if the claude CLI is known-unusable here."
             Note "Confirm interactively: cd `"$Sandbox`"; claude -p `"/bn-hello`" --plugin-dir `"$InTargetPlugin`""
         }

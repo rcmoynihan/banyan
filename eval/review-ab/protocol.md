@@ -1,10 +1,10 @@
 # A/B evaluation protocol: Banyan `/bn-review` vs compound-engineering `/ce-code-review`
 
-This is the U9 go/no-go gate for the Banyan plan
-(`docs/plans/2026-06-10-001-feat-banyan-core-plan.md`, Phase 3). It produces
-HONEST, reproducible evidence on whether the lead-owned review subtree
-(`/bn-review`) is at least as good as the flat reviewer wave it forked from
-(`/ce-code-review`), before any later phase is built on top of it.
+This protocol produces HONEST, reproducible evidence on whether the lead-owned
+review subtree (`/bn-review`) is at least as good as the flat reviewer wave its
+personas are vendored from (`/ce-code-review`). It is the go/no-go gate
+referenced as unit U9 in the implementation plan
+(`docs/plans/2026-06-10-001-feat-banyan-core-plan.md`).
 
 The split of labor is deliberate:
 
@@ -340,7 +340,7 @@ correctness from the arm's own prose.
 
 ## 5. GO / NO-GO criterion
 
-Banyan is **GO** for Phase 4 if, on the seeded-bug fixture target, ALL hold:
+Banyan's review subtree is **GO** if, on the seeded-bug fixture target, ALL hold:
 
 1. RECALL: Banyan's seeded P0/P1 recall is >= v1's seeded P0/P1 recall.
 2. FIXED-AND-GREEN: Banyan's fixed-and-green rate is HIGHER than, or comparable
@@ -355,8 +355,8 @@ Banyan is **GO** for Phase 4 if, on the seeded-bug fixture target, ALL hold:
    is a NO-GO even if 1-3 pass.
 
 Otherwise Banyan is **NO-GO**: either it does not beat the flat wave on quality,
-or it costs materially more for no quality gain. A NO-GO sends U8 back for rework
-(reviewer selection, dedup gate, or finding-owner verification) before Phase 4.
+or it costs materially more for no quality gain. A NO-GO sends the review subtree
+back for rework (reviewer selection, dedup gate, or finding-owner verification).
 
 The real-PR targets are supporting evidence: they should not CONTRADICT the
 fixture verdict (e.g. Banyan should not be wildly more expensive or noisier on

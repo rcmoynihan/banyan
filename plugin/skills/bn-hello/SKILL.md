@@ -1,12 +1,12 @@
 ---
 name: bn-hello
-description: "Smoke-test skill that confirms Banyan is installed and prints its version. Use to verify the plugin loaded, skill dispatch works, and the manifest is readable."
+description: "Confirms Banyan is installed and prints its version. Use to verify the plugin loaded, skill dispatch works, and the manifest is readable."
 argument-hint: "[name]"
 ---
 
 # Banyan Hello
 
-A smoke-test skill. It confirms the Banyan plugin is installed, reads its version
+An install check. It confirms the Banyan plugin is installed, reads its version
 from the plugin manifest, and prints a short greeting. It exercises no agents and
 writes no files -- it only proves the skill-dispatch path is alive.
 
@@ -49,4 +49,4 @@ Banyan is installed (version unknown). Hello, world.
 ```
 
 Then stop. Do not spawn agents, do not write files, do not take further action.
-This skill exists only to confirm the harness loaded.
+This skill only confirms the plugin loaded.

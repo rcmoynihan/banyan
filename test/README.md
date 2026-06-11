@@ -1,0 +1,13 @@
+# test/
+
+Reproducible targets for exercising Banyan's subtrees.
+
+- **`fixture-repo/`** — a zero-dependency Node app with a green 30-test baseline
+  and a deterministic seeded-bug overlay (12 bugs across 7 categories, with a
+  ground-truth inventory in `.fixture/BUG-INVENTORY.md`). Materialized into a
+  throwaway sandbox by `scripts/fixture-init.ps1`; the standing target for the
+  review subtree and the `eval/review-ab/` A/B harness. See its README.
+- **`research-scenario/`** — a planted two-hop research trail (an architecture
+  doc that names a migration that names a config whose real value is the buried
+  leaf fact), for exercising `bn-research-lead` and `bn-thread-chaser`. See its
+  README.

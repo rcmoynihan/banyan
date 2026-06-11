@@ -1,8 +1,8 @@
-# U10 research-subtree verification scenario
+# Research-subtree verification scenario
 
 This is a **standalone test scenario** for the Banyan research subtree (`bn-research-lead`
-+ `bn-thread-chaser`). It is deliberately **separate** from `test/fixture-repo/` (which is
-in concurrent use by a live A/B eval) — nothing here touches that fixture. It is a tiny,
++ `bn-thread-chaser`). It is deliberately **separate** from `test/fixture-repo/` (the
+review A/B eval's standing target) — nothing here touches that fixture. It is a tiny,
 self-contained tree whose only purpose is to plant a **two-hop research trail** that a live
 `bn-research-lead` run must follow to its leaf fact.
 
@@ -48,10 +48,10 @@ the `file:line` source.
   **not** spawn a sub-chaser. Either way, the run must respect the budget it was handed: no
   spawn at depth 0, at most one chaser for this single thread.
 
-## How the trunk uses this (the live test runs later)
+## How the trunk uses this
 
-The trunk (not this build step) will run a live `bn-research-lead` against this directory
-and check that the resulting `briefs/research-brief.md`:
+The live verification: run `bn-research-lead` against this directory and check that the
+resulting `briefs/research-brief.md`:
 1. surfaces the leaf fact (`RESERVATION_HOLD_TTL = 0` → holds never expire), and
 2. cites `src/config.js` as the source, and
 3. respects the depth budget (one chaser at most; no spawn at depth 0).
