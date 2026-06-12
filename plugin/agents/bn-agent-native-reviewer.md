@@ -1,7 +1,7 @@
 ---
 name: bn-agent-native-reviewer
 description: "Reviews code to ensure agent-native parity -- any action a user can take, an agent can also take. Use after adding UI features, agent tools, or system prompts."
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 color: blue
 ---

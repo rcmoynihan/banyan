@@ -107,3 +107,18 @@ so every one is pinned to `model: sonnet`. None carries an `Agent(...)` allowlis
   generic ("PR touches database migrations", "involves backfills") and are already captured by the
   `description`, so the section was dropped wholesale rather than partially rewritten. No
   `/ce-plan`, `ce-code-review`, `/tmp/compound-engineering`, or "orchestrator" present.
+
+---
+
+## 2026-06-11 — model re-pinned to Opus (invariant 7)
+
+Invariant 7 now pins each agent's model in `model:` frontmatter (Opus by default; Sonnet only
+for mechanical leaves) and a lead no longer overrides a child's model at spawn time. The
+researchers all re-pin to **Opus** — distilling unstructured code, docs, and web sources into a
+brief is judgment-heavy:
+
+- **bn-repo-researcher:** `sonnet` -> `opus`.
+- **bn-best-practices-researcher:** `sonnet` -> `opus`.
+- **bn-framework-docs-researcher:** `sonnet` -> `opus`.
+- **bn-web-researcher:** `sonnet` -> `opus`.
+- **bn-deployment-verifier:** `sonnet` -> `opus`.

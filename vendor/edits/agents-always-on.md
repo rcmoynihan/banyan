@@ -107,3 +107,18 @@ Common changes applied to all 6 (per BANYAN AGENT PORT SPEC):
   `docs/runs/<run-id>/briefs/`, standalone fallback `./bn-brief-learnings.md`). The RESEARCHER
   block's "using the output structure defined above" resolves to the preserved "## Output Format"
   brief structure.
+
+---
+
+## 2026-06-11 — model re-pinned per invariant 7
+
+Invariant 7 now pins each agent's model in `model:` frontmatter (Opus by default; Sonnet only
+for mechanical leaves) and a lead no longer overrides a child's model at spawn time:
+
+- **bn-correctness-reviewer:** `inherit` -> `opus`.
+- **bn-testing-reviewer:** `sonnet` -> `opus`.
+- **bn-maintainability-reviewer:** `sonnet` -> `opus`.
+- **bn-project-standards-reviewer:** `sonnet` -> `opus`.
+- **bn-agent-native-reviewer:** `sonnet` -> `opus`.
+- **bn-learnings-researcher:** unchanged at `sonnet` — frontmatter-metadata lookup over the
+  knowledge store is structured retrieval, so it stays the one Sonnet leaf in this group.

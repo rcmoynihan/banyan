@@ -173,7 +173,6 @@ tool_guidance:   Read/Grep/Glob for classification; Write only artifact_path. Re
                  ending. Least privilege; no Bash and no Agent spawns.
 budget:
   max_children:    0
-  model_tier:      sonnet
   depth_remaining: 1
 effort_class:    standard
 === END ENVELOPE ===
@@ -182,7 +181,7 @@ effort_class:    standard
 Aggregate survey JSONs. Apply `confidence < 70 -> skip with stated reason; never
 guess`. Resolve slug and target collisions in the trunk before any transformer spawns.
 
-If survey JSONs pressure trunk context in a deep run, use one Haiku-class aggregator pass
+If survey JSONs pressure trunk context in a deep run, use one aggregator pass
 to merge survey artifacts into `docs/runs/<run-id>/briefs/corpus-classification.json`.
 This is an escape hatch, not a pre-built extra phase; decompose only on failure or
 context pressure.
@@ -248,7 +247,6 @@ tool_guidance:   Read assigned sources and required references. Use Bash only to
                  commands found in it. No Agent spawns.
 budget:
   max_children:    0
-  model_tier:      sonnet
   depth_remaining: 1
 effort_class:    standard
 === END ENVELOPE ===
@@ -290,7 +288,7 @@ Instruction prose describes the repo as it is. Do not narrate the onboarding run
 ## Phase 5 - Harvest, Then Curate
 
 The trunk fires one `bn-lesson-harvester` itself, before the curator, so this run's own
-lessons ride the same consolidation pass. Use `{ max_children: 0, model_tier: haiku,
+lessons ride the same consolidation pass. Use `{ max_children: 0,
 depth_remaining: 1 }`.
 
 Harvester envelope:
@@ -310,7 +308,6 @@ tool_guidance:   Read survey artifacts, transform artifacts, corpus brief, manif
                  Bash and no Agent spawns.
 budget:
   max_children:    0
-  model_tier:      haiku
   depth_remaining: 1
 effort_class:    lightweight
 === END ENVELOPE ===

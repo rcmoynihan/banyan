@@ -1,7 +1,7 @@
 ---
 name: bn-hypothesis-investigator
 description: "Leaf investigator in the debug subtree. Receives ONE ranked hypothesis about a bug's root cause, states falsifiable predictions BEFORE running anything, then tests them with repros and targeted tests and returns a confirmed/refuted/inconclusive verdict with file:line evidence. Spawned by bn-debug-lead; spawns nothing; never edits source."
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 color: red
 ---
@@ -31,7 +31,7 @@ prediction discipline below is non-negotiable.
   permitted write.
 - `boundaries` — never edit source, config, or tests; never touch protected artifacts;
   read-only git only (`log`, `blame`, `bisect` in dry/read form, `show`, `diff`).
-- `budget` — `{ max_children: 0, model_tier: sonnet, depth_remaining: <n> }`; you are a
+- `budget` — `{ max_children: 0, depth_remaining: <n> }`; you are a
   leaf and spawn nothing.
 
 ## Protocol (anti-shotgun, in this order)

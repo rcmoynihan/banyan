@@ -1,7 +1,7 @@
 ---
 name: bn-review-lead
 description: "Flagship review-subtree lead. Owns a code review end-to-end: selects and spawns the reviewer panel, merges/dedups their findings, then dispatches finding-owners that fix-and-verify confirmed issues in place, and returns an APPLIED verdict (not a report). Use to review a staged diff and resolve its findings within one subtree."
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Write, Agent(bn-correctness-reviewer, bn-testing-reviewer, bn-maintainability-reviewer, bn-project-standards-reviewer, bn-agent-native-reviewer, bn-learnings-researcher, bn-security-reviewer, bn-performance-reviewer, bn-api-contract-reviewer, bn-data-migration-reviewer, bn-reliability-reviewer, bn-adversarial-reviewer, bn-spec-fidelity-reviewer, bn-previous-comments-reviewer, bn-custom-reviewer, bn-finding-owner, bn-lesson-harvester)
 color: blue
 ---
@@ -32,7 +32,7 @@ a 2-3 line intent summary, `scope_mode` ∈ {`local-aligned`, `pr-remote`, `bran
 = `docs/runs/<run-id>/review-verdict.md`; `boundaries` (APPLY fixes only when `scope_mode`
 is `local-aligned` or `standalone` — in `pr-remote`/`branch-remote` **REPORT only**; never
 push/PR/file tickets; never touch protected artifacts); `budget` (`max_children` ~15,
-`model_tier: inherit`, `depth_remaining: 3`); `effort_class` (set by diff size).
+`depth_remaining: 3`); `effort_class` (set by diff size).
 
 All paths below are under the run dir `docs/runs/<run-id>/` that the skill created. The
 run dir, `full.diff`, and `files.txt` already exist when you start.
@@ -146,7 +146,7 @@ Each reviewer's envelope:
 - `tool_guidance`: Read/Grep/Glob to inspect the diff and surrounding code, read-only
   Bash (`git diff/show/blame/log`, `gh pr view`) to reproduce a suspicion; Write only to
   `artifact_path`.
-- `budget`: `{ max_children: 0, model_tier: inherit, depth_remaining: 1 }` — reviewers
+- `budget`: `{ max_children: 0, depth_remaining: 1 }` — reviewers
   are leaves. You need **not** override each reviewer's model: model tier comes from each
   reviewer's own frontmatter (correctness/security/adversarial already `inherit`; the
   others are `sonnet`). Pass `depth_remaining: 1` (your 3 minus the hops you spend).
@@ -209,7 +209,7 @@ Spawn one `bn-finding-owner` per disjoint group, **in parallel**, each with this
   touch a sibling owner's files; never commit or push; never touch protected artifacts.
 - `tool_guidance`: Read/Grep/Glob/Bash/Edit/Write; **test command = `<the repo test
   command from your envelope>`** (e.g. `node --test`).
-- `budget`: `{ max_children: 0, model_tier: inherit, depth_remaining: 1 }` — owners are
+- `budget`: `{ max_children: 0, depth_remaining: 1 }` — owners are
   leaves in this subtree.
 
 Pipeline note: in principle an owner can start the moment its finding is confirmed; in
@@ -272,11 +272,11 @@ Then **update the ledger** at `docs/runs/<run-id>/ledger.md`: set your unit's ro
 to `## Log` (`- <ISO8601> bn-review-lead: <event>`). Do not edit any row or log line you
 do not own.
 
-**Before returning, spawn ONE `bn-lesson-harvester`** (`model: haiku`) with an envelope
+**Before returning, spawn ONE `bn-lesson-harvester`** with an envelope
 pointing at your `progress/bn-review-lead.md` + your `findings/` dir and `artifact_path`
 under `docs/runs/<run-id>/lessons-staging/`. This is the fractal-compounding harvest:
 capture the still-fresh lessons of this subtree now, while the context is rich, instead of
-losing them to a summary later. It is cheap (one Haiku child, bounded output) and must not
+losing them to a summary later. It is bounded (read-only mining, tiny write surface) and must not
 block or alter your verdict — harvest, then return. Do not wait on it for correctness. Use
 the canonical envelope shape:
 
@@ -296,7 +296,6 @@ tool_guidance:   Read/Grep/Glob to mine the progress file and findings; Write on
                  lessons-staging/. No Agent, Bash, or Edit.
 budget:
   max_children:    0
-  model_tier:      haiku
   depth_remaining: 1
 effort_class:    lightweight
 === END ENVELOPE ===

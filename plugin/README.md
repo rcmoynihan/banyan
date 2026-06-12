@@ -34,11 +34,11 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 
 | Skill | What it does |
 | --- | --- |
-| `/bn-grow` | The full pipeline: research → plan (judged) → deliver → review → ship gate → curation handoff, from a small trunk. |
+| `/bn-grow` | The full pipeline: optional brainstorm intake → research → plan (judged) → deliver → review → ship gate → curation handoff, from a small trunk. |
 | `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-plan`. |
 | `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |
-| `/bn-plan` | A plan from a judge panel: prior-biased generators scored by independent judges, synthesized by the trunk. |
+| `/bn-plan` | A plan from a requirements doc, research brief, or task: prior-biased generators scored by independent judges, synthesized by the trunk. |
 | `/bn-work` | Execute a plan via worktree-isolated unit subtrees and a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
@@ -76,12 +76,12 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
   artifacts. The `/bn-onboard` trunk owns outward-facing work.
 - **Planning panel** — `bn-plan-generator` (one draft per prior: mvp / risk / ops)
   and `bn-plan-judge` (independent rubric scoring).
-- **Compounding loop** — `bn-lesson-harvester` (Haiku-class leaf every lead spawns
+- **Compounding loop** — `bn-lesson-harvester` (the bounded leaf every lead spawns
   before returning) and `bn-knowledge-curator` (consolidates staged lessons into
   `docs/solutions/`).
 - **`bn-harness-engineer`** — mines run ledgers and transcripts for recurring harness
   failures and writes proposals to `docs/harness-proposals/`; never self-applies.
-- **Doctor probes** — `bn-probe` + `bn-probe-leaf` (Haiku-class pair `/bn-doctor` uses
+- **Doctor probes** — `bn-probe` + `bn-probe-leaf` (the probe pair `/bn-doctor` uses
   to verify live depth-2 nesting and allowlist enforcement; health-check only).
 
 ## Install for development

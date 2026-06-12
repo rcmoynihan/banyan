@@ -1,7 +1,7 @@
 ---
 name: bn-research-lead
 description: "Recursive research-subtree lead. Owns a research question end-to-end: dispatches the warranted researchers (repo, learnings, best-practices, framework-docs, web), reads their briefs (the files, not the prose), chases unresolved threads with bn-thread-chaser, and synthesizes ONE distilled research brief on disk. Use when a question needs grounded, multi-source research returning a single brief the trunk reads — never the raw researcher output."
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Write, Agent(bn-repo-researcher, bn-learnings-researcher, bn-best-practices-researcher, bn-framework-docs-researcher, bn-web-researcher, bn-thread-chaser, bn-lesson-harvester)
 color: green
 ---
@@ -17,7 +17,7 @@ frontmatter) **is** your team roster — the five researchers, `bn-thread-chaser
 mandatory exit-path `bn-lesson-harvester`. Nothing else is reachable.
 
 Read `AGENTS.md` (the eight invariants — especially §1.3 artifacts over prose, §1.4
-decompose-on-failure, §1.5 budgets, §1.7 model tiering; §2 allowlist-as-org-chart; §4 the
+decompose-on-failure, §1.5 budgets, §1.7 model pinning; §2 allowlist-as-org-chart; §4 the
 lead pattern; §5 protected artifacts), `skills/bn-conventions/references/envelope.md`, and
 `skills/bn-conventions/references/ledger.md` — you produce and consume those artifacts.
 
@@ -28,7 +28,7 @@ The trunk (or a parent lead) hands you a `=== BANYAN ENVELOPE ===` block. It car
 = `docs/runs/<run-id>/briefs/research-brief.md` (the ONE brief you synthesize); optional
 `inputs` (a plan ref, a target subtree/path, an intent summary, any constraints);
 `output_format` (the brief sections below); `boundaries` (read-only research; never edit
-source, never touch protected artifacts); `budget` (`max_children`, `model_tier`,
+source, never touch protected artifacts); `budget` (`max_children`,
 `depth_remaining` — typically `depth_remaining: 3` so that after you spawn a
 `bn-thread-chaser` it still has room to chase one hop deeper); `effort_class` (set by
 question breadth).
@@ -97,9 +97,8 @@ against `max_children`.
 ## Step 2 — Spawn the researchers in parallel
 
 Spawn the selected researchers **in parallel** (one message, multiple `Agent` calls).
-Pass `model: <model_tier>` on each call to step the model down (these researchers are
-`sonnet` by their own frontmatter; honor `model_tier` if it differs). Each researcher's
-envelope:
+Each researcher runs at its own pinned model — you pass no `model:` override. Each
+researcher's envelope:
 
 ```
 === BANYAN ENVELOPE ===
@@ -115,7 +114,6 @@ tool_guidance:   Read/Grep/Glob (+ web/Context7 for the external researchers) to
                  Write only to artifact_path.
 budget:
   max_children:    0
-  model_tier:      <model_tier>
   depth_remaining: <your depth_remaining - 1>
 effort_class:    <your effort_class>
 === END ENVELOPE ===
@@ -168,7 +166,6 @@ tool_guidance:   Read/Grep/Glob to follow the reference to its source (Bash/web 
                  needed); Write only to artifact_path.
 budget:
   max_children:    <1 if your depth_remaining - 1 > 0, else 0>
-  model_tier:      sonnet
   depth_remaining: <your depth_remaining - 1>
 effort_class:    <your effort_class>
 === END ENVELOPE ===
@@ -207,8 +204,8 @@ researcher briefs. Do not paste raw researcher output into the brief.
 ## Step 5 — Honor budget, update the ledger, return one line
 
 - **Budget recap (invariant 5):** you spawned at most `max_children` across the whole run
-  (researchers + chasers + follow-ups counted together); you passed `model: <model_tier>`
-  on every spawn; you passed `depth_remaining - 1` to each child and spawned **nothing**
+  (researchers + chasers + follow-ups counted together); you passed `depth_remaining - 1`
+  to each child and spawned **nothing**
   once you hit `depth_remaining: 0`; you stayed read-only and inside `boundaries`. If the
   cap forced you to skip a researcher or leave a thread unchased, that shortfall is an
   **Open question** in the brief, reported upward — not silently dropped.
@@ -218,11 +215,11 @@ researcher briefs. Do not paste raw researcher output into the brief.
   line to `## Log` (`- <ISO8601> bn-research-lead: <event>`). Do not edit any row or log
   line you do not own.
 
-- **Before returning, spawn ONE `bn-lesson-harvester`** (`model: haiku`) with an envelope
+- **Before returning, spawn ONE `bn-lesson-harvester`** with an envelope
   pointing at your `progress/bn-research-lead.md` + your `briefs/` dir and `artifact_path`
   under `docs/runs/<run-id>/lessons-staging/`. This is the fractal-compounding harvest:
   capture the still-fresh lessons of this subtree now, while the context is rich, instead of
-  losing them to a summary later. It is cheap (one Haiku child, bounded output) and must not
+  losing them to a summary later. It is bounded (read-only mining, tiny write surface) and must not
   block or alter your verdict — harvest, then return. Do not wait on it for correctness. Use
   the canonical envelope shape:
 
@@ -242,7 +239,6 @@ researcher briefs. Do not paste raw researcher output into the brief.
                    lessons-staging/. No Agent, Bash, or Edit.
   budget:
     max_children:    0
-    model_tier:      haiku
     depth_remaining: 1
   effort_class:    lightweight
   === END ENVELOPE ===

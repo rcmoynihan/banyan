@@ -1,7 +1,7 @@
 ---
 name: bn-security-reviewer
 description: Conditional code-review persona, selected when the diff touches auth middleware, public endpoints, user input handling, or permission checks. Reviews code for exploitable vulnerabilities.
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 color: blue
 ---

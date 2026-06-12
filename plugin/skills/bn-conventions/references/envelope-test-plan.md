@@ -49,7 +49,7 @@ violations are auditable.
 - **Action:** Dispatch the lead; let it run to its first spawn (or to completion).
 - **PASS:** The first block of `docs/runs/<run-id>/progress/<lead>.md` is the echoed
   envelope, and its field values (`objective`, `artifact_path`, `boundaries`,
-  `budget.max_children`, `budget.model_tier`, `budget.depth_remaining`,
+  `budget.max_children`, `budget.depth_remaining`,
   `effort_class`) match the envelope the lead was handed. The echoed `max_children`
   and `depth_remaining` are consistent with the spawn behavior checked in T1/T2.
 

@@ -2,7 +2,7 @@
 name: bn-pr-comment-resolver
 description: "Evaluates and resolves one disjoint file-set's worth of PR review feedback -- assesses validity, implements local fixes, runs targeted tests, and writes a structured outcome artifact with reply text. Spawned by /bn-resolve-pr; never pushes, commits, replies, or resolves threads itself."
 color: blue
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Edit, Write
 ---
 
@@ -24,7 +24,7 @@ trunk skill that spawned you, never to you.
   write outside your assigned edit set.
 - `boundaries` — the exact file set you may edit. Never touch a sibling resolver's
   files or protected artifacts.
-- `budget` — `{ max_children: 0, model_tier: inherit, depth_remaining: 1 }`.
+- `budget` — `{ max_children: 0, depth_remaining: 1 }`.
 
 ## Security
 

@@ -23,7 +23,7 @@ Read the one you need; do not read them all by reflex.
   the log, or writing a progress note.
 - **`references/envelope.md`** -- the delegation-envelope spec and template. Read
   this to **construct or honor a spawn envelope**: objective, artifact path, output
-  format, boundaries, tool guidance, and the budget (`max_children` / `model_tier` /
+  format, boundaries, tool guidance, and the budget (`max_children` /
   `depth_remaining`). Every lead echoes its envelope into its progress file on start.
   Its companion **`references/envelope-test-plan.md`** is the budget-behavior test
   plan (max_children cap, depth-floor inline, envelope echo, effort scaling),

@@ -43,14 +43,15 @@ These hold for every agent, skill, and spawn in Banyan.
 4. **Decompose on failure, not eagerly.** Default depth is 1–2. Depth 3–5 is *reserve capacity*
    triggered by failure or context pressure, not spent preemptively. Most tasks stay shallow.
 5. **Budgets are explicit.** Every spawn carries a delegation envelope (objective, artifact path,
-   output format, boundaries, tool guidance, and a budget of `max_children` / `model_tier` /
+   output format, boundaries, tool guidance, and a budget of `max_children` /
    `depth_remaining`). See `skills/bn-conventions/references/envelope.md`.
 6. **Permission cliff.** Background nested agents auto-deny permission prompts. Pushes,
    migrations, deletions, and anything prompt-worthy stay at **trunk level** or run foreground.
    A lead deep in the tree must **report the need upward**, never silently fail against it.
-7. **Model tiering.** Strong model at the trunk and leads; Sonnet-class mid-tree workers;
-   Haiku-class harvesters and scouts. Declared per-agent via `model:` frontmatter, and re-stated
-   per-spawn via the envelope's `model_tier`.
+7. **Model is pinned per agent.** Every agent declares its model in `model:` frontmatter —
+   Opus by default, Sonnet only for the mechanical leaves whose work is fixed-procedure or
+   structured lookup and gains nothing from more reasoning. A lead never overrides a child's
+   model at spawn time; the frontmatter is authoritative, so the envelope carries no model field.
 8. **v1 persistence compatibility.** Banyan reads and writes the compound-engineering
    `docs/solutions/` knowledge-store schema unchanged, so existing knowledge stores keep working.
    See `skills/bn-conventions/references/knowledge-store.md`.
@@ -118,7 +119,7 @@ remains declared; hosts extend via data.
 ---
 name: bn-correctness-reviewer        # must equal the filename stem
 description: <one line; when to use this agent — read by the dispatcher>
-model: inherit                       # inherit | opus | sonnet | haiku  (see §1.7 tiering)
+model: opus                          # opus | sonnet — pin explicitly (see §1.7)
 tools: Read, Grep, Glob, Bash, Write # least privilege; add Agent(...) only for leads
 color: blue                          # optional, cosmetic
 ---
@@ -127,8 +128,8 @@ color: blue                          # optional, cosmetic
 - `name` **must** match the filename (`bn-correctness-reviewer.md` → `name: bn-correctness-reviewer`).
 - `tools` is least-privilege. Reviewers and scouts are read-mostly (`Read, Grep, Glob, Bash`, plus
   `Write` only to their own artifact path). Only **leads** and recursive workers carry `Agent(...)`.
-- `model: inherit` means "run at the session's model." Use an explicit tier (`sonnet`, `haiku`)
-  only to *step down* from the trunk per invariant 7.
+- `model` is pinned explicitly on every agent (invariant 7): `opus` by default, `sonnet` only
+  for the mechanical leaves. Leads do not override a child's model at spawn time.
 
 ### Skill file frontmatter
 
@@ -151,15 +152,15 @@ A **lead** is an agent that owns a subtree end-to-end and returns a verdict, not
   runs its own multi-stage orchestration internally.
 - A lead **reads its children's artifacts**; it does not trust their final-message prose for
   anything load-bearing.
-- A lead honors its budget: it spawns at most `max_children` **discretionary** children, steps
-  the model down per `model_tier`, and decrements `depth_remaining` on every spawn. At
-  `depth_remaining: 0` it completes the work inline instead of delegating.
+- A lead honors its budget: it spawns at most `max_children` **discretionary** children and
+  decrements `depth_remaining` on every spawn. At `depth_remaining: 0` it completes the work
+  inline instead of delegating.
 - A lead **never edits files outside the scope it owns**, and where multiple children write, it
   partitions their file sets so no two children touch the same files (invariant 2).
 - Before returning — on **every** exit path, including a trivial/zero-spawn fast return — a lead
   spawns one **`bn-lesson-harvester`** over its still-fresh context to stage candidate lessons
   (fractal compounding). This harvest is a **mandatory finalization spawn**: it is a
-  single fixed Haiku-class leaf that does **not** count against `max_children` (it must never
+  single fixed leaf that does **not** count against `max_children` (it must never
   compete with real work for the cap), and it must not block or alter the lead's verdict —
   harvest, then return.
 

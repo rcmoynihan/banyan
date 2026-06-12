@@ -233,9 +233,9 @@ top of the file.
 
 Brainstorm artifacts have no `status` field and no `active → completed`
 lifecycle — a brainstorm is a one-time output that downstream consumers
-(`bn-plan`) reference via the plan's `origin:` field. No
-artifact carries a mutable status; whether work shipped is derived from
-git, not stored in the doc. Do not introduce one.
+(`bn-plan`) reference in the plan's Source documents block. No artifact
+carries a mutable status; whether work shipped is derived from git, not
+stored in the doc. Do not introduce one.
 
 ### Field-name stability
 

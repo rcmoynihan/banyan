@@ -28,8 +28,8 @@ one hop.
 - **Delegation envelope** — the per-spawn contract (objective, artifact path,
   output format, boundaries, tool guidance, budget). Spec:
   `plugin/skills/bn-conventions/references/envelope.md`.
-- **Budget** — the envelope's `max_children` / `model_tier` / `depth_remaining`
-  triple bounding a subtree's fan-out, cost tier, and depth.
+- **Budget** — the envelope's `max_children` / `depth_remaining`
+  pair bounding a subtree's fan-out and depth.
 - **Run / run ledger** — one directory per run, `docs/runs/<run-id>/`, holding
   the ledger, progress notes, findings, briefs, and staged lessons. Spec:
   `plugin/skills/bn-conventions/references/ledger.md`.

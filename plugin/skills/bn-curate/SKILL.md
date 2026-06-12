@@ -78,7 +78,6 @@ tool_guidance:   Read, Grep, Glob for grep-first 5-dimension overlap detection
                  privilege -- no Agent spawns.
 budget:
   max_children:    0
-  model_tier:      sonnet
   depth_remaining: 0
 effort_class:    standard
 === END ENVELOPE ===
@@ -86,8 +85,8 @@ effort_class:    standard
 
 - `max_children: 0` and `depth_remaining: 0` make the curator a leaf -- it consolidates inline
   and spawns nothing (it has no `Agent(...)` allowlist either).
-- `model_tier: sonnet` matches the curator's declared `model: sonnet`: consolidation is a real
-  judgment call, so it does not step down to a harvester's Haiku.
+- The curator runs at its pinned `model: opus`: consolidation is a real judgment call --
+  dedup, merge, promote, prune.
 
 ## Step 4: Present the summary
 

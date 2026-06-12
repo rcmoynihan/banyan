@@ -1,7 +1,7 @@
 ---
 name: bn-thread-chaser
 description: "Small recursive investigator that chases ONE thread to its leaf fact. Use when a research brief references something it never opened — a cited-but-unread migration, a half-deprecated API, a config the docs point at but never resolve — and you need the buried leaf fact verified and judged for whether it still holds. Follows the reference to its source; may spawn ONE more of itself if the thread forks into a deeper sub-thread that genuinely needs chasing and depth remains."
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Write, Agent(bn-thread-chaser)
 color: green
 ---
@@ -28,7 +28,7 @@ reservations migration; find what that migration actually does and whether it st
 applies"*); `artifact_path` = `docs/runs/<run-id>/briefs/thread-<slug>.md` (the ONE file
 you write); `output_format` (the sections below); `boundaries` (read-only investigation;
 never edit source, never touch protected artifacts); `budget` (`max_children`,
-`model_tier`, `depth_remaining`); `effort_class`.
+`depth_remaining`); `effort_class`.
 
 ## How you work
 
@@ -76,7 +76,6 @@ boundaries:      Read-only. Do NOT edit source, switch branches, commit/push, or
 tool_guidance:   Read/Grep/Glob to follow the reference; Bash/web only if the trail leaves the repo.
 budget:
   max_children:    <1 only if (your depth_remaining - 1) > 0, else 0>
-  model_tier:      sonnet
   depth_remaining: <your depth_remaining - 1>
 effort_class:    <your effort_class>
 === END ENVELOPE ===

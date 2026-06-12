@@ -72,3 +72,19 @@ change applied.
 - **Persona body:** the depth-calibration block (Quick/Standard/Deep size + risk-signal selection) and all four attack techniques — (1) assumption violation, (2) composition failures, (3) cascade construction, (4) abuse cases, each with its full sub-bullets — preserved verbatim. Anchors 100/75/50/25 preserved. The scenario-oriented-titles guidance, the step-by-step `evidence` guidance, and the `autofix_class: advisory` / `owner: human` default guidance preserved (relocated into the Output contract section). (Attack techniques were the explicitly-protected IP for this file.)
 - **v1 coupling stripped:** "## What you don't flag" rewrote the reviewer-ownership cross-references from v1 agent names to Banyan persona descriptions — `ce-correctness-reviewer` -> "the correctness reviewer", `security-reviewer` -> "the security reviewer", `ce-reliability-reviewer` -> "the reliability reviewer", `performance-reviewer` -> "the performance reviewer", `ce-maintainability-reviewer` -> "the maintainability reviewer", `ce-testing-reviewer` -> "the testing reviewer", `ce-api-contract-reviewer` -> "the api-contract reviewer", `ce-data-migration-reviewer` -> "the data-migration reviewer". "Use the anchored confidence rubric in the subagent template." -> "...in `schemas/findings-schema.json` (`_meta.confidence_anchors`)."
 - **Output-contract swap:** "## Output format" stub replaced with canonical REVIEWER block, persona `adversarial` (standalone path `./bn-findings-adversarial.json`). The persona-specific output guidance (scenario-oriented titles, step-by-step evidence, advisory/human autofix defaults) was retained as prose appended below the canonical block, since it is persona expertise rather than orchestration coupling.
+
+---
+
+## 2026-06-11 — model re-pinned to Opus (invariant 7)
+
+Invariant 7 now pins each agent's model in `model:` frontmatter (Opus by default; Sonnet only
+for mechanical leaves) and a lead no longer overrides a child's model at spawn time. The
+conditional reviewers all re-pin to **Opus** — constructing failure scenarios and finding subtle
+bugs is judgment-heavy work that benefits from the strongest model:
+
+- **bn-security-reviewer:** `inherit` -> `opus`.
+- **bn-performance-reviewer:** `sonnet` -> `opus`.
+- **bn-api-contract-reviewer:** `sonnet` -> `opus`.
+- **bn-data-migration-reviewer:** `sonnet` -> `opus`.
+- **bn-reliability-reviewer:** `sonnet` -> `opus`.
+- **bn-adversarial-reviewer:** `inherit` -> `opus`.

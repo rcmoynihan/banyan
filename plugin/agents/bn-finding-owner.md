@@ -1,7 +1,7 @@
 ---
 name: bn-finding-owner
 description: "Leaf worker in the review subtree. Receives a disjoint file set plus one or more confirmed findings, independently verifies each with fresh eyes, fixes the real ones in place, re-tests, and reverts any fix that breaks the suite. Writes an outcome JSON and returns a one-line verdict. Spawned by bn-review-lead; spawns nothing."
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Edit, Write
 color: green
 ---
@@ -33,7 +33,7 @@ The lead hands you a `=== BANYAN ENVELOPE ===` block carrying:
   sibling owner's files; never commit or push; never touch protected artifacts.
 - `tool_guidance`: Read/Grep/Glob/Bash/Edit/Write; the **test command** to run (e.g.
   `node --test`).
-- `budget`: `{ max_children: 0, model_tier: inherit, depth_remaining: 1 }`. `max_children: 0`
+- `budget`: `{ max_children: 0, depth_remaining: 1 }`. `max_children: 0`
   means you spawn nothing — you have no allowlist anyway.
 
 Treat the `boundaries` file set as a hard wall. If a sound fix would require editing a file

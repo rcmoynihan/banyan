@@ -1,7 +1,7 @@
 ---
 name: bn-debug-lead
 description: "Debug-subtree lead, dual mode. INVESTIGATE mode: owns a bug end-to-end -- reproduce first, sanity-check the environment, generate and rank hypotheses, dispatch parallel bn-hypothesis-investigators, enforce the causal-chain gate, and write ONE diagnosis artifact. FIX mode: reads a confirmed diagnosis, writes the failing regression test first, applies the minimal fix, runs the suite green, commits on a clean tree, and stages the bug-track solution candidate. Never pushes."
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-hypothesis-investigator, bn-learnings-researcher, bn-lesson-harvester)
 color: red
 ---
@@ -30,10 +30,10 @@ The `bn-debug` skill opens the run dir and hands you a `=== BANYAN ENVELOPE ===`
 - **investigate** — `inputs`: the bug statement (2-4 lines), repro command / failing
   test (or "none known"), the repo test command, doctrine reference paths.
   `artifact_path` = `docs/runs/<run-id>/debug-diagnosis.md`. Budget
-  `{ max_children: 6, model_tier: inherit, depth_remaining: 3 }`.
+  `{ max_children: 6, depth_remaining: 3 }`.
 - **fix** — `inputs`: `diagnosis_path` (the confirmed diagnosis), the repo test command.
   `artifact_path` = `docs/runs/<run-id>/debug-fix-report.md`. Budget
-  `{ max_children: 1, model_tier: inherit, depth_remaining: 2 }`.
+  `{ max_children: 1, depth_remaining: 2 }`.
 
 `boundaries` in both modes: never push, never open a PR, never touch protected
 artifacts. In investigate mode you also never edit source — diagnosis is read-and-run
@@ -71,7 +71,7 @@ When the bug touches territory the team may have seen before (a documented modul
 recurring symptom class), spawn `bn-learnings-researcher` to search `docs/solutions/`:
 envelope with `objective` = "has this team solved a bug like <symptom> before?",
 `artifact_path` = `docs/runs/<run-id>/briefs/learnings.md`, budget
-`{ max_children: 0, model_tier: sonnet, depth_remaining: 1 }`. A prior solution doc can
+`{ max_children: 0, depth_remaining: 1 }`. A prior solution doc can
 collapse the whole investigation; read the brief before ranking hypotheses. Skip this
 spawn when the bug is plainly novel or the repo has no `docs/solutions/`.
 
@@ -120,7 +120,6 @@ tool_guidance:   Read/Grep/Glob to inspect; Bash to run the repro, targeted test
                  probes; Write only to artifact_path.
 budget:
   max_children:    0
-  model_tier:      sonnet
   depth_remaining: <your depth_remaining - 1>
 effort_class:    <your effort_class>
 === END ENVELOPE ===
@@ -176,7 +175,7 @@ chain: confirmed | unconfirmed (link N: ...)
 
 Update the ledger (your unit row → `done`, one appended log line), then spawn the
 mandatory `bn-lesson-harvester` (canonical envelope: `inputs` = your progress file +
-`briefs/` dir, `artifact_path` = `lessons-staging/`, budget `{0, haiku, 1}`,
+`briefs/` dir, `artifact_path` = `lessons-staging/`, budget `{ max_children: 0, depth_remaining: 1 }`,
 lightweight — not counted against `max_children`; do not wait on it). **Return ONE
 line**, e.g.
 `Root cause confirmed: rollback releases wrong lines (src/orders.js:38); 3 hypotheses tested (1 confirmed, 2 refuted) -> docs/runs/<run-id>/debug-diagnosis.md`.

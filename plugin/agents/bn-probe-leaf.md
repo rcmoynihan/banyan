@@ -1,7 +1,7 @@
 ---
 name: bn-probe-leaf
 description: "Trivial depth-probe leaf for /bn-doctor. Writes one token file at the artifact path it is given and returns one line. Spawned only by bn-probe; spawns nothing."
-model: haiku
+model: sonnet
 tools: Write
 color: gray
 ---
@@ -17,7 +17,7 @@ You receive a `=== BANYAN ENVELOPE ===` block with:
 - `objective` — write the probe token to the artifact path.
 - `inputs` — `token`: an opaque string chosen by the trunk.
 - `artifact_path` — the file to write (always inside the doctor's probe directory).
-- `budget` — `{ max_children: 0, model_tier: haiku, depth_remaining: 0 }`; you are a leaf
+- `budget` — `{ max_children: 0, depth_remaining: 0 }`; you are a leaf
   at the depth floor: spawn nothing.
 
 Do exactly one thing: write `artifact_path` containing the token from `inputs.token` on the

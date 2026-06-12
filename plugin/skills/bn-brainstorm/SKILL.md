@@ -12,7 +12,7 @@ Brainstorming helps answer **WHAT** to build through collaborative dialogue. It 
 
 The durable output of this workflow is a **requirements document**. In other workflows this might be called a lightweight PRD or feature brief. Keep the workflow name `brainstorm`, but make the written artifact strong enough that planning does not need to invent product behavior, scope boundaries, or success criteria.
 
-This skill does not implement code. It explores, clarifies, and documents decisions for later planning or execution. It is a **trunk-level dialogue** skill: a pure-dialogue brainstorm spawns nothing and opens no run ledger; the one optional spawn (research grounding, Phase 1.1) opens a ledger lazily at that point.
+This skill does not implement code. It explores, clarifies, and documents decisions for later planning or execution. It is a **trunk-level dialogue** skill: a pure-dialogue brainstorm spawns nothing and opens no run ledger; the one optional spawn (research grounding, Phase 1.1) opens a ledger lazily at that point. When reached from `/bn-grow`, this skill runs as **grow intake**: it completes the requirements artifact step, returns the requirements document path or finalized summary to `/bn-grow`, and skips the standalone handoff menu.
 
 The requirements doc lands in `docs/brainstorms/` — a **protected artifact family** (AGENTS.md §5): no Banyan agent may delete, gitignore, or "clean up" anything under it. This skill creates and updates docs there; it never removes them.
 
@@ -129,9 +129,9 @@ If nothing obvious appears after a short scan, say so and continue. Two rules go
 
 **Research grounding** (opt-in, Standard and Deep only) — never auto-dispatch. When the user asks for deeper grounding, or the dialogue hits a question a short scan cannot answer (how does this codebase actually do X? has the team solved this before? what's the industry standard?), offer to dispatch `bn-research-lead`. If accepted:
 
-1. Open the run ledger **now** (lazily — only this branch needs one):
+1. Use the caller's run ledger if this brainstorm is running as `/bn-grow` intake. Otherwise open the run ledger **now** (lazily — only this branch needs one):
    `node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs brainstorm-<slug> --root <repo-root>`
-2. Spawn `bn-research-lead` **foreground** with a standard envelope: `objective` = the grounding question, `artifact_path` = `docs/runs/<run-id>/briefs/research-brief.md`, boundaries read-only, budget `{ max_children: 6, model_tier: sonnet, depth_remaining: 3 }`, `effort_class` by question breadth.
+2. Spawn `bn-research-lead` **foreground** with a standard envelope: `objective` = the grounding question, `artifact_path` = `docs/runs/<run-id>/briefs/brainstorm-grounding.md`, boundaries read-only, budget `{ max_children: 6, depth_remaining: 3 }`, `effort_class` by question breadth.
 3. READ the brief file (not the lead's prose) and fold its findings into the dialogue.
 4. Note the brief's path in the requirements doc so `/bn-plan` can reuse it instead of re-researching.
 
@@ -264,4 +264,4 @@ Follow the format set by existing entries. Apply edits silently. (If Phase 3 ski
 
 ### Phase 4: Handoff
 
-Present next-step options and execute the user's selection. Read `references/handoff.md` for the option logic, dispatch instructions, and closing summary format.
+Present next-step options and execute the user's selection. Read `references/handoff.md` for the option logic, dispatch instructions, grow-intake return contract, and closing summary format.

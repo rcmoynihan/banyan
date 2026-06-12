@@ -55,7 +55,7 @@ Then check, RED only on structural failure:
 
 2. Generate a random token (e.g. `openssl rand -hex 8` or `$RANDOM$RANDOM`).
 
-3. Spawn `bn-probe` **foreground** (model: haiku) with this envelope, substituting the
+3. Spawn `bn-probe` **foreground** with this envelope, substituting the
    real paths and token:
 
    ```
@@ -71,7 +71,6 @@ Then check, RED only on structural failure:
    tool_guidance:   Read, Write; Agent(bn-probe-leaf) for the nesting probe.
    budget:
      max_children:    2
-     model_tier:      haiku
      depth_remaining: 2
    effort_class:    lightweight
    === END ENVELOPE ===
