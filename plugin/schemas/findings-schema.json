@@ -83,6 +83,11 @@
           "pre_existing": {
             "type": "boolean",
             "description": "True if this issue exists in unchanged code unrelated to the current diff"
+          },
+          "verification_status": {
+            "type": "string",
+            "enum": ["proven", "concern"],
+            "description": "Optional. Set only by execution-grounded reviewers (e.g. bn-dogfood-verifier) that drive the running app. 'proven' = a reproduced failure: the verifier drove a user journey and observed a wrong state, with a replayable repro and observed output in evidence[]. 'concern' = a leg that could not be driven/tested (external OAuth, real payment, email delivery), recorded as file:line plus why-untestable; advisory by construction. Distinct from claim_type (tested|inspected|assumed), which belongs to lesson staging in the knowledge store -- two object types, two field names, no shared enum."
           }
         }
       }
@@ -127,6 +132,11 @@
       "downstream-resolver": "Caller or human should act after review.",
       "human": "Judgment required before implementation.",
       "release": "Operational or rollout follow-up."
+    },
+    "verification_status": {
+      "description": "Optional, set only by execution-grounded reviewers that drive the running app. Static reviewers omit it. Not the same field as the knowledge store's claim_type (tested|inspected|assumed) used for lesson staging -- two distinct object types, two distinct field names. A 'proven' dogfood finding that is later promoted into a lesson would be staged by a harvester as claim_type: tested, but that mapping is the knowledge cluster's job, not this schema's.",
+      "proven": "A reproduced failure: a driven user journey produced an observed wrong state, with a replayable repro and the observed output captured in evidence[]. Routes to a finding-owner and gates the applied verdict like a correctness finding of the same severity.",
+      "concern": "A leg the verifier could not drive or test (external OAuth, real payment, email delivery). Recorded as file:line plus why-untestable. Advisory by construction (autofix_class: advisory, owner: human); never routed to an owner, never blocks the verdict."
     },
     "return_tiers": {
       "description": "Finding fields are split into two tiers. The full schema (with all required fields) applies to the artifact file on disk. The compact return to the orchestrator omits detail-tier fields. Both are valid uses of this schema in different contexts.",

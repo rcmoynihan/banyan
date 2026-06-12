@@ -49,12 +49,22 @@ write derivatives.
 
 ## Family Rules
 
+### Claim type for every staged candidate
+
+Every `solution-bug` and `solution-knowledge` candidate carries staging-only
+`claim_type: inspected`. That is both the **default and the ceiling** for an
+onboarding derivative: you transcribe untrusted legacy text, you do not re-run
+anything, so `tested` is unavailable to you by construction and you never write it
+or an `intervention:` line. `assumed` is also wrong here — the source document is
+the observed artifact, which is exactly `inspected`. See the claim_type doctrine
+in `knowledge-store.md`.
+
 ### `solution-bug`
 
 Write the candidate to `docs/runs/<run-id>/lessons-staging/<slug>.md`.
 
-Use v1 frontmatter from `knowledge-store.md`, plus staging-only `status: candidate`.
-The body uses these headings:
+Use v1 frontmatter from `knowledge-store.md`, plus staging-only `status: candidate`
+and `claim_type: inspected`. The body uses these headings:
 
 ```markdown
 # <title>
@@ -76,8 +86,8 @@ the assignment includes or permits `solution-knowledge`; otherwise record
 
 Write the candidate to `docs/runs/<run-id>/lessons-staging/<slug>.md`.
 
-Use v1 frontmatter from `knowledge-store.md`, plus staging-only `status: candidate`.
-The body uses these headings:
+Use v1 frontmatter from `knowledge-store.md`, plus staging-only `status: candidate`
+and `claim_type: inspected`. The body uses these headings:
 
 ```markdown
 # <title>

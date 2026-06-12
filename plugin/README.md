@@ -14,7 +14,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (39 agents)
+  agents/                      one agent per file: bn-*.md (41 agents)
   skills/                      one skill per directory: bn-*/SKILL.md (15 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,

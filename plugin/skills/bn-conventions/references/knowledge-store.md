@@ -195,19 +195,90 @@ broken. Omit process exhaust (no "captured at phase X", no "next steps").
   or at `docs/solutions/` as a whole). The per-field validation rules are
   untouched.
 - Harvested candidate lessons use this same body/frontmatter format but live in
-  the run ledger's `lessons-staging/`, never in `docs/solutions/`. They carry one
-  extra **staging-only** key, `status: candidate`, which is **not** part of the v1
-  schema — it is Banyan-internal bookkeeping that the curator **strips on promotion**.
-  A doc only lands in `docs/solutions/` after the curator removes `status:` and the
-  doc passes `validate-frontmatter.py`, so the committed knowledge store stays
-  byte-for-byte v1-compatible. (Run the validator on a staged candidate with
-  `status:` still present and it passes anyway — the validator checks parser safety,
-  not a field allow-list — but promotion strips it regardless to keep intent clear.)
+  the run ledger's `lessons-staging/`, never in `docs/solutions/`. They carry
+  **staging-only** keys that are **not** part of the v1 schema — Banyan-internal
+  bookkeeping the curator **strips on promotion**. A doc only lands in
+  `docs/solutions/` after the curator removes every staging-only key and the doc
+  passes `validate-frontmatter.py`, so the committed knowledge store stays
+  byte-for-byte v1-compatible. The staging-only keys are `status: candidate`,
+  `claim_type`, and `intervention` (the claim_type doctrine is below); the
+  validator's clean-store guard rejects any of them on a `docs/solutions/` doc,
+  so a staging key can never leak into the committed store.
 - `docs/solutions/*.md` is a protected artifact (AGENTS.md section 5): no agent
-  may delete, gitignore, or "clean up" these files; a finding proposing removal
-  is discarded during synthesis.
+  may delete, gitignore, or "clean up" these files, and a reviewer finding
+  proposing removal is discarded during synthesis. The one exception is the
+  `bn-knowledge-curator` deleting a drifted entry under `/bn-curate --refresh`,
+  foreground, after explicit per-doc user confirmation; AGENTS.md section 5 is
+  authoritative for that carve-out, and background curation never deletes.
 - Search `docs/solutions/` before writing a new solution so memory compounds
   rather than fragmenting into near-duplicates.
 - Validate any doc you write:
   `python ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-frontmatter.py <path>`
   (or point it at the directory). A non-zero exit means fix and retry.
+
+## Claim type: the staging-only causal gate
+
+A candidate's central claim is either *causal* — a bug-track `root_cause`, or a
+knowledge-track rule that asserts *why* something must be done — or it is not (a
+discovered convention, a path, a tooling decision that records *what* without a
+why-it-breaks mechanism). The causal candidates are the durable-poison vector: a
+wrong "why" promoted into `docs/solutions/` misleads every future reader. Every
+candidate therefore carries one staging-only `claim_type` describing the strength
+of its central claim:
+
+| value | meaning | who may write it |
+|---|---|---|
+| `tested` | a parent re-ran an **executed** artifact that isolated the mechanism (a `repro_command` the lead/finding-owner re-ran, a red→green counterexample) and the candidate cites it in `intervention:`. | only a producer mining a record that shows that executed intervention. |
+| `inspected` | the claim was read or observed in code but not isolated by an executed intervention. | the default-and-ceiling for onboarding derivatives, which only transcribe untrusted legacy text. |
+| `assumed` | a hypothesis never isolated; also the conservative default the curator applies when a candidate arrives with **no** `claim_type`. | any producer. |
+
+Rules every producer and the curator share:
+
+- **One `claim_type` per candidate**, attached to its causal core — never per
+  sentence (a per-sentence proof bundle confabulates and is not the contract).
+- **`tested` requires a present `intervention:` citation** naming the
+  parent-owned executed artifact that isolated the mechanism — what was
+  disabled/isolated so the failure was reproduced without the cause, or the
+  counterexample that went green only with the cause removed. **Prose alone never
+  earns `tested`**; a self-described "I verified this" is not an executed
+  artifact. The honesty of `tested` is enforced *upstream*, at the lead /
+  finding-owner acceptance boundary that actually re-ran the artifact — the
+  curator only checks, by Read, that the citation exists; it does not re-execute.
+- **The curator's promotion gate** (in `bn-knowledge-curator.md`): a *causal*
+  candidate promotes to `docs/solutions/` **only** when `claim_type: tested` with
+  a present `intervention:`. A causal candidate that is `inspected`/`assumed`, or
+  `tested` with no `intervention:` (downgraded to `inspected`), is **held in
+  staging** and reported — not promoted as an established cause, never lost.
+  *Non-causal* candidates promote normally regardless of `claim_type`. When unsure
+  whether a claim is causal, treat it as causal and hold.
+- `claim_type` and `intervention` are **stripped on promotion** exactly as
+  `status: candidate` is, and the validator's clean-store guard blocks them from a
+  committed doc — the committed store stays byte-for-byte v1.
+
+`claim_type` (`tested | inspected | assumed`) is for **lessons / solution
+candidates only**. Review and dogfood findings use a separate field,
+`verification_status`, owned by the review cluster; the two vocabularies are
+distinct and must not be conflated.
+
+## Marking staleness and supersession (body prose, never frontmatter)
+
+When a `docs/solutions/` doc drifts from the current codebase or is superseded by
+a newer doc, record that **in the doc body**, never as a new frontmatter key.
+Adding a `status:`, `stale:`, or `superseded_by:` key to a committed doc would
+break the v1 frontmatter contract (invariant 8) the same way `status: candidate`
+would — and the clean-store guard rejects `status:` outright. Body prose is
+v1-neutral and is still visible to any reader and to `bn-learnings-researcher`.
+
+Append a short `## Status` note near the end of the body:
+
+    ## Status
+    Superseded by `docs/solutions/<category>/<successor>.md` on YYYY-MM-DD — <one-line reason>.
+
+or, for a doc whose referenced code/paths have drifted but that has no successor
+yet:
+
+    ## Status
+    Stale as of YYYY-MM-DD — <what drifted: the referenced path/API/behavior no longer exists>.
+
+The frontmatter is the contract; the body carries the lifecycle. A stale-marking
+edit must still pass `validate-frontmatter.py` (it touches only the body).

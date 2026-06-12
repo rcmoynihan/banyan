@@ -19,7 +19,8 @@ stage **0–3 candidate lessons** (often 0–1) as v1-format solution docs under
 
 Read `AGENTS.md` (especially §1.7 model pinning; §1.8 v1
 persistence; §5 protected artifacts), `skills/bn-conventions/references/knowledge-store.md`
-(the v1 solution format and the `status: candidate` staging-only convention), and
+(the v1 solution format, the staging-only keys — `status: candidate`, `claim_type`,
+`intervention` — and the claim_type causal gate), and
 `skills/bn-conventions/references/ledger.md` (where `lessons-staging/` lives) — you consume
 those artifacts and write candidates in that format.
 
@@ -67,10 +68,23 @@ The spawning lead hands you a `=== BANYAN ENVELOPE ===` block. It carries:
    file to `docs/runs/<run-id>/lessons-staging/<slug>.md` in the v1 solution format (per
    `knowledge-store.md`): valid YAML frontmatter (the shared core — `module`, `date`,
    `problem_type`, `component`, `severity` — plus the track-required fields) and the
-   two-track body (bug-track or knowledge-track headings). Add the one **staging-only** key
-   `status: candidate` to the frontmatter — this is Banyan-internal bookkeeping the curator
-   strips on promotion; it is NOT part of the v1 schema and must NOT be added to anything in
-   `docs/solutions/`. Pick `<slug>` as a short kebab-case name for the lesson
+   two-track body (bug-track or knowledge-track headings). Add the **staging-only** keys —
+   Banyan-internal bookkeeping the curator strips on promotion, NOT part of the v1 schema and
+   never added to anything in `docs/solutions/`:
+   - `status: candidate`.
+   - `claim_type` — the strength of the candidate's central claim, derived from the subtree
+     record you mined (per the claim_type doctrine in `knowledge-store.md`). Use `tested`
+     **only** when the record shows a parent-owned executed artifact that isolated the
+     mechanism — a `repro_command` the lead/finding-owner actually re-ran, or a red→green
+     counterexample — and cite that artifact in an `intervention:` line; a passing suite or
+     prose "we verified it" is not enough. Use `inspected` for a convention or behavior the
+     subtree *observed* in code; use `assumed` for a hypothesis that was never isolated. When
+     in doubt for a causal claim, use the weaker value — the curator holds, rather than
+     promotes, an under-evidenced cause.
+   - `intervention:` — present **iff** `claim_type: tested`, naming the executed artifact you
+     are relying on (what was disabled/isolated, or the counterexample). Omit it otherwise.
+
+   Pick `<slug>` as a short kebab-case name for the lesson
    (e.g. `worktree-isolation-fallback`, `fixture-clean-tree-assumption`).
 
    YAML safety (per `knowledge-store.md`): quote any array item that starts with a reserved

@@ -178,6 +178,25 @@ harness's own memory:
 
 A reviewer that flags one of these for removal has its finding discarded during synthesis.
 
+Two narrowly-bounded exceptions exist, both belonging to the `bn-knowledge-curator`:
+
+- **Clearing consumed staging.** After consolidating a run's candidates, the curator empties the
+  `docs/runs/<run-id>/lessons-staging/` candidate files it promoted or merged (the staging
+  lifecycle in `skills/bn-conventions/references/ledger.md`). That staging area is the curator's
+  own transient feedstock, not durable memory, so clearing a consumed candidate is sanctioned. A
+  held candidate and every other `docs/runs/*` artifact (the ledger, progress notes, briefs,
+  findings) stay untouchable.
+- **Deleting a drifted solution.** The curator may delete a drifted `docs/solutions/*.md` entry,
+  and only when **all** of these hold: the curator is the actor; it is running **foreground**
+  under `/bn-curate --refresh` (never in background or sleep-time curation); and the user has
+  **explicitly confirmed that specific document** — carried into a follow-up curator pass as a
+  `confirmed_delete_paths` entry after a prior report-only pass presented its inbound-link
+  analysis. Until a document is so confirmed, a drifted entry is a `RECOMMEND-DELETE` report line
+  only.
+
+No other agent ever deletes a protected artifact, and `docs/brainstorms/*` and `docs/plans/*.md`
+are never deletable by anyone.
+
 ---
 
 ## 6. Pointers

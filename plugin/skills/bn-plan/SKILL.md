@@ -70,9 +70,10 @@ is not being honored.
 
 ## Step 3 — Generator panel (spawn in parallel)
 
-Spawn the generators **in parallel** (one message, multiple `Agent` calls), each
-`bn-plan-generator` at `model: sonnet`, each carrying a **different prior**. For each
-generator embed this envelope verbatim, filling the prior and the draft path:
+Spawn the generators **in parallel** (one message, multiple `Agent` calls), each a
+`bn-plan-generator` carrying a **different prior**. Each runs at the model pinned in its
+frontmatter (invariant 7 — the envelope carries no model field). For each generator embed
+this envelope verbatim, filling the prior and the draft path:
 
 ```
 === BANYAN ENVELOPE ===
@@ -113,9 +114,10 @@ observability/rollback/migration safety first). Each generator writes a full pla
 
 ## Step 4 — Judge panel (spawn in parallel), then pick the winner
 
-When the drafts are written, spawn **3** `bn-plan-judge` agents **in parallel**, each at
-`model: sonnet`, each scoring **ALL** drafts independently (fresh context per judge — that
-independence is the PoLL-style panel's whole value). For each judge `<n>` ∈ {1,2,3}:
+When the drafts are written, spawn **3** `bn-plan-judge` agents **in parallel**, each
+scoring **ALL** drafts independently (fresh context per judge — that independence is the
+PoLL-style panel's whole value). Each runs at the model pinned in its frontmatter
+(invariant 7 — the envelope carries no model field). For each judge `<n>` ∈ {1,2,3}:
 
 ```
 === BANYAN ENVELOPE ===
@@ -157,6 +159,72 @@ the judges' final-message prose — invariant 3). Then:
 Why opus judges: plan critique is real reasoning, and a weaker model rewards length over
 soundness — that corrupts the panel signal (see `bn-plan-judge`). The panel is three
 *independent* reads precisely so no single judge's bias decides the plan.
+
+## Step 4.5 — Ground the winning draft against the repo (standard/deep only)
+
+Before synthesizing, the trunk dispatches **one** `bn-plan-checker` to re-run the repo
+against the **winning draft's** specific claims and emit a typed, evidence-bearing gap list.
+The judges scored the drafts comparatively; the checker does something different — it
+*executes* lookups (grep, glob, `git ls-files`, data-flow tracing) against the named files
+and units of the one draft that won, and emits only findings each backed by a re-runnable
+command. This is the brownfield/shadow-path grounding that otherwise first surfaces at review
+time, after code is written.
+
+**Gating (the optionality contract):**
+
+- **Effort:** runs on **`standard` and `deep` only**. **`lightweight` skips it** — the trunk
+  drafts directly and never reaches this step, keeping the lightweight spawn count below
+  standard.
+- **Opt-out / force-on:** a `precheck: on|off` flag (a `/bn-plan` arg or a plan-frontmatter
+  setting) overrides the effort default at `standard`/`deep`: `precheck: off` suppresses the
+  checker (e.g. a greenfield repo where every `already-exists` check is trivially empty);
+  `precheck: on` forces it where some other signal would skip it. The checker runs against the
+  panel's **winning draft**, so it has no effect at `lightweight` — which drafts directly and
+  produces no winning-draft artifact to check; a lightweight task that needs this grounding
+  should be classified `standard`. When suppressed, record `precheck: off` in the ledger and go
+  to Step 5.
+
+Dispatch one `bn-plan-checker`. It runs at the model pinned in its frontmatter (invariant 7 —
+the envelope carries no model field):
+
+```
+=== BANYAN ENVELOPE ===
+objective:       Ground every load-bearing claim of the winning plan draft against the real
+                 repo and emit a typed, evidence-bearing gap list.
+artifact_path:   docs/runs/<run-id>/briefs/plan-check.md
+output_format:   A plan-check brief: a typed findings list where each finding is one of
+                 already-exists | untraced-path | infeasible-claim and carries a one-line
+                 method: naming the re-runnable command/lookup that proves it; plus a
+                 ## Unverifiable section for claims with no runnable surface, and a
+                 residual line when nothing concrete remained to check.
+inputs:
+  task:            <the task description>
+  requirements_doc: <docs/brainstorms/...-requirements.md, or "none">
+  winning_draft_path: docs/runs/<run-id>/briefs/plan-draft-<winning-prior>.md
+  graft_list:      <the runner-up ideas the trunk plans to graft, or "none">
+  research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
+  repo_root:       <repo root>
+  test_command:    <the detected test command, or "none detected">
+boundaries:      Read-only against the repo except your one artifact. Do NOT edit source,
+                 switch branches, or touch protected artifacts docs/brainstorms, docs/plans,
+                 docs/solutions, docs/runs (except your own artifact_path). Never write a
+                 draft, score sheet, or the plan.
+tool_guidance:   Read, Grep, Glob and read-only Bash (git grep, git ls-files, ls, dependency
+                 lookups) to ground the winning draft's named files/units; Write only to
+                 artifact_path. No Agent spawns — you are a leaf.
+budget:
+  max_children:    0
+  depth_remaining: 1
+effort_class:    <standard | deep>
+=== END ENVELOPE ===
+```
+
+When the checker returns, **READ `plan-check.md`** (the file, not the verdict prose —
+invariant 3) before writing the plan in Step 5. The checker never blocks: if it had no
+runnable surface it returns a typed `## Unverifiable` section, and if the draft was too thin
+to ground it returns an empty findings list with a residual note. The trunk folds its
+findings into the plan it writes (Step 5).
 
 ## Step 5 — Synthesize and write the plan (the trunk is the single writer)
 
@@ -203,11 +271,29 @@ draft override the requirements document's scope. For **lightweight** (panel ski
 trunk drafts the plan directly from the requirements document, brief, and task, same
 structure, tagging every trunk-authored R-ID.
 
+**Fold in the plan-check findings (standard/deep, when the checker ran).** Thread each
+surviving finding from `plan-check.md` into the plan structure — never leave it only in the
+brief:
+
+- **`already-exists`** → drop or narrow the redundant unit, and point its `Files`/`Approach`
+  at the existing capability the checker cited instead of rebuilding it.
+- **`untraced-path`** → add the missing error/empty/nil-handling work as a unit or a unit
+  step, with verification that exercises the path the checker named.
+- **`infeasible-claim`** → correct the unit's `Files`/`Approach` to a real path, or — if the
+  finding invalidates the winning draft's whole approach — surface it as a blocker to the user
+  in Step 6 *before* finalizing. **The plan does not leave `Status: draft` with an unaddressed
+  `infeasible-claim`.**
+- Anything in the checker's `## Unverifiable` section becomes an `[assumed]` requirement or an
+  open question with a `(confirm by: ...)` clause — recorded, not silently dropped.
+
 Then **record provenance in the ledger**: set U1's row to `done` (artifact = the plan path),
 and append a `## Log` line noting the plan path, the `effort_class`, and — for standard/deep —
-**where the judge score sheets live** (`docs/runs/<run-id>/briefs/plan-judge-*.md`) and which
-draft won. For lightweight, the log line states the panel was skipped (effort scaling
-observable in the ledger).
+**where the judge score sheets live** (`docs/runs/<run-id>/briefs/plan-judge-*.md`), which
+draft won, and — when the checker ran — the plan-check brief
+(`docs/runs/<run-id>/briefs/plan-check.md`) with the count of findings folded in. For
+lightweight, the log line states the panel was skipped (effort scaling observable in the
+ledger); when `precheck: off` suppressed the checker at standard/deep, the log line records
+that too.
 
 ## Step 6 — Present the plan
 
@@ -218,9 +304,13 @@ Present a **short** summary to the user:
   and which runner-up ideas were grafted; for lightweight, that the **panel was skipped** (and
   that this is visible in the ledger);
 - the requirements document path when one grounded the plan;
+- for standard/deep when the checker ran: how many plan-check findings were folded in, and
+  **any `infeasible-claim` that became a surfaced blocker** the user must resolve before the
+  plan leaves `Status: draft`; if `precheck: off` suppressed it, say so;
 - every `[assumed]` R-ID with its `(confirm by: ...)` clause; if none exist, say there are
   no assumed requirements;
-- a one-line pointer to the run dir (`docs/runs/<run-id>/`) for the drafts and score sheets.
+- a one-line pointer to the run dir (`docs/runs/<run-id>/`) for the drafts, score sheets, and
+  plan-check brief.
 
 Do not paste the whole plan into the reply — point at the file (invariant 3). Note that the
 plan is `Status: draft`; delivery (`/bn-work` or `/bn-grow`) consumes it next.
