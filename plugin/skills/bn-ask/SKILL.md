@@ -93,7 +93,7 @@ inputs:
   question_type: <pinpoint | mechanism | hypothesis | limitation | orientation | external dependency>
   question:      <the user's question>
   fast_scan:     <brief summary of any trunk scan already performed, or "none">
-  doctrine:      ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      Read-only research. Do NOT edit source, switch branches, commit/push,

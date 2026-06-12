@@ -39,7 +39,7 @@ boundaries:      Write ONLY artifact_path. Never touch docs/runs, source, or any
 tool_guidance:   Write only.
 budget:
   max_children:    0
-  depth_remaining: 0
+  depth_remaining: 1
 effort_class:    lightweight
 === END ENVELOPE ===
 ```

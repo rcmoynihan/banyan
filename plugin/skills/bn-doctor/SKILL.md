@@ -38,7 +38,7 @@ Then check, RED only on structural failure:
 1. `<plugin-root>/.claude-plugin/plugin.json` parses as JSON and its `name` is `banyan`
    (report the `version`).
 2. `<plugin-root>/agents/bn-*.md` and `<plugin-root>/skills/*/SKILL.md` are enumerable.
-   **Report** the counts (e.g. "36 agents, 14 skills found") — counts are informational,
+   **Report** the counts (e.g. "<N> agents, <M> skills found") — counts are informational,
    not asserted against a hardcoded number.
 3. Every agent file's frontmatter `name:` equals its filename stem (the load-bearing
    invariant from AGENTS.md §3). Any mismatch is RED, naming the file.
@@ -101,7 +101,7 @@ Print one table and stop — no files are left behind, nothing else is written:
 | claude >= 2.1.172          | GREEN  | 2.1.180                                 |
 | node                       | GREEN  | v22                                     |
 | gh / python3 / pwsh        | YELLOW | gh missing: /bn-ship, /bn-resolve-pr    |
-| plugin manifest + assets   | GREEN  | banyan v0.1.0; 36 agents, 14 skills     |
+| plugin manifest + assets   | GREEN  | banyan v0.1.0; <N> agents, <M> skills   |
 | frontmatter name = stem    | GREEN  | all agents                              |
 | depth-2 nested spawn       | GREEN  | token round-tripped                     |
 | allowlist enforcement      | YELLOW | not enforced by runtime (prompt-level by design) |

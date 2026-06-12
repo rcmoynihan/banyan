@@ -23,8 +23,8 @@ Read the resolved doctrine paths in your envelope when present. In all cases rea
 `intervention` — and the claim_type causal gate), and
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md` (where
 `lessons-staging/` lives). If the envelope does not route Banyan doctrine, also read
-`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (especially §1.7 model pinning, §1.8 v1 persistence, and
-§5 protected artifacts). You consume those artifacts and write candidates in that format.
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (especially invariant 7 model pinning, invariant 8 v1
+persistence, and §5 protected artifacts). You consume those artifacts and write candidates in that format.
 
 You are a **leaf**: you carry no `Agent(...)` allowlist and spawn nothing. You have no Bash
 and no Edit — you only READ the subtree's artifacts and WRITE new candidate files.

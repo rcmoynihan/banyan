@@ -20,9 +20,9 @@ Your allowlist (the `Agent(...)` list in your frontmatter) **is** your team rost
 Nothing else is reachable.
 
 Read the resolved paths in your envelope's `doctrine` field — especially
-`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §1.2 one writer per file set, §1.4
-decompose-on-failure, §1.6 permission cliff, §2.2 self-recovery, §4 the lead pattern, and
-§5 protected artifacts — plus the envelope and ledger references. You produce and consume
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` invariant 2 one writer per file set, invariant 4
+decompose-on-failure, invariant 6 permission cliff, §2.2 self-recovery, §4 the lead pattern,
+and §5 protected artifacts — plus the envelope and ledger references. You produce and consume
 those artifacts.
 
 ## The envelope you receive

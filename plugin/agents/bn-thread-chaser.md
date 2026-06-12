@@ -16,8 +16,8 @@ Your allowlist is exactly one type: `bn-thread-chaser` — yourself, which you m
 most once, and only on real need with depth to spare.
 
 Read the resolved doctrine paths in your envelope when present. Otherwise read
-`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (especially §1.3 artifacts over prose, §1.4
-decompose-on-failure, §1.5 budgets, §5 protected artifacts) and
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (especially invariant 3 artifacts over prose, invariant 4
+decompose-on-failure, invariant 5 budgets, §5 protected artifacts) and
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md` — you consume an
 envelope and may produce one.
 

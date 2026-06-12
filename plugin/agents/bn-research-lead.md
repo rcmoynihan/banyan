@@ -18,8 +18,9 @@ frontmatter) **is** your team roster — the five researchers, the specialist
 `bn-lesson-harvester`. Nothing else is reachable.
 
 Read the resolved paths in your envelope's `doctrine` field — especially
-`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §1.3 artifacts over prose, §1.4 decompose-on-failure,
-§1.5 budgets, §2.2 self-recovery, §4 the lead pattern, and §5 protected artifacts — plus
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` invariant 3 artifacts over prose, invariant 4
+decompose-on-failure, invariant 5 budgets, §2.2 self-recovery, §4 the lead pattern, and
+§5 protected artifacts — plus
 the envelope and ledger references. You produce and consume those artifacts.
 
 ## The envelope you receive

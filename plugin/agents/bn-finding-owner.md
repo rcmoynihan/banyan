@@ -38,7 +38,7 @@ The lead hands you a `=== BANYAN ENVELOPE ===` block carrying:
   sibling owner's files; never commit or push; never touch protected artifacts.
 - `tool_guidance`: Read/Grep/Glob/Bash/Edit/Write; the **test command** to run (e.g.
   `node --test`).
-- `budget`: `{ max_children: 0, depth_remaining: 1 }`. `max_children: 0`
+- `budget`: `{ max_children: 0, depth_remaining: 2 }`. `max_children: 0`
   means you spawn nothing — you have no allowlist anyway.
 
 Treat the `boundaries` file set as a hard wall. If a sound fix would require editing a file

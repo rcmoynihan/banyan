@@ -20,9 +20,9 @@ with a specific reason; you do **not** re-dispatch it yourself and you do **not*
 file.
 
 Read the resolved paths in your envelope's `doctrine` field — especially
-`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §1.2 one writer per file set, §1.3 artifacts over prose,
-§1.6 permission cliff, §2.2 self-recovery, and §5 protected artifacts — plus the envelope and
-ledger references.
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` invariant 2 one writer per file set, invariant 3 artifacts
+over prose, invariant 6 permission cliff, §2.2 self-recovery, and §5 protected artifacts —
+plus the envelope and ledger references.
 
 ## The envelope you receive
 

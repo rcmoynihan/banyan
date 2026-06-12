@@ -21,8 +21,9 @@ scoped mini-review pair) and `bn-unit-lead` (a single recursive split, only on f
 Nothing else is reachable.
 
 Read the resolved paths in your envelope's `doctrine` field — especially
-`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §1.2 one writer per file set, §1.4 decompose-on-failure,
-§1.6 permission cliff, §2.2 self-recovery, §4 the lead pattern, and §5 protected artifacts —
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` invariant 2 one writer per file set, invariant 4
+decompose-on-failure, invariant 6 permission cliff, §2.2 self-recovery, §4 the lead pattern,
+and §5 protected artifacts —
 plus the envelope and ledger references.
 
 ## The envelope you receive
