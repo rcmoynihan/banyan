@@ -14,7 +14,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (39 agents)
+  agents/                      one agent per file: bn-*.md (40 agents)
   skills/                      one skill per directory: bn-*/SKILL.md (15 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
@@ -58,10 +58,10 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **Delivery workers** — `bn-unit-lead` (one implementation unit in an isolated
   worktree: implement → test-fix → mini-review pair → commit), `bn-integrator` (single
   writer for the merge; runs the full suite; never pushes).
-- **Reviewer panel** — 6 always-on reviewers (correctness, testing, maintainability,
-  project standards, agent-native, learnings) and 8 conditional reviewers (security,
-  performance, API contract, data migration, reliability, adversarial, spec fidelity, plus
-  previous-comments for PR-mode reviews);
+- **Reviewer panel** — 7 always-on reviewers (correctness, testing, maintainability,
+  YAGNI, project standards, agent-native, learnings) and 8 conditional reviewers
+  (security, performance, API contract, data migration, reliability, adversarial, spec
+  fidelity, plus previous-comments for PR-mode reviews);
   `bn-custom-reviewer` embodies host-repo persona files (AGENTS.md §2.1).
   `bn-finding-owner` fixes-and-verifies one confirmed finding.
 - **Researchers & investigators** — repo, best-practices, framework-docs, and web

@@ -107,7 +107,7 @@ Each stage is also independently invocable:
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and a live depth-2 nested-spawn + allowlist-enforcement probe. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 
-The plugin ships 39 agents: the four lead subtrees (review, research, delivery, debug) plus `bn-unit-lead`/`bn-integrator`, 19 reviewer/researcher personas vendored from compound-engineering (including `bn-deployment-verifier`), the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, `bn-custom-reviewer` (host-repo review personas via data, not roster edits), the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, the `bn-doc-surveyor`/`bn-doc-transformer` onboarding pair, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
+The plugin ships 40 agents: the four lead subtrees (review, research, delivery, debug) plus `bn-unit-lead`/`bn-integrator`, 19 reviewer/researcher personas vendored from compound-engineering (including `bn-deployment-verifier`), the native `bn-yagni-reviewer`, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, `bn-custom-reviewer` (host-repo review personas via data, not roster edits), the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, the `bn-doc-surveyor`/`bn-doc-transformer` onboarding pair, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
 
 ## Workflows
 
@@ -262,7 +262,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 ## Repository layout
 
 ```
-plugin/        the Claude Code plugin (39 agents, 15 skills, schemas, AGENTS.md contract)
+plugin/        the Claude Code plugin (40 agents, 15 skills, schemas, AGENTS.md contract)
 docs/          founding brainstorm, decision records, plans, harness changelog & proposals
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation

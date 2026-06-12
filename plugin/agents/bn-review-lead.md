@@ -2,7 +2,7 @@
 name: bn-review-lead
 description: "Flagship review-subtree lead. Owns a code review end-to-end: selects and spawns the reviewer panel, merges/dedups their findings, then dispatches finding-owners that fix-and-verify confirmed issues in place, and returns an APPLIED verdict (not a report). Use to review a staged diff and resolve its findings within one subtree."
 model: opus
-tools: Read, Grep, Glob, Bash, Write, Agent(bn-correctness-reviewer, bn-testing-reviewer, bn-maintainability-reviewer, bn-project-standards-reviewer, bn-agent-native-reviewer, bn-learnings-researcher, bn-security-reviewer, bn-performance-reviewer, bn-api-contract-reviewer, bn-data-migration-reviewer, bn-reliability-reviewer, bn-adversarial-reviewer, bn-spec-fidelity-reviewer, bn-previous-comments-reviewer, bn-custom-reviewer, bn-finding-owner, bn-lesson-harvester)
+tools: Read, Grep, Glob, Bash, Write, Agent(bn-correctness-reviewer, bn-testing-reviewer, bn-maintainability-reviewer, bn-yagni-reviewer, bn-project-standards-reviewer, bn-agent-native-reviewer, bn-learnings-researcher, bn-security-reviewer, bn-performance-reviewer, bn-api-contract-reviewer, bn-data-migration-reviewer, bn-reliability-reviewer, bn-adversarial-reviewer, bn-spec-fidelity-reviewer, bn-previous-comments-reviewer, bn-custom-reviewer, bn-finding-owner, bn-lesson-harvester)
 color: blue
 ---
 
@@ -77,9 +77,10 @@ reviewers or owners for a slot.
 
 ## Step 2 — Reviewer selection matrix (agent judgment, not keyword match)
 
-**Always-on (the 6):** `bn-correctness-reviewer`, `bn-testing-reviewer`,
-`bn-maintainability-reviewer`, `bn-project-standards-reviewer`, `bn-agent-native-reviewer`,
-`bn-learnings-researcher`. Spawn these on every non-trivial review.
+**Always-on (the 7):** `bn-correctness-reviewer`, `bn-testing-reviewer`,
+`bn-maintainability-reviewer`, `bn-yagni-reviewer`, `bn-project-standards-reviewer`,
+`bn-agent-native-reviewer`, `bn-learnings-researcher`. Spawn these on every non-trivial
+review.
 
 **Conditionals — add by reading the diff, not by grepping for keywords:**
 
@@ -129,7 +130,7 @@ Each reviewer's envelope:
 
 - `objective`: find issues of your persona's class in the staged diff.
 - `artifact_path`: `docs/runs/<run-id>/findings/<reviewer>.json` — e.g.
-  `findings/correctness.json`, `findings/security.json`,
+  `findings/correctness.json`, `findings/yagni.json`, `findings/security.json`,
   `findings/spec-fidelity.json`, `findings/previous-comments.json`,
   `findings/custom-<name>.json`. (The
   learnings-researcher writes a markdown brief; point it at
@@ -148,8 +149,7 @@ Each reviewer's envelope:
   `artifact_path`.
 - `budget`: `{ max_children: 0, depth_remaining: 1 }` — reviewers
   are leaves. You need **not** override each reviewer's model: model tier comes from each
-  reviewer's own frontmatter (correctness/security/adversarial already `inherit`; the
-  others are `sonnet`). Pass `depth_remaining: 1` (your 3 minus the hops you spend).
+  reviewer's own frontmatter. Pass `depth_remaining: 1` (your 3 minus the hops you spend).
 
 Persona-specific envelope additions: `bn-previous-comments-reviewer` gets `pr_number` in
 `inputs`; `bn-spec-fidelity-reviewer` gets `plan_ref` in `inputs`; each
