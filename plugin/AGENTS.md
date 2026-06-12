@@ -9,6 +9,20 @@ harvesting**.
 This file is the standing contract for everything under `plugin/`. Every Banyan agent and
 skill must obey it. It is also the project-standards source the review subtree reads.
 
+**This file ships with the plugin** — everything under `plugin/` is copied verbatim on
+install — **but it is never auto-loaded.** Claude Code loads the *host repo's* instruction
+files into context, not files inside the plugin cache; an agent sees this file only when
+something explicitly routes it here — `${CLAUDE_PLUGIN_ROOT}` resolution in a skill, or a
+doctrine path passed in its delegation envelope. A bare instruction like "read
+`AGENTS.md`" resolves against the host repo and finds the *host's* file, not this one:
+when pointing an agent at this doctrine, pass a resolved path.
+
+It has two audiences. At runtime, Banyan agents in any host repo read it (via the routing
+above) as standing doctrine. In the Banyan source repository, contributors additionally
+follow it as the contract for editing `plugin/` content. Authoring-repo concerns (dev
+scripts, vendoring workflow, test fixtures) live in the source repo's root `AGENTS.md`,
+which is invisible at runtime.
+
 ---
 
 ## 1. The eight invariants
@@ -175,4 +189,5 @@ A reviewer that flags one of these for removal has its finding discarded during 
 - Delegation envelope spec & template → `skills/bn-conventions/references/envelope.md`
 - Knowledge-store (docs/solutions) schema, v1-compatible → `skills/bn-conventions/references/knowledge-store.md`
 - Findings schema (code review) → `schemas/findings-schema.json`
-- Vendoring provenance & local-edit log → `../vendor/MANIFEST.md`
+- Vendoring provenance & local-edit log → `../vendor/MANIFEST.md` (source repo only — this
+  path does not exist in an installed copy of the plugin)

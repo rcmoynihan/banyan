@@ -12,8 +12,11 @@ Project documents and the harness's own memory.
 - **`harness-changelog.md`** — audit log of harness changes: proposals recorded
   by the harness-engineer, applications recorded by humans only.
 
-When Banyan runs against a repository, it also creates (in that repository's
-`docs/`):
+This repository is itself a Banyan host repo — the plugin is installed here to
+develop Banyan — so the runtime directories below appear alongside the project
+documents above. `/bn-brainstorm` and `/bn-plan` write new documents into
+`brainstorms/` and `plans/` beside the founding ones; that is by design. When
+Banyan runs against any repository, it creates (in that repository's `docs/`):
 
 - **`runs/<run-id>/`** — the per-run ledger: task ledger, progress notes,
   findings, briefs, staged lessons. Spec: `plugin/skills/bn-conventions/references/ledger.md`.
