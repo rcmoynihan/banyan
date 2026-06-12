@@ -60,7 +60,7 @@ Escalate to the research subtree when any of these hold:
 - The first scan finds contradictory evidence.
 - The answer would require enough raw reading to crowd the trunk context.
 
-Before opening a run, read:
+Before opening a run, read (skip any already in your context):
 
 - `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`

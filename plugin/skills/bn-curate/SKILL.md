@@ -41,7 +41,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`,
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md`, and
 `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 6
-permission cliff, invariant 8 v1 persistence).
+permission cliff, invariant 8 v1 persistence). Skip any already in your context.
 
 ## Step 1: Locate the pending candidates
 

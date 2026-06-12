@@ -22,7 +22,7 @@ happen inside the foreground lead, in the user's session; push/PR remain a separ
 Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
 `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 3 artifacts-over-prose, invariant 6
-permission cliff, and §2.2 self-recovery).
+permission cliff, and §2.2 self-recovery). Skip any already in your context.
 
 ## Step 1: Resolve the delivery input
 
@@ -91,10 +91,12 @@ Detect the facts the lead needs; surface anything that would move the user's tre
   auto-commit). When called by `/bn-grow`, return blocker metadata for `residuals.md` if
   the dirty files are user-owned and unsafe to entangle; otherwise continue when the
   delivery lead can isolate the work safely.
-- **Test command.** Detect the repo test command for the envelope: `package.json`
-  `scripts.test` if present, else `node --test` (node project), `pytest` (python),
-  `cargo test` (rust), `go test ./...` (go). "none detected" is a valid value -- record
-  what you found.
+- **Test command.** Detect the repo test command for the envelope. Prefer explicit
+  project instructions first (`AGENTS.md`, `CLAUDE.md`, `README.md`, `scripts/README.md`,
+  or equivalent repo docs). If no command is documented, inspect common manifests and
+  runners: `package.json` `scripts.test`, `node --test`, `pytest`, `cargo test`,
+  `go test ./...`. "none detected" is a valid value -- record the chosen command and
+  source.
 - **Repo root.** `git rev-parse --show-toplevel` for the scaffolder `--root`.
 - **Boundary check script.** Resolve the absolute path
   `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/check-boundary.mjs` and record it

@@ -17,7 +17,7 @@ entire job.
 Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 1 context-centric decomposition,
 invariant 3 artifacts-over-prose, invariant 6 permission cliff, and §2.2 self-recovery),
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
-`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`. The phases you
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md` (skip any already in your context). The phases you
 choreograph each have their own contract: `/bn-brainstorm`, `bn-research-lead` (the agent),
 `/bn-spec-stress`, `/bn-plan`, `/bn-work`, `/bn-review`. You invoke them; you do not
 reimplement them here.

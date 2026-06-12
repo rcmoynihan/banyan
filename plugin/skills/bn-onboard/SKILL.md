@@ -12,7 +12,7 @@ target paths, writes the manifest and instruction files, dispatches harvest and 
 and performs the optional local commit. Leaf agents classify and transform disjoint
 batches only.
 
-Read these first:
+Read these first (skip any already in your context):
 
 - `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`
@@ -85,11 +85,12 @@ Run inline in the trunk.
    `docs/brainstorms/`, `docs/plans/`, `docs/solutions/`, `docs/runs/`, and the
    manifest itself.
 
-7. Detect the test command using the same heuristic chain as `/bn-plan`:
-   `package.json` `scripts.test`, else `node --test` / `pytest` / `cargo test` /
-   `go test ./...`, else a repo-local documented command, else `none detected`.
-   Record the chosen command as a ledger Fact and make it the durable convention in
-   the `CLAUDE.md` draft.
+7. Detect the test command using the same heuristic chain as `/bn-plan`: prefer explicit
+   project instructions first (`AGENTS.md`, `CLAUDE.md`, `README.md`, `scripts/README.md`,
+   or equivalent repo docs). If no command is documented, inspect common manifests and
+   runners: `package.json` `scripts.test`, `node --test`, `pytest`, `cargo test`,
+   `go test ./...`; otherwise use `none detected`. Record the chosen command and source
+   as a ledger Fact and make it the durable convention in the `CLAUDE.md` draft.
 
 ## Phase 1 - Discovery and Triage
 

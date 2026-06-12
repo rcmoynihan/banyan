@@ -21,7 +21,7 @@ PR-style, evidence-cited proposals to `docs/harness-proposals/`. It **NEVER self
 Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
 `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 3
-artifacts-over-prose, invariant 5 budgets, invariant 6 permission cliff).
+artifacts-over-prose, invariant 5 budgets, invariant 6 permission cliff). Skip any already in your context.
 
 ## Step 1: Count the accumulated run corpus
 

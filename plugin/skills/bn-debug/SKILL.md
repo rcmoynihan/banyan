@@ -45,8 +45,11 @@ Capture the run ID and run dir. Fill `ledger.md`: Objective (the bug statement +
 condition), plan ref "none -- ad hoc run", a `U1 | bn-debug-lead | in-progress |
 debug-diagnosis.md` row, and an opening log line.
 
-Detect the repo test command (project instructions > `package.json` test script >
-pytest > cargo test > go test; "none detected" if nothing fits).
+Detect the repo test command. Prefer explicit project instructions first (`AGENTS.md`,
+`CLAUDE.md`, `README.md`, `scripts/README.md`, or equivalent repo docs). If no command is
+documented, inspect common manifests and runners: `package.json` `scripts.test`,
+`node --test`, `pytest`, `cargo test`, `go test ./...`; use `none detected` if nothing
+fits. Record the chosen command and source.
 
 ## Step 4 — Dispatch the investigation
 

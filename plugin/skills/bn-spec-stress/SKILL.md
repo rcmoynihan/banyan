@@ -19,7 +19,7 @@ explicit plan inputs, accepted risks, or notes.
 Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (especially protected artifacts, the lead pattern,
 and self-recovery),
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`, and
-`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`. The trunk is the single writer of the final
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md` (skip any already in your context). The trunk is the single writer of the final
 `spec-stress.md`; leaf reviewers write only their assigned briefs.
 
 ## Step 1 -- Resolve input and run

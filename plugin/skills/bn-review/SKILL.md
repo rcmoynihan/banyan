@@ -91,9 +91,11 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs review-<slu
   review-verdict.md` row. **When reusing the grow run, do NOT add a duplicate row** --
   grow already seeded the `review` phase row, which the review lead updates in place
   (single-writer).
-- Detect the repo test command for the envelope: `package.json` `scripts.test` if
-  present, else `node --test` (node project), `pytest` (python), `cargo test` (rust),
-  `go test ./...` (go). Record what you found; "none detected" is a valid value.
+- Detect the repo test command for the envelope. Prefer explicit project instructions
+  first (`AGENTS.md`, `CLAUDE.md`, `README.md`, `scripts/README.md`, or equivalent repo
+  docs). If no command is documented, inspect common manifests and runners: `package.json`
+  `scripts.test`, `node --test`, `pytest`, `cargo test`, `go test ./...`. Record the
+  chosen command and source; "none detected" is a valid value.
 
 ## Step 4: Build the envelope and spawn bn-review-lead
 

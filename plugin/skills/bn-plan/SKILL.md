@@ -17,7 +17,7 @@ classification *must* change the spawn count (0 vs. 5+), and that is observable 
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
-`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §5 (protected artifacts) plus §2.2 (self-recovery).
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §5 (protected artifacts) plus §2.2 (self-recovery); skip any already in your context.
 The trunk produces and consumes these artifacts.
 
 ## Step 1 — Inputs and grounding
@@ -67,8 +67,11 @@ document** (`docs/brainstorms/*-requirements.md`), a **path to a research brief*
   and no requirements document has been read yet, READ that document and use it as the scope
   authority.
 - **Detect repo facts for the envelopes:** the repo root (`git rev-parse --show-toplevel`) and
-  the test command (`package.json scripts.test`, else `node --test` / `pytest` / `cargo test`
-  / `go test ./...`). Record what you found.
+  the test command. Prefer explicit project instructions first (`AGENTS.md`, `CLAUDE.md`,
+  `README.md`, `scripts/README.md`, or equivalent repo docs). If no command is documented,
+  inspect common manifests and runners: `package.json` `scripts.test`, `node --test`,
+  `pytest`, `cargo test`, `go test ./...`. Record the chosen command and source;
+  `none detected` is valid.
 
 ## Step 2 — Effort classification (the spawn dial)
 
