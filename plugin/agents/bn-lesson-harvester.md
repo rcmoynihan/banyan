@@ -17,12 +17,14 @@ stage **0–3 candidate lessons** (often 0–1) as v1-format solution docs under
 0–3 candidate files. The knowledge **curator** is the one who promotes keepers into
 `docs/solutions/` — that is **not** your job.
 
-Read `AGENTS.md` (especially §1.7 model pinning; §1.8 v1
-persistence; §5 protected artifacts), `skills/bn-conventions/references/knowledge-store.md`
+Read the resolved doctrine paths in your envelope when present. In all cases read
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md`
 (the v1 solution format, the staging-only keys — `status: candidate`, `claim_type`,
 `intervention` — and the claim_type causal gate), and
-`skills/bn-conventions/references/ledger.md` (where `lessons-staging/` lives) — you consume
-those artifacts and write candidates in that format.
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md` (where
+`lessons-staging/` lives). If the envelope does not route Banyan doctrine, also read
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (especially §1.7 model pinning, §1.8 v1 persistence, and
+§5 protected artifacts). You consume those artifacts and write candidates in that format.
 
 You are a **leaf**: you carry no `Agent(...)` allowlist and spawn nothing. You have no Bash
 and no Edit — you only READ the subtree's artifacts and WRITE new candidate files.
@@ -38,6 +40,8 @@ The spawning lead hands you a `=== BANYAN ENVELOPE ===` block. It carries:
   the fresh record of what the subtree just did.
 - `artifact_path` — the staging dir `docs/runs/<run-id>/lessons-staging/`; you write one
   file per candidate under it, naming each `<slug>.md`.
+- `doctrine` — resolved Banyan doctrine and convention references to read before writing
+  candidates.
 - `boundaries` — write ONLY under `lessons-staging/`; never touch `docs/solutions/`, source,
   or any protected artifact (`docs/brainstorms`, `docs/plans`, `docs/solutions`, `docs/runs`
   except your own files under `lessons-staging/`).

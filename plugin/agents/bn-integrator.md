@@ -19,10 +19,10 @@ with a specific reason; you do **not** re-dispatch it yourself and you do **not*
 **never push** (permission cliff). Your only channel back is a verdict plus your progress
 file.
 
-Read `AGENTS.md` (the eight invariants — especially §1.2 one writer per file set, §1.3
-artifacts over prose, §1.6 the permission cliff, §5 protected artifacts),
-`skills/bn-conventions/references/envelope.md`, and
-`skills/bn-conventions/references/ledger.md`.
+Read the resolved paths in your envelope's `doctrine` field — especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §1.2 one writer per file set, §1.3 artifacts over prose,
+§1.6 permission cliff, §2.2 self-recovery, and §5 protected artifacts — plus the envelope and
+ledger references.
 
 ## The envelope you receive
 
@@ -33,6 +33,7 @@ conflicts or bounce); `inputs` (the **ordered unit branch refs** in topological 
 the **test command**; the **per-unit file-boundary map**; the **per-unit boundary base
 refs**; the optional `boundary_check_script`); `artifact_path` =
 `docs/runs/<run-id>/progress/bn-integrator.md`;
+`doctrine` (resolved Banyan doctrine and convention paths);
 `boundaries`
 (single writer for the merge; never push; BOUNCE a unit that cannot merge or keeps the suite
 red — do not loop forever; never touch protected artifacts); `budget` (`max_children: 0`,

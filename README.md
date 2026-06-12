@@ -135,8 +135,8 @@ manifest with the artifact graph and handoff paths.
 
 The trunk classifies the input, opens a run ledger, runs brainstorm intake when the idea is
 still fuzzy, then dispatches the subtrees in sequence — research → spec stress when
-warranted → plan (judged) → deliver → review — with an explicit artifact gate between each stage, so a failed stage stops the
-pipeline instead of being papered over.
+warranted → plan (judged) → deliver → review — with an explicit artifact gate between each
+stage. Failed gates trigger bounded recovery by the owning phase before anything is surfaced.
 Watch the run live:
 
 ```
@@ -146,7 +146,8 @@ tail -f docs/runs/<run-id>/ledger.md
 The pipeline ends at a **ship gate**: the work is committed locally, reviewed, and green,
 but pushing or opening a PR is a step you take yourself — `/bn-ship` when you're ready.
 Lesson curation is handed off afterward without blocking the ship gate. A run halted
-mid-pipeline resumes from its ledger once the blocker is cleared.
+mid-pipeline writes `docs/runs/<run-id>/residuals.md` and resumes from its ledger once the
+blocker is cleared.
 
 ### Brainstorm first
 
@@ -171,8 +172,9 @@ a short scan can't answer, it can dispatch the research subtree and fold the bri
 Use this after a requirements doc exists and before `/bn-plan` when the scope is standard or
 deep, the brainstorm surfaced assumptions, or the feature touches multi-step behavior, roles,
 data, permissions, external tools, or abuse surfaces. The output lands at
-`docs/runs/<run-id>/briefs/spec-stress.md`: unresolved `Resolve Before Planning` items stop
-planning; `Plan Inputs` and `Accepted Risks` feed `/bn-plan`.
+`docs/runs/<run-id>/briefs/spec-stress.md`: unresolved `Resolve Before Planning` items
+require disposition before planning; `/bn-grow` attempts that disposition automatically,
+while standalone use surfaces the blocker. `Plan Inputs` and `Accepted Risks` feed `/bn-plan`.
 
 ### Ask about a codebase
 

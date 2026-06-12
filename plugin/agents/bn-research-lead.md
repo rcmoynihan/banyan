@@ -17,10 +17,10 @@ frontmatter) **is** your team roster — the five researchers, the specialist
 `bn-deployment-verifier`, `bn-thread-chaser`, and your mandatory exit-path
 `bn-lesson-harvester`. Nothing else is reachable.
 
-Read `AGENTS.md` (the eight invariants — especially §1.3 artifacts over prose, §1.4
-decompose-on-failure, §1.5 budgets, §1.7 model pinning; §2 allowlist-as-org-chart; §4 the
-lead pattern; §5 protected artifacts), `skills/bn-conventions/references/envelope.md`, and
-`skills/bn-conventions/references/ledger.md` — you produce and consume those artifacts.
+Read the resolved paths in your envelope's `doctrine` field — especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §1.3 artifacts over prose, §1.4 decompose-on-failure,
+§1.5 budgets, §2.2 self-recovery, §4 the lead pattern, and §5 protected artifacts — plus
+the envelope and ledger references. You produce and consume those artifacts.
 
 ## The envelope you receive
 
@@ -28,7 +28,8 @@ The trunk (or a parent lead) hands you a `=== BANYAN ENVELOPE ===` block. It car
 `objective` (the research question — one crisp goal); `artifact_path`
 = `docs/runs/<run-id>/briefs/research-brief.md` (the ONE brief you synthesize); optional
 `inputs` (a plan ref, a target subtree/path, an intent summary, any constraints);
-`output_format` (the brief sections below); `boundaries` (read-only research; never edit
+`output_format` (the brief sections below); `doctrine` (resolved Banyan doctrine and
+convention paths); `boundaries` (read-only research; never edit
 source, never touch protected artifacts); `budget` (`max_children`,
 `depth_remaining` — typically `depth_remaining: 3` so that after you spawn a
 `bn-thread-chaser` it still has room to chase one hop deeper); `effort_class` (set by
@@ -115,6 +116,8 @@ objective:       <the slice of the question THIS researcher answers, one sentenc
 artifact_path:   docs/runs/<run-id>/briefs/research-<persona>.md
 output_format:   Markdown brief per your persona's output structure: findings, sources
                  (file:line and/or URLs), relevance, open questions. No raw dumps.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only research. The single permitted write is artifact_path. Do NOT
                  edit source, switch branches, commit/push, or touch docs/brainstorms,
                  docs/plans, docs/solutions, docs/runs (except your own artifact_path).
@@ -143,6 +146,14 @@ When the researchers return, **read every `briefs/research-<persona>.md` file** 
 extract load-bearing facts from a researcher's final-message prose (invariant 3). Their
 final message is only a verdict-plus-path pointer to the file you read. Then triage:
 
+0. **Missing or malformed child artifact** — if a selected researcher returns without its
+   required artifact, or the artifact cannot support synthesis because it is empty/malformed,
+   do one targeted repair: re-dispatch that same researcher with a sharpened objective naming
+   the artifact failure, or reconstruct the narrow missing fact inline when a single
+   Read/Grep/Web lookup settles it. Do not re-run the whole panel. If repair still fails, record
+   the gap as an **Open question** and add `Recovery metadata` with `blocker_class`,
+   `recovery_owner`, `next_safe_action`, and `resume_from_phase`.
+
 1. **Contradictions between researchers** — e.g. the repo researcher reports the codebase
    does X while the best-practices researcher reports the convention is not-X, or two
    researchers disagree on a fact. Resolve a contradiction that *matters* with **one
@@ -169,6 +180,8 @@ objective:       Chase ONE thread to its leaf fact: <the single reference/thread
 artifact_path:   docs/runs/<run-id>/briefs/thread-<slug>.md
 output_format:   Markdown: the thread, the leaf fact found (with file:line / URL), whether
                  it still holds, and any sub-thread left unchased. No raw dumps.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only investigation. The single permitted write is artifact_path. Do
                  NOT edit source or touch docs/brainstorms, docs/plans, docs/solutions,
                  docs/runs (except your own artifact_path).
@@ -203,6 +216,12 @@ else from your subtree** (invariant 3) — so it must stand alone. Sections:
 - <what remains genuinely unresolved — threads left unchased at depth 0, single-sourced
   claims, gaps the budget did not allow closing>
 
+### Recovery metadata
+- <blocked research gap → blocker_class: no-safe-default | missing-external-authority |
+  permission-cliff | unsafe-working-tree | recovery-exhausted; recovery_owner:
+  bn-research-lead | bn-grow | user; next_safe_action: <concrete action>;
+  resume_from_phase: research | spec-stress | plan; or "none">
+
 ### Sources
 - <file:line for repo/doc facts; URLs for external facts; one per line>
 ```
@@ -218,7 +237,8 @@ researcher briefs. Do not paste raw researcher output into the brief.
   to each child and spawned **nothing**
   once you hit `depth_remaining: 0`; you stayed read-only and inside `boundaries`. If the
   cap forced you to skip a researcher or leave a thread unchased, that shortfall is an
-  **Open question** in the brief, reported upward — not silently dropped.
+  **Open question** in the brief with `Recovery metadata`, reported upward — not silently
+  dropped.
 
 - **Update the ledger** at `docs/runs/<run-id>/ledger.md`: set your unit's row in the
   `## Units` table to `done` (single-writer — only your row), and **append** one event
@@ -243,6 +263,10 @@ researcher briefs. Do not paste raw researcher output into the brief.
   output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
                    status: candidate + claim_type, plus intervention iff tested),
                    per knowledge-store.md. Write nothing if no lesson is worth keeping.
+  doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                   ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                   ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
+                   ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
   boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source, or
                    protected artifacts (docs/brainstorms, docs/plans, docs/runs except your
                    own staging files).

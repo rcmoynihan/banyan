@@ -27,6 +27,7 @@ travels outside them.
 | `objective` | One crisp goal, one sentence. Not a role ("be a reviewer") -- a target ("find correctness bugs in the diff at HEAD"). |
 | `artifact_path` | The single file the child MUST write (invariant 3, artifacts over prose). The child's final message is a verdict plus this path -- never the payload. |
 | `output_format` | What the artifact contains: schema name, section headings, or "JSON per `schemas/findings-schema.json`". The parent reads the file expecting this shape. |
+| `doctrine` | Resolved paths to the Banyan doctrine and required convention references. Include `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` whenever the child needs Banyan invariants, lead pattern, protected artifacts, or recovery doctrine; do not rely on a bare `AGENTS.md`, which belongs to the host repo. |
 | `boundaries` | Explicit do-not-touch paths and do-not-do actions. Always includes the protected artifacts (AGENTS.md section 5). Names the file sets this child must stay out of so siblings can write them (invariant 2). |
 | `tool_guidance` | Which tools and approaches to use; least privilege. Names the read/search tools expected, whether Bash may run the suite, and -- for a child that is itself a lead -- which `Agent(...)` types are in play. |
 | `budget` | `{ max_children, depth_remaining }`. The hard limits: how many children this agent may spawn and how many more delegation hops remain. |
@@ -57,6 +58,8 @@ echoed envelopes line up, and a violation is a visible diff. Copy this block:
 objective:       <one crisp goal, one sentence>
 artifact_path:   docs/runs/<run-id>/<dir>/<file>
 output_format:   <schema name | headings | "JSON per schemas/...">
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      <do-not-touch paths/actions; always lists protected artifacts>
 tool_guidance:   <tools + approach; least privilege>
 budget:
@@ -77,6 +80,8 @@ passes `depth_remaining: 2` (its own 3, minus one):
 objective:       Find correctness bugs in the staged diff for run 2026-06-10-007.
 artifact_path:   docs/runs/2026-06-10-007/findings/correctness-<id>.json
 output_format:   One JSON object per finding, conforming to schemas/findings-schema.json.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only review. Do NOT edit source, run migrations, or touch
                  docs/brainstorms, docs/plans, docs/solutions, docs/runs (except your
                  own artifact_path). Do not write any file a sibling reviewer owns.
@@ -106,6 +111,8 @@ objective:       Map how the auth middleware wires into the request pipeline; no
                  half-deprecated paths worth chasing.
 artifact_path:   docs/runs/2026-06-10-007/briefs/repo-auth-middleware.md
 output_format:   Markdown brief: findings, sources (file:line), open questions. No raw dumps.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only. Do NOT edit source or touch docs/brainstorms, docs/plans,
                  docs/solutions, docs/runs (except your own artifact_path).
 tool_guidance:   Read, Grep, Glob to trace the code; Write only to artifact_path.
@@ -150,7 +157,12 @@ read, edit, or "clean up" anything they forbid, and it never writes a file set a
 sibling owns (invariant 2, one writer per file set). The protected artifacts
 (AGENTS.md section 5) are always off-limits regardless of what `boundaries` lists.
 
-(e) **Decompose on failure, not eagerly.** Default depth is 1-2 (invariant 4).
+(e) **Read resolved doctrine paths.** A child reads the paths in `doctrine` when it needs
+Banyan invariants, recovery rules, or convention references. A bare `AGENTS.md` points at
+the host repo's instructions; `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` is Banyan's shipped runtime
+doctrine.
+
+(f) **Decompose on failure, not eagerly.** Default depth is 1-2 (invariant 4).
 Depths 3-5 are *reserve capacity*: a lead spends them only when a child fails, the
 work is genuinely too big for one context, or context pressure forces a split --
 never preemptively because the budget *allows* it. A generous `depth_remaining` is

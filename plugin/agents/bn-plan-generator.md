@@ -15,8 +15,9 @@ task under *different* priors, in parallel; the trunk then scores all drafts wit
 panel and synthesizes the winner. Your job is to make YOUR prior's plan the best possible
 version of itself — not a hedged compromise. The contrast between drafts is the point.
 
-Read `AGENTS.md` (the eight invariants, esp. §3 frontmatter, §5 protected artifacts) and
-`skills/bn-conventions/references/envelope.md` — you receive and honor an envelope.
+Read the resolved paths in your envelope's `doctrine` field — especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §3 frontmatter and §5 protected artifacts, plus the
+envelope reference. You receive and honor an envelope.
 
 ## The envelope you receive
 

@@ -6,7 +6,26 @@ next-step options and execute the user's selection.
 When `/bn-brainstorm` is running as `/bn-grow` intake, skip the menu. Return control to
 `/bn-grow` with the requirements document path when one exists, otherwise a concise
 finalized requirements summary. Also surface any unresolved `Resolve Before Planning`
-items or equivalent blocking questions so `/bn-grow` can stop at its intake gate.
+items or equivalent blocking questions with structured dispositions so `/bn-grow` can recover
+or write residuals from artifacts.
+
+Grow intake return shape:
+
+```markdown
+## Grow intake handoff
+
+- **Requirements:** <docs/brainstorms/...-requirements.md | summary: ...>
+- **Safe assumptions recorded:** <bullets or "none">
+- **Blockers:**
+  - <title, or "none">
+    - **Source:** <section / R-ID / whole document>
+    - **blocker_class:** no-safe-default | missing-external-authority | permission-cliff |
+      unsafe-working-tree | recovery-exhausted
+    - **proposed_disposition:** revise-requirements | promote-to-plan-input |
+      record-accepted-risk | ask-user
+    - **next_safe_action:** <the action `/bn-grow` can take>
+    - **resume_from_phase:** intake
+```
 
 ## The menu
 

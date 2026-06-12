@@ -70,6 +70,8 @@ artifact_path:   docs/harness-proposals/  (one <date>-<slug>.md per pattern) and
 output_format:   One PR-style proposal per pattern: the pattern, the EVIDENCE (>=2 cited
                  occurrences -- run-ids + file:line), the exact plugin/ file targeted, a
                  unified-diff or precise before/after, and the expected effect.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      NEVER edit plugin/ (no Edit tool by design -- you PROPOSE, a human
                  applies). WRITE SCOPE is ONLY docs/harness-proposals/ and a "Proposed"
                  entry in docs/harness-changelog.md. Everything else is REPORT-ONLY. You

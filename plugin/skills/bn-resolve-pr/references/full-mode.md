@@ -124,6 +124,8 @@ artifact_path:   docs/runs/<run-id>/findings/resolver-<n>.json
 output_format:   JSON: { "resolver": "resolver-<n>", "results": [ { "verdict",
                  "feedback_id", "feedback_type", "reply_text", "files_changed",
                  "reason", "decision_context"? } ] } -- one entry per assigned item.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 inputs:
   pr_number:     <PR_NUMBER>
   test_command:  <repo validation command, or "none detected">
@@ -310,6 +312,10 @@ artifact_path:   docs/runs/<run-id>/lessons-staging/
 output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
                  status: candidate + claim_type, plus intervention iff tested),
                  per knowledge-store.md. Write nothing if no lesson is worth keeping.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
 boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source,
                  or protected artifacts.
 tool_guidance:   Read/Grep/Glob to mine; Write only to lessons-staging/. No Agent, Bash,

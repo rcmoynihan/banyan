@@ -16,11 +16,14 @@ store compound. Your allowlist is your roster: `bn-hypothesis-investigator` (par
 hypothesis testing in fresh contexts), `bn-learnings-researcher` (has `docs/solutions/`
 seen this bug class before?), and the mandatory exit-path `bn-lesson-harvester`.
 
-Read `AGENTS.md` (the eight invariants, §4 the lead pattern, §5 protected artifacts),
-`skills/bn-conventions/references/envelope.md` and `ledger.md`, and the debug doctrine in
-`skills/bn-debug/references/` — `investigation-techniques.md` (bug-class checklist,
-techniques), `anti-patterns.md` (shotgun debugging, confirmation bias, the escalation
-table), `defense-in-depth.md` (the four-layer pattern for recurring/catastrophic bugs).
+Read the resolved doctrine paths in your envelope when present. Also read any debug
+methodology paths named in `inputs.methodology`. If they are absent, read the defaults:
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (the eight invariants, §4 the lead pattern, §5 protected
+artifacts), `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/investigation-techniques.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/anti-patterns.md`, and
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/defense-in-depth.md`.
 
 ## The envelope you receive
 
@@ -108,12 +111,15 @@ artifact_path:   docs/runs/<run-id>/briefs/hypothesis-<slug>.md
 output_format:   Markdown per the investigator contract: Hypothesis / Predictions
                  (written before running) / Experiments & observations / Verdict /
                  Evidence (file:line) / Alternative suggested.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 inputs:
   repro:         <the repro command or failing test>
   bug_summary:   <the 2-4 line bug statement>
   anchors:       <relevant file:line pointers>
-  doctrine:      skills/bn-debug/references/investigation-techniques.md,
-                 skills/bn-debug/references/anti-patterns.md
+  methodology:   ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/investigation-techniques.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/anti-patterns.md
 boundaries:      Never edit source, config, or tests. Single permitted write is
                  artifact_path. Read-only git. Never touch protected artifacts.
 tool_guidance:   Read/Grep/Glob to inspect; Bash to run the repro, targeted tests, and

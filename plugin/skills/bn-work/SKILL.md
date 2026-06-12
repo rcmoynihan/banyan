@@ -19,9 +19,10 @@ ledger setup, and -- in direct mode -- the run-local direct work spec. Implement
 happen inside the foreground lead, in the user's session; push/PR remain a separate
 `bn-ship` step (permission cliff, invariant 6).
 
-Read `skills/bn-conventions/references/envelope.md`,
-`skills/bn-conventions/references/ledger.md`, and `AGENTS.md` (esp. invariant 3
-artifacts-over-prose, invariant 6 permission cliff).
+Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 3 artifacts-over-prose, invariant 6
+permission cliff, and §2.2 self-recovery).
 
 ## Step 1: Resolve the delivery input
 
@@ -86,7 +87,10 @@ Detect the facts the lead needs; surface anything that would move the user's tre
 - **Base branch.** Note the current branch (`git rev-parse --abbrev-ref HEAD`) and
   treat it as the base the lead branches off. NEVER `git checkout` / `git switch` --
   selecting a base is not permission to move HEAD. If the tree is dirty in a way that
-  blocks clean per-unit branching, SURFACE it (do not auto-stash or auto-commit).
+  blocks clean per-unit branching, surface it in standalone mode (do not auto-stash or
+  auto-commit). When called by `/bn-grow`, return blocker metadata for `residuals.md` if
+  the dirty files are user-owned and unsafe to entangle; otherwise continue when the
+  delivery lead can isolate the work safely.
 - **Test command.** Detect the repo test command for the envelope: `package.json`
   `scripts.test` if present, else `node --test` (node project), `pytest` (python),
   `cargo test` (rust), `go test ./...` (go). "none detected" is a valid value -- record
@@ -211,6 +215,9 @@ inputs:
   test_command:    <detected repo test command, or "none detected">
   repo_root:       <repo root>
   boundary_check_script: <absolute path from Step 3, or "missing">
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      NEVER push or open a PR -- push/PR is the trunk-level bn-ship step
                  (permission cliff, invariant 6); REPORT the need upward, do not fail
                  silently against it. NEVER switch the user's checked-out branch without
@@ -240,6 +247,15 @@ effort_class:    <lightweight | standard | deep>
   it. The lead re-reads the spec and owns the whole implement/test/review/merge subtree
   -- the trunk does not decompose units after dispatch.
 
+When called by `/bn-grow`, the delivery report must give the grow trunk structured recovery
+metadata for every blocked unit or unsafe pre-flight condition:
+
+- `blocker_class`: `permission-cliff`, `no-safe-default`, `missing-external-authority`,
+  `unsafe-working-tree`, or `recovery-exhausted`;
+- `recovery_owner`: `bn-delivery-lead`, `bn-work`, `bn-grow`, or `user`;
+- `next_safe_action`: the concrete action a resumed grow trunk can take;
+- `resume_from_phase`: `deliver` unless planning must change, in which case `plan`.
+
 ## Step 6: Present the result
 
 When the lead returns, READ `docs/runs/<run-id>/delivery-report.md` (the artifact, not
@@ -256,6 +272,9 @@ the lead's final-message prose -- invariant 3) and present to the user:
   lead's adjudication for each accepted violation or re-dispatch;
 - **branch / commit state** -- the per-unit branches and commits, and the integrated
   branch the work now sits on.
+- **recovery metadata** -- any blocked unit or pre-flight blocker, with `blocker_class`,
+  `recovery_owner`, `next_safe_action`, and `resume_from_phase`; say `none` when all units
+  are done.
 
 Then state explicitly that **push / PR remains the user's step** -- the lead commits
 per unit but NEVER pushes or opens a PR; shipping is a separate `bn-ship` step

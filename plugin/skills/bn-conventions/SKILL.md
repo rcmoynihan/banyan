@@ -18,13 +18,14 @@ Read the one you need; do not read them all by reflex.
 
 - **`references/ledger.md`** -- the run-ledger spec: the `docs/runs/<run-id>/`
   layout, run-ID format, per-file writer rules (invariant 2), lifecycle/retention,
-  and the `ledger.md` template. Read this to **open, resume, inspect, or write to a
-  run** -- before creating a run dir, editing the unit-status table, appending to
-  the log, or writing a progress note.
+  the `ledger.md` template, and the grow-owned `residuals.md` template. Read this to
+  **open, resume, inspect, or write to a run** -- before creating a run dir, editing
+  the unit-status table, appending to the log, writing a progress note, or recording
+  exhausted grow recovery.
 - **`references/envelope.md`** -- the delegation-envelope spec and template. Read
   this to **construct or honor a spawn envelope**: objective, artifact path, output
-  format, boundaries, tool guidance, and the budget (`max_children` /
-  `depth_remaining`). Every lead echoes its envelope into its progress file on start.
+  format, resolved doctrine paths, boundaries, tool guidance, and the budget
+  (`max_children` / `depth_remaining`). Every lead echoes its envelope into its progress file on start.
   Its companion **`references/envelope-test-plan.md`** is the budget-behavior test
   plan (max_children cap, depth-floor inline, envelope echo, effort scaling),
   exercised against the fixture through the review subtree.

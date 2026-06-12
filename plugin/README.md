@@ -34,9 +34,9 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 
 | Skill | What it does |
 | --- | --- |
-| `/bn-grow` | The full pipeline: optional brainstorm intake → research → spec stress when warranted → plan (judged) → deliver → review → ship gate → curation handoff, from a small trunk. |
+| `/bn-grow` | The full hands-off pipeline: optional brainstorm intake → research → spec stress when warranted → plan (judged) → deliver → review → ship gate → curation handoff, with bounded self-recovery at phase gates. |
 | `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-spec-stress` or `/bn-plan`. |
-| `/bn-spec-stress` | Stress-test a requirements doc before planning: missing scenarios, hidden assumptions, acceptance gaps, and plan-affecting risks become a gate brief. |
+| `/bn-spec-stress` | Stress-test a requirements doc before planning: missing scenarios, hidden assumptions, acceptance gaps, and plan-affecting risks become a gate brief with explicit disposition buckets. |
 | `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |

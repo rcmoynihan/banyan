@@ -13,12 +13,13 @@ decisions that compound downstream.
 
 This skill is not a second PRD writer and not an implementation planner. The requirements
 document remains the product and scope authority. `spec-stress.md` is a gate artifact:
-unresolved items stop planning, while resolved implications become explicit plan inputs,
-accepted risks, or notes.
+unresolved items require disposition before planning, while resolved implications become
+explicit plan inputs, accepted risks, or notes.
 
-Read `AGENTS.md` (especially protected artifacts and the lead pattern),
-`skills/bn-conventions/references/envelope.md`, and
-`skills/bn-conventions/references/ledger.md`. The trunk is the single writer of the final
+Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (especially protected artifacts, the lead pattern,
+and self-recovery),
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`, and
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`. The trunk is the single writer of the final
 `spec-stress.md`; leaf reviewers write only their assigned briefs.
 
 ## Step 1 -- Resolve input and run
@@ -33,7 +34,9 @@ Take the argument as either:
 If no usable input is present, ask for the requirements document path or finalized summary.
 If the input is a requirements document, READ it in full and treat it as the scope authority.
 If it contains a non-empty `Resolve Before Planning` section or equivalent planning blocker,
-STOP and surface those blockers; do not stress-test unsettled scope.
+surface those blockers in standalone mode. In `/bn-grow`, return a grow handoff with the
+blockers, proposed dispositions, and `resume_from_phase: intake`; the grow trunk owns the
+recovery decision.
 
 Reuse the active `docs/runs/<run-id>/` when invoked from `/bn-grow` or another Banyan flow.
 If no run is active and the input is under `docs/runs/<run-id>/`, reuse that run. Otherwise
@@ -106,6 +109,8 @@ inputs:
   research_brief:       <docs/runs/.../briefs/research-brief.md, or "none">
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:            <repo root>
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only against the repo except artifact_path. Do not edit source,
                  docs/brainstorms, docs/plans, docs/solutions, or other docs/runs files.
 tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
@@ -140,6 +145,8 @@ inputs:
   research_brief:       <docs/runs/.../briefs/research-brief.md, or "none">
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:            <repo root>
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only against the repo except artifact_path. Do not edit source,
                  docs/brainstorms, docs/plans, docs/solutions, or other docs/runs files.
 tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
@@ -176,6 +183,8 @@ inputs:
   research_brief:       <docs/runs/.../briefs/research-brief.md, or "none">
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:            <repo root>
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only against the repo except artifact_path. Do not edit source,
                  docs/brainstorms, docs/plans, docs/solutions, or other docs/runs files.
 tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
@@ -207,7 +216,11 @@ Classify each retained item into exactly one bucket:
   verification.
 
 Do not update the requirements document automatically. If `Resolve Before Planning` is
-non-empty, the product surface needs a requirements revision or a user disposition.
+non-empty in standalone mode, the product surface needs a requirements revision or a user
+disposition. In `/bn-grow`, keep the existing buckets and add enough handoff detail for the
+grow trunk to attempt one disposition pass: whether each blocker can be promoted into
+`Plan Inputs`, preserved as an `Accepted Risk`, revised from existing requirements, or
+requires user judgment.
 
 ## Step 6 -- Write `spec-stress.md`
 
@@ -252,7 +265,7 @@ plan-input count, and triggered leaf artifacts.
 
 ## Step 7 -- Gate and handoff
 
-If `Resolve Before Planning` is non-empty, STOP and surface:
+If `Resolve Before Planning` is non-empty in standalone mode, surface:
 
 - the `spec-stress.md` path;
 - the blocker titles and dispositions;
@@ -260,7 +273,15 @@ If `Resolve Before Planning` is non-empty, STOP and surface:
   summary.
 
 If the skill was invoked by `/bn-grow`, return the path and blocker status to the grow trunk;
-do not show a standalone handoff menu.
+do not show a standalone handoff menu. Include:
+
+- `blocker_class`: `no-safe-default`, `missing-external-authority`, `permission-cliff`,
+  `unsafe-working-tree`, or `recovery-exhausted`;
+- `proposed_disposition`: `revise-requirements`, `promote-to-plan-input`,
+  `record-accepted-risk`, or `ask-user`;
+- `next_safe_action`: the concrete action the grow trunk can take;
+- `resume_from_phase`: `spec-stress` unless the requirements document itself must be revised,
+  in which case `intake`.
 
 If no blockers remain, the standalone handoff is:
 

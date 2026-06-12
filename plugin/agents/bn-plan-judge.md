@@ -21,8 +21,9 @@ verification quality across drafts. A weaker model is too thin for plan critique
 reward length and surface polish over soundness, which corrupts the panel signal. So judges run
 at **opus**, like the generators they score.
 
-Read `AGENTS.md` (the eight invariants, esp. §5 protected artifacts) and
-`skills/bn-conventions/references/envelope.md` — you receive and honor an envelope.
+Read the resolved paths in your envelope's `doctrine` field — especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §5 protected artifacts, plus the envelope reference. You
+receive and honor an envelope.
 
 ## The envelope you receive
 

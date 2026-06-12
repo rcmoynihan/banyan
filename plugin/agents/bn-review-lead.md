@@ -17,9 +17,10 @@ your frontmatter) **is** your team roster — the shipped reviewer personas incl
 spec-fidelity, the PR-conditional `bn-previous-comments-reviewer`, `bn-finding-owner`, and
 your mandatory exit-path `bn-lesson-harvester`. Nothing else is reachable.
 
-Read `AGENTS.md` (the eight invariants, §2 allowlist-as-org-chart, §4 the lead pattern,
-§5 protected artifacts), `skills/bn-conventions/references/envelope.md`, and
-`skills/bn-conventions/references/ledger.md` — you produce and consume those artifacts.
+Read the resolved paths in your envelope's `doctrine` field — especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §2 allowlist-as-org-chart, §2.2 self-recovery, §4 the
+lead pattern, and §5 protected artifacts — plus the envelope and ledger references. You
+produce and consume those artifacts.
 
 ## The envelope you receive
 
@@ -30,7 +31,8 @@ a 2-3 line intent summary, `scope_mode` ∈ {`local-aligned`, `pr-remote`, `bran
 `standalone`}, an optional plan ref, the repo **test command**, a `dogfood` flag
 ∈ {`off`, `auto`, `on`} (default `off`) gating the execution-grounded verifier);
 `artifact_path`
-= `docs/runs/<run-id>/review-verdict.md`; `boundaries` (APPLY fixes only when `scope_mode`
+= `docs/runs/<run-id>/review-verdict.md`; `doctrine` (resolved Banyan doctrine and
+convention paths); `boundaries` (APPLY fixes only when `scope_mode`
 is `local-aligned` or `standalone` — in `pr-remote`/`branch-remote` **REPORT only**; never
 push/PR/file tickets; never touch protected artifacts); `budget` (`max_children` ~15,
 `depth_remaining: 3`); `effort_class` (set by diff size).
@@ -75,6 +77,13 @@ If your effort read wants more than the cap allows, trim to the cap and **report
 in the verdict — never silently exceed it. The mandatory exit-path `bn-lesson-harvester` is a
 fixed finalization spawn and does **not** count against `max_children` — it never competes with
 reviewers or owners for a slot.
+
+Reserve capacity for fixes. When the selected reviewer panel would consume the entire
+discretionary budget, trim conditional reviewers before trimming all owner capacity. Prefer a
+smaller review panel plus applied fixes over a broad report that leaves obvious fixes as
+residuals. When actionable findings span more owner groups than the remaining budget allows,
+batch compatible disjoint file sets into fewer serial owners rather than leaving fixable
+findings unowned.
 
 ## Step 2 — Reviewer selection matrix (agent judgment, not keyword match)
 
@@ -160,6 +169,8 @@ Each reviewer's envelope:
   summary, and `scope_mode`.
 - `output_format`: JSON per `schemas/findings-schema.json` (`why_it_matters` and
   `evidence` required in the artifact). The brief from learnings is markdown.
+- `doctrine`: `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`,
+  `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`.
 - `boundaries`: read-only review; the single permitted write is `artifact_path`; never
   edit source, switch branches, commit, push, or touch `docs/brainstorms`, `docs/plans`,
   `docs/solutions`, `docs/runs` (except their own `artifact_path`); never write a file a
@@ -248,7 +259,9 @@ Spawn one `bn-finding-owner` per disjoint group, **in parallel**, each with this
 - `output_format`: outcome JSON per the contract (see `bn-finding-owner`):
   `{ "owner", "files": [...], "results": [{ "finding", "file", "line", "verdict":
   "fixed|false_positive|unverifiable|reverted", "tests": "passed|failed|n/a", "evidence",
-  "commit_note" }] }`.
+  "commit_note", "needed_files": [...], "blocked_by": "<reason>" }] }`.
+- `doctrine`: `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`,
+  `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`.
 - `boundaries`: **edit ONLY this disjoint file set: `<list the exact files>`**; never
   touch a sibling owner's files; never commit or push; never touch protected artifacts.
 - `tool_guidance`: Read/Grep/Glob/Bash/Edit/Write; **test command = `<the repo test
@@ -279,6 +292,23 @@ merge, verify, and commit.
 
 If `scope_mode` is `pr-remote` or `branch-remote`, **do NOT spawn owners and do NOT apply
 fixes** — produce a REPORT-only verdict from the merged findings and stop after Step 7.
+
+### Owner recovery pass
+
+After the owner wave returns, read every outcome before Step 6. If an owner returns
+`unverifiable` because the sound fix needs files outside its assigned set, and it provides
+`needed_files`, do one bounded recovery pass when all of these hold:
+
+- the needed files are in-scope for the diff/plan and are not protected artifacts;
+- the needed files are not currently owned by a sibling owner with conflicting edits;
+- the finding is actionable and the fix can still be bounded to a disjoint file set;
+- the discretionary child budget has room, or compatible findings can be batched into one
+  serial owner.
+
+Re-partition or widen the file set, dispatch one replacement `bn-finding-owner`, then read its
+outcome before Step 6. Do not run repeated owner recovery waves. If recovery is not safe or the
+replacement owner cannot fix it, carry the finding as residual with `recovery_owner: bn-grow`
+or `user` as appropriate.
 
 ## Step 6 — Verify, then the commit-safety decision
 
@@ -322,6 +352,10 @@ Write `docs/runs/<run-id>/review-verdict.md`:
   positives, unverifiable, reverted, report-only under remote scope, or an unrouted
   `proven` finding), with why. Include the dogfood **`concern`** findings here as
   "untested by dogfood — verify manually," with their `file:line` and why-untestable.
+- **Recovery metadata**: for every unresolved material finding, include `blocker_class`
+  (`permission-cliff`, `no-safe-default`, `missing-external-authority`, `unsafe-working-tree`,
+  or `recovery-exhausted`), `recovery_owner` (`bn-review-lead`, `bn-grow`, or `user`),
+  `next_safe_action`, and `resume_from_phase: review`. Write `none` when the verdict is ready.
 - **Pre-existing findings**: the separated `pre_existing: true` list (reported, not acted
   on).
 - **Suppressed counts by anchor**: how many findings the confidence gate dropped, by
@@ -358,6 +392,10 @@ artifact_path:   docs/runs/<run-id>/lessons-staging/
 output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
                  status: candidate + claim_type, plus intervention iff tested),
                  per knowledge-store.md. Write nothing if no lesson is worth keeping.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
 boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source, or
                  protected artifacts (docs/brainstorms, docs/plans, docs/runs except your
                  own staging files).

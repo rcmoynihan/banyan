@@ -162,6 +162,8 @@ artifact_path:   docs/runs/<run-id>/findings/survey-<n>.json
 output_format:   JSON: { "surveyor": "survey-<n>", "docs": [ { "source", "title",
                  "doc_kind", "target_families", "track", "problem_type", "slug",
                  "confidence", "reason" } ], "errors": [] }.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read only the listed sources and required onboarding references. Write
                  only artifact_path. Do not edit sources, derivatives, instruction files,
                  docs/onboarding-manifest.md, docs/solutions/, sibling artifacts, or any
@@ -233,6 +235,8 @@ artifact_path:   docs/runs/<run-id>/findings/transform-<n>.json
 output_format:   JSON: { "transformer": "transform-<n>", "results": [ { "source",
                  "family", "derivative", "validator", "status", "notes" } ],
                  "errors": [] }.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Write only assigned derivative paths, assigned
                  docs/runs/<run-id>/lessons-staging/<slug>.md candidates, and
                  artifact_path. Never edit sources, instruction files, sibling
@@ -297,6 +301,10 @@ artifact_path:   docs/runs/<run-id>/lessons-staging/
 output_format:   0-3 v1-format candidate solution docs with staging-only keys status: candidate
                  + claim_type (plus intervention iff tested), or no files when no reusable
                  lesson is present.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
 boundaries:      Write only under artifact_path. Do not edit docs/solutions/, source
                  files, instruction files, docs/onboarding-manifest.md, report files, or
                  protected artifacts outside your staging files.

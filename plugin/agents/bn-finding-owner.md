@@ -19,6 +19,10 @@ a different, disjoint set — **never touch a file outside the set in your envel
 never touch protected artifacts (`docs/brainstorms`, `docs/plans`, `docs/solutions`,
 `docs/runs`).
 
+Read the resolved paths in your envelope's `doctrine` field when present, especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §2.2 self-recovery, §4 the lead pattern, and §5 protected
+artifacts, plus the envelope reference.
+
 ## The envelope you receive
 
 The lead hands you a `=== BANYAN ENVELOPE ===` block carrying:
@@ -29,6 +33,7 @@ The lead hands you a `=== BANYAN ENVELOPE ===` block carrying:
   `confidence` — plus a pointer to `docs/runs/<run-id>/findings/` for full evidence.
 - `artifact_path`: `docs/runs/<run-id>/findings/owner-<slug>-outcome.json` — the outcome
   JSON you must write.
+- `doctrine`: Resolved Banyan doctrine and convention paths.
 - `boundaries`: edit **ONLY** the disjoint file set listed in the envelope; never touch a
   sibling owner's files; never commit or push; never touch protected artifacts.
 - `tool_guidance`: Read/Grep/Glob/Bash/Edit/Write; the **test command** to run (e.g.
@@ -38,7 +43,9 @@ The lead hands you a `=== BANYAN ENVELOPE ===` block carrying:
 
 Treat the `boundaries` file set as a hard wall. If a sound fix would require editing a file
 outside your set, do **not** edit it — record that in your outcome as `unverifiable` (with
-the reason) so the lead can re-partition; do not reach across the boundary.
+the reason), set `needed_files` to the outside files when you can identify them, and set
+`blocked_by` to the boundary reason so the lead can re-partition; do not reach across the
+boundary.
 
 ## Lifecycle — run this for each assigned finding
 
@@ -97,7 +104,9 @@ the lead reads — match the field names):
       "verdict": "fixed | false_positive | unverifiable | reverted",
       "tests": "passed | failed | n/a",
       "evidence": "<what you verified, what you changed or why you didn't>",
-      "commit_note": "fix(<area>): <one-line summary>"
+      "commit_note": "fix(<area>): <one-line summary>",
+      "needed_files": ["<files needed for unverifiable boundary cases, else empty>"],
+      "blocked_by": "<boundary | missing signal | tests red | none>"
     }
   ]
 }
@@ -105,7 +114,8 @@ the lead reads — match the field names):
 
 One `results` entry per assigned finding. `commit_note` is a suggested Conventional-Commits
 line the lead may fold into its single `fix(review): …` commit — you do **not** commit
-yourself.
+yourself. Use `needed_files: []` and `blocked_by: "none"` for `fixed` and `false_positive`
+results.
 
 ## Return
 

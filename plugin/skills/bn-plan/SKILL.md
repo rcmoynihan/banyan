@@ -15,8 +15,9 @@ provide the external signal a plan needs — an agent rereading its own draft do
 Lightweight efforts **skip the panel entirely** — the trunk drafts directly. The effort
 classification *must* change the spawn count (0 vs. 5+), and that is observable in the ledger.
 
-Read `skills/bn-conventions/references/envelope.md`,
-`skills/bn-conventions/references/ledger.md`, and `AGENTS.md` §5 (protected artifacts).
+Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §5 (protected artifacts) plus §2.2 (self-recovery).
 The trunk produces and consumes these artifacts.
 
 ## Step 1 — Inputs and grounding
@@ -28,7 +29,10 @@ document** (`docs/brainstorms/*-requirements.md`), a **path to a research brief*
 
 - **Resolve the primary input.** If the argument is a requirements document path, READ it in
   full and use it as the scope authority. If it has a non-empty `Resolve Before Planning`
-  section or equivalent planning blocker, STOP and surface those blockers. If the argument is
+  section or equivalent planning blocker, surface those blockers in standalone mode. When called
+  by `/bn-grow`, return blocker metadata (`blocker_class`, `proposed_disposition`,
+  `next_safe_action`, `resume_from_phase`) so the grow trunk can run its intake/spec-stress
+  disposition pass. If the argument is
   a research brief path, READ it as the initial research grounding. If the argument is a
   spec-stress brief path, READ it as spec-stress grounding and locate the run from that path.
   Otherwise treat the argument as the task description.
@@ -51,8 +55,9 @@ document** (`docs/brainstorms/*-requirements.md`), a **path to a research brief*
 - **Find the spec-stress grounding.** If the argument was a spec-stress brief path, use it as
   the spec-stress brief. Otherwise look for `docs/runs/<run-id>/briefs/spec-stress.md`. READ it
   if it exists. If its `## Resolve Before Planning` section has any item other than `none`,
-  STOP and surface those blockers; the requirements document must be revised or the user must
-  explicitly disposition them before planning. Use `## Plan Inputs` and `## Accepted Risks` as
+  surface those blockers in standalone mode. When called by `/bn-grow`, do not draft through
+  unresolved blockers; return the blocker metadata listed above so the grow trunk can perform
+  one disposition pass before re-entering planning. Use `## Plan Inputs` and `## Accepted Risks` as
   planning grounding only; they do not override the requirements document as scope authority.
   If the spec-stress brief's `Input` field names a `docs/brainstorms/*-requirements.md` path
   and no requirements document has been read yet, READ that document and use it as the scope
@@ -103,6 +108,8 @@ inputs:
   spec_stress:     <docs/runs/.../briefs/spec-stress.md, or "none">
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:       <repo root>
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only against the repo except your one artifact. Do NOT edit source,
                  switch branches, or touch protected artifacts docs/brainstorms, docs/plans,
                  docs/solutions, docs/runs (except your own artifact_path). Never write a
@@ -148,6 +155,8 @@ inputs:
   spec_stress:     <docs/runs/.../briefs/spec-stress.md, or "none">
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:       <repo root>
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only. Do NOT edit source or touch protected artifacts docs/brainstorms,
                  docs/plans, docs/solutions, docs/runs (except your own artifact_path). Never
                  write another judge's or a generator's file.
@@ -220,6 +229,8 @@ inputs:
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:       <repo root>
   test_command:    <the detected test command, or "none detected">
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only against the repo except your one artifact. Do NOT edit source,
                  switch branches, or touch protected artifacts docs/brainstorms, docs/plans,
                  docs/solutions, docs/runs (except your own artifact_path). Never write a
@@ -289,8 +300,9 @@ structure, tagging every trunk-authored R-ID.
 **Fold in the spec-stress plan inputs.** Thread each surviving `Plan Inputs` item from
 `spec-stress.md` into the plan as an `[assumed]` R-ID, risk, verification obligation,
 sequencing constraint, or repo check. Thread `Accepted Risks` into `## Risks` or
-`## Deferred to follow-up` when material. `Resolve Before Planning` blockers stop the skill in
-Step 1; they are never merely copied into a draft plan.
+`## Deferred to follow-up` when material. `Resolve Before Planning` blockers are handled in
+Step 1; standalone runs surface them, and grow runs return recovery metadata. They are never
+merely copied into a draft plan.
 
 **Fold in the plan-check findings (standard/deep, when the checker ran).** Thread each
 surviving finding from `plan-check.md` into the plan structure — never leave it only in the
@@ -301,9 +313,11 @@ brief:
 - **`untraced-path`** → add the missing error/empty/nil-handling work as a unit or a unit
   step, with verification that exercises the path the checker named.
 - **`infeasible-claim`** → correct the unit's `Files`/`Approach` to a real path, or — if the
-  finding invalidates the winning draft's whole approach — surface it as a blocker to the user
-  in Step 6 *before* finalizing. **The plan does not leave `Status: draft` with an unaddressed
-  `infeasible-claim`.**
+  finding invalidates the winning draft's whole approach — fall back to the next viable
+  runner-up draft or run one repair pass over the panel artifacts. In standalone mode, surface a
+  remaining blocker to the user in Step 6 *before* finalizing. When called by `/bn-grow`, emit
+  blocker metadata for the grow trunk if no viable plan remains. **The plan does not leave
+  `Status: draft` with an unaddressed `infeasible-claim`.**
 - Anything in the checker's `## Unverifiable` section becomes an `[assumed]` requirement or an
   open question with a `(confirm by: ...)` clause — recorded, not silently dropped.
 
