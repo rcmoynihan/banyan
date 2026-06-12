@@ -8,7 +8,9 @@ argument-hint: "[feature idea or problem to explore]"
 
 **Note: The current year is 2026.** Use this when dating requirements documents.
 
-Brainstorming helps answer **WHAT** to build through collaborative dialogue. It precedes `/bn-plan`, which answers **HOW** to build it.
+Brainstorming helps answer **WHAT** to build through collaborative dialogue. It precedes
+`/bn-spec-stress`, which pressure-tests requirements, and `/bn-plan`, which answers **HOW**
+to build them.
 
 The durable output of this workflow is a **requirements document**. In other workflows this might be called a lightweight PRD or feature brief. Keep the workflow name `brainstorm`, but make the written artifact strong enough that planning does not need to invent product behavior, scope boundaries, or success criteria.
 
@@ -172,7 +174,9 @@ Favor moves that compound value, reduce future carrying cost, or make the produc
 - What adjacent product could we accidentally build instead, and why is that the wrong one?
 - What would have to be true in the world for this to fail?
 
-These questions force an explicit product thesis and feed the Scope Boundaries subsections ("Deferred for later" and "Outside this product's identity") and Dependencies / Assumptions in the requirements document.
+These questions force an explicit product thesis and feed the Scope Boundaries subsections
+("Deferred for later" and "Outside this product's identity"), Dependencies, and Assumptions
+in the requirements document.
 
 #### 1.3 Collaborative Dialogue
 

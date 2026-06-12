@@ -183,8 +183,27 @@ worse than omitting it.
   "Outside this product's identity" (positioning decision). Otherwise, a
   single list is fine.
 
-- **Dependencies / Assumptions** — include when material upstream
-  dependencies exist or when load-bearing assumptions need to be surfaced.
+- **Dependencies** — include when material upstream dependencies, external
+  systems, source artifacts, team decisions, or repo facts affect what can
+  be built or planned.
+
+- **Assumptions** — include when load-bearing assumptions need to be surfaced.
+  Each assumption should be phrased so a downstream reader can tell what would
+  change if it proves false. Use this section for assumptions that planning can
+  carry as `[assumed]` requirements or verification obligations; move items to
+  Outstanding Questions when the answer would change product shape.
+
+- **Scenario Seeds** — include when downstream planning or stress testing should
+  exercise concrete paths beyond the happy path. Seeds name representative
+  happy, degraded, edge, or misuse scenarios without becoming exhaustive test
+  design. They are inputs to `/bn-spec-stress` and `/bn-plan`, not a substitute
+  for Acceptance Examples.
+
+- **Verification Intent** — include when success needs observable proof that
+  Requirements and Success Criteria do not already capture. Map requirements to
+  user-observable checks, outcomes, or evidence. Do not specify code-level test
+  structure, test file names, or framework mechanics unless the brainstorm is
+  itself about technical verification.
 
 - **Outstanding Questions** — include when there are unresolved items.
   Distinguish "Resolve Before Planning" (blocks planning) from "Deferred to
@@ -250,6 +269,8 @@ Same shape as plan rules.
 
 - **Stable IDs.** R-IDs (Requirements), A-IDs (if Actors fire), F-IDs (if
   Flows fire), AE-IDs (if Acceptance Examples fire). No other ID namespaces.
+  Scenario Seeds, Verification Intent, Dependencies, and Assumptions use plain
+  bullets unless an item belongs in an existing IDed section.
 - **Plain prefix.** `R1.`, `A1.`, `F1.`, `AE1.` as bullet prefixes. Do not
   bold; the prefix is visually distinctive on its own.
 - **Bold leader labels** inside Flows and Acceptance Examples

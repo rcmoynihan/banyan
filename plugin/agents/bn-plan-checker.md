@@ -38,6 +38,7 @@ block. It carries:
   - `winning_draft_path`: the single draft the trunk chose — your subject. READ it in full.
   - `graft_list`: the runner-up ideas the trunk plans to graft, or `none` — check these too.
   - `research_brief`: a path to `docs/runs/<run-id>/briefs/research-brief.md`, or `none`.
+  - `spec_stress`: a path to `docs/runs/<run-id>/briefs/spec-stress.md`, or `none`.
   - `supplemental_grounding`: a path to a brainstorm-grounding or supporting brief, or `none`.
   - `repo_root`: the target repo root — all your lookups run against this.
   - `test_command`: the detected test command, or `none detected`.
@@ -54,8 +55,8 @@ block. It carries:
 
 READ the `winning_draft_path` in full — its units, their `Files`, `Approach`, and
 `Verification`, plus any `graft_list` ideas the trunk named. READ the `requirements_doc`,
-`research_brief`, and `supplemental_grounding` if present — they are factual grounding you
-build on, not material to re-discover. Your job is the **delta**: checking *this draft's*
+`research_brief`, `spec_stress`, and `supplemental_grounding` if present — they are factual
+grounding you build on, not material to re-discover. Your job is the **delta**: checking *this draft's*
 specific claims, not re-researching the repo. (`bn-repo-researcher` does broad repo research
 *before* a draft exists; you do narrow, draft-targeted checks *against* a chosen draft. Do not
 restate its brief — check the draft.)

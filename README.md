@@ -26,6 +26,7 @@ flowchart TD
   trunk -. reads gate artifacts .-> ledger
   trunk -->|"fuzzy intake"| brainstorm["/bn-brainstorm<br/>requirements intake"]
   trunk -->|"one envelope"| research["bn-research-lead"]
+  trunk -->|"stress gate"| specstress["/bn-spec-stress<br/>requirements stress"]
   trunk -->|"one envelope"| plan["/bn-plan<br/>trunk-written plan"]
   trunk -->|"one envelope"| delivery["bn-delivery-lead"]
   trunk -->|"one envelope"| review["bn-review-lead"]
@@ -34,6 +35,8 @@ flowchart TD
   research -->|"parallel briefs"| researchers["repo / learnings / docs / web researchers<br/>leaves"]
   research -->|"only for unresolved threads"| chaser["bn-thread-chaser<br/>recursive investigator"]
   chaser -->|"depth remains"| chaser2["bn-thread-chaser<br/>one more hop"]
+
+  specstress -->|"triggered lenses"| specstressors["scenario / assumption / threat stress reviewers<br/>leaves"]
 
   plan -->|"parallel drafts"| generators["plan generators<br/>leaves"]
   plan -->|"independent scores"| judges["plan judges<br/>leaves"]
@@ -86,17 +89,18 @@ In a `claude` session inside the repo you want to work on:
 /bn-grow <idea or feature/task description>
 ```
 
-`/bn-grow` runs the full pipeline — optional brainstorm intake for fuzzy ideas → research → plan (judged) → deliver → review → ship gate → curation handoff — coordinating through a run ledger at `docs/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
+`/bn-grow` runs the full pipeline — optional brainstorm intake for fuzzy ideas → research → spec stress when warranted → plan (judged) → deliver → review → ship gate → curation handoff — coordinating through a run ledger at `docs/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
 
 Each stage is also independently invocable:
 
 | Skill | What it does |
 | --- | --- |
-| `/bn-brainstorm` | Collaborative requirements dialogue producing a requirements doc that hands off to `/bn-plan` — the front of the loop for fuzzy ideas. |
+| `/bn-brainstorm` | Collaborative requirements dialogue producing a requirements doc that hands off to `/bn-spec-stress` or `/bn-plan` — the front of the loop for fuzzy ideas. |
+| `/bn-spec-stress` | Stress-test a requirements doc before planning: missing scenarios, hidden assumptions, acceptance gaps, and plan-affecting risks become a gate brief. |
 | `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying the documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The flagship review subtree: reviews a diff, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (commits on a clean tree, never pushes). |
-| `/bn-plan` | A plan from a requirements doc, research brief, or task: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
+| `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
 | `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees plus a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel fresh-context investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
@@ -108,7 +112,7 @@ Each stage is also independently invocable:
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and a live depth-2 nested-spawn + allowlist-enforcement probe. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 
-The plugin ships 41 agents: the four lead subtrees (review, research, delivery, debug) plus `bn-unit-lead`/`bn-integrator`, 19 reviewer/researcher personas vendored from compound-engineering (including `bn-deployment-verifier`), the native `bn-yagni-reviewer` and `bn-dogfood-verifier`, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-plan-checker`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, the `bn-doc-surveyor`/`bn-doc-transformer` onboarding pair, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
+The plugin ships 44 agents: the four lead subtrees (review, research, delivery, debug) plus `bn-unit-lead`/`bn-integrator`, 19 reviewer/researcher personas vendored from compound-engineering (including `bn-deployment-verifier`), the native `bn-yagni-reviewer` and `bn-dogfood-verifier`, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-plan-checker`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, the `bn-spec-scenario-reviewer`/`bn-spec-assumption-reviewer`/`bn-spec-threat-reviewer` stress lenses, the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, the `bn-doc-surveyor`/`bn-doc-transformer` onboarding pair, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
 
 ## Workflows
 
@@ -130,8 +134,8 @@ manifest with the artifact graph and handoff paths.
 ```
 
 The trunk classifies the input, opens a run ledger, runs brainstorm intake when the idea is
-still fuzzy, then dispatches the subtrees in sequence — research → plan (judged) → deliver
-→ review — with an explicit artifact gate between each stage, so a failed stage stops the
+still fuzzy, then dispatches the subtrees in sequence — research → spec stress when
+warranted → plan (judged) → deliver → review — with an explicit artifact gate between each stage, so a failed stage stops the
 pipeline instead of being papered over.
 Watch the run live:
 
@@ -153,10 +157,22 @@ mid-pipeline resumes from its ledger once the blocker is cleared.
 For standalone ideas that aren't yet feature descriptions. A collaborative dialogue — one
 question per turn, scope-tiered rigor probes, 2-3 concrete approaches with a recommendation
 — ending in a requirements document under `docs/brainstorms/` strong enough that planning
-doesn't have to invent product behavior. The handoff menu flows straight into `/bn-plan`
-(or `/bn-work` direct mode for lightweight, well-defined changes); for grounding questions
+doesn't have to invent product behavior. The handoff menu flows into `/bn-spec-stress`,
+`/bn-plan`, or `/bn-work` direct mode for lightweight, well-defined changes; for grounding questions
 a short scan can't answer, it can dispatch the research subtree and fold the brief in.
 `/bn-grow` uses the same requirements-intake contract automatically when its input is fuzzy.
+
+### Stress requirements before planning
+
+```
+/bn-spec-stress docs/brainstorms/2026-06-12-example-requirements.md
+```
+
+Use this after a requirements doc exists and before `/bn-plan` when the scope is standard or
+deep, the brainstorm surfaced assumptions, or the feature touches multi-step behavior, roles,
+data, permissions, external tools, or abuse surfaces. The output lands at
+`docs/runs/<run-id>/briefs/spec-stress.md`: unresolved `Resolve Before Planning` items stop
+planning; `Plan Inputs` and `Accepted Risks` feed `/bn-plan`.
 
 ### Ask about a codebase
 
@@ -245,8 +261,8 @@ pattern instead of churning.
 Use this split instead of `/bn-grow` when you want a human gate between planning and
 execution. `/bn-plan` drafts competing approaches under different priors (mvp-first /
 risk-first / ops-first), scores them with an independent judge panel, and synthesizes the
-winner into a plan doc with stable unit IDs; pass it a requirements-doc path or
-research-brief path instead of a description to ground it in prior work. Blank `/bn-work`
+winner into a plan doc with stable unit IDs; pass it a requirements-doc path,
+research-brief path, or spec-stress brief path instead of a description to ground it in prior work. Blank `/bn-work`
 executes the latest durable plan, and `/bn-work docs/plans/...-plan.md` executes that plan
 explicitly.
 
@@ -286,7 +302,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 ## Repository layout
 
 ```
-plugin/        the Claude Code plugin (41 agents, 16 skills, schemas, AGENTS.md contract)
+plugin/        the Claude Code plugin (44 agents, 17 skills, schemas, AGENTS.md contract)
 docs/          founding brainstorm, decision records, plans, harness changelog & proposals
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation

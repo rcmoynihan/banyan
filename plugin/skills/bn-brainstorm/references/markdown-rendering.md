@@ -114,6 +114,14 @@ contracts — the agent picks the shape that fits the content.
 - **Scope Boundaries** — bullets, optionally split into "Deferred for
   later" / "Outside this product's identity" sub-headings when the
   positioning distinction matters.
+- **Dependencies and Assumptions** — bullets when each item is short; tables
+  when items share uniform owner/status/evidence columns. Keep dependencies
+  and assumptions separate when both are present.
+- **Scenario Seeds** — bullets named by path or condition. Use bold leader
+  labels only when a seed needs fields such as Actors / Trigger / Expected
+  Outcome.
+- **Verification Intent** — bullets that map visible proof to R-IDs or success
+  criteria. Use prose only when the proof is a single narrative outcome.
 
 The agent picks more elaborate or simpler shapes based on what each
 specific artifact's content needs.

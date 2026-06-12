@@ -1,6 +1,6 @@
 ---
 name: bn-grow
-description: "End-to-end feature pipeline: open a run ledger, optionally run brainstorm intake for fuzzy ideas, then research -> plan (with a judge panel) -> deliver -> review, each owned by its own subtree, with explicit gates between, finishing at a ship gate (push stays yours) and a background knowledge-curation dispatch. The trunk stays small -- it holds intent and reads artifacts, the subtrees do the work."
+description: "End-to-end feature pipeline: open a run ledger, optionally run brainstorm intake for fuzzy ideas, then research -> spec stress -> plan (with a judge panel) -> deliver -> review, each owned by its own subtree, with explicit gates between, finishing at a ship gate (push stays yours) and a background knowledge-curation dispatch. The trunk stays small -- it holds intent and reads artifacts, the subtrees do the work."
 argument-hint: "[idea | feature/task description]"
 ---
 
@@ -18,13 +18,13 @@ Read `AGENTS.md` (esp. invariant 1 context-centric decomposition, invariant 3
 artifacts-over-prose, invariant 6 permission cliff),
 `skills/bn-conventions/references/ledger.md`, and
 `skills/bn-conventions/references/envelope.md`. The phases you choreograph each have
-their own contract: `/bn-brainstorm`, `bn-research-lead` (the agent), `/bn-plan`,
-`/bn-work`, `/bn-review`. You invoke them; you do not reimplement them here.
+their own contract: `/bn-brainstorm`, `bn-research-lead` (the agent), `/bn-spec-stress`,
+`/bn-plan`, `/bn-work`, `/bn-review`. You invoke them; you do not reimplement them here.
 
 ONE run ledger spans the whole grow. Every phase reuses the same run dir, so the ledger
-tells the full story end to end -- optional requirements intake, research brief, plan ref,
-delivery report, review verdict, and the log of gate decisions all live under one
-`docs/runs/<run-id>/`.
+tells the full story end to end -- optional requirements intake, research brief, spec-stress
+brief when present, plan ref, delivery report, review verdict, and the log of gate decisions
+all live under one `docs/runs/<run-id>/`.
 
 ## Phase 1 -- Assess intake and open the run
 
@@ -50,13 +50,14 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs grow-<slug>
   prints the run ID and absolute run dir on two lines; capture both.
 - `<repo-root>` -> the target repo root (`git rev-parse --show-toplevel`).
 - Fill the seeded `ledger.md`: write the 2-3 line intent into `## Objective`, seed one
-  `## Units` row per phase (intake when fuzzy, then research / plan / deliver / review,
-  owner = the lead or trunk that runs it, status `pending`, artifact = that phase's gate
-  file), and append the opening `## Log` line. The `## Plan` ref stays a placeholder
-  until Phase 3 writes the plan path.
+  `## Units` row per phase (intake when fuzzy, then research / spec-stress / plan / deliver
+  / review, owner = the lead or trunk that runs it, status `pending`, artifact = that
+  phase's gate file), and append the opening `## Log` line. The `## Plan` ref stays a
+  placeholder until the plan phase writes the plan path.
 
 This single run dir is reused by every phase below -- pass its run ID and run dir
-through to `/bn-plan`, `/bn-work`, and `/bn-review` so they do NOT each open a fresh run.
+through to `/bn-spec-stress`, `/bn-plan`, `/bn-work`, and `/bn-review` so they do NOT each
+open a fresh run.
 
 ### Fuzzy intake (skill: /bn-brainstorm)
 
@@ -94,15 +95,40 @@ synthesizes ONE brief.
 **GATE:** `docs/runs/<run-id>/briefs/research-brief.md` exists. READ that file (not the
 lead's final-message prose). If the brief is MISSING, STOP and surface it -- do not plan
 from nothing. If the brief stands but flags unresolved open questions that would change
-the plan, note them for Phase 3 (and surface to the user) rather than barreling ahead.
+the plan, carry them into Phase 3 and surface them to the user rather than barreling ahead.
 
-## Phase 3 -- Plan (skill: /bn-plan, with a judge panel)
+## Phase 3 -- Stress requirements (skill: /bn-spec-stress)
+
+Run `/bn-spec-stress` when a requirements document exists and any of these are true:
+
+- intake was fuzzy;
+- the expected work is standard/deep rather than lightweight;
+- the research or brainstorm grounding surfaced uncertainty, unresolved assumptions, contested
+  evidence, or downstream implications;
+- the user asked for stress testing.
+
+Skip this phase for a clear lightweight task when no ambiguity flags are present. If there is
+no requirements document and only a concise finalized summary, usually skip spec stress; run it
+only when the feature is standard/deep or the research brief names ambiguity that can affect
+the plan.
+
+When running spec stress, invoke `/bn-spec-stress` with the requirements document path, or with
+the finalized requirements summary if no document exists. Reuse THIS run dir. The output path is
+`docs/runs/<run-id>/briefs/spec-stress.md`.
+
+**GATE:** if skipped, record the skip and reason in the ledger. If run, `spec-stress.md` exists
+and the trunk READS it (the file, not the skill's final-message prose). If `Resolve Before
+Planning` is non-empty, STOP and surface the blockers and required dispositions. Otherwise pass
+the requirements document or summary plus `spec-stress.md` to Phase 4.
+
+## Phase 4 -- Plan (skill: /bn-plan, with a judge panel)
 
 Invoke the `/bn-plan` flow with the requirements document path when fuzzy intake produced
 one. Otherwise pass the finalized requirements summary (the clear-task objective or the
 no-doc brainstorm summary). Reuse THIS run dir so `/bn-plan` also reads
-`docs/runs/<run-id>/briefs/research-brief.md`. `/bn-plan` reads the requirements document
-when present, the formal research brief, and any referenced brainstorm grounding brief;
+`docs/runs/<run-id>/briefs/research-brief.md` and `docs/runs/<run-id>/briefs/spec-stress.md`
+when present. `/bn-plan` reads the requirements document when present, the formal research
+brief, the spec-stress brief, and any referenced brainstorm grounding brief;
 classifies effort; runs its generator + judge panel for standard/deep (skips it for
 lightweight); and -- as the single writer of the plan (invariant 2) -- writes the plan doc
 and records which draft won + where the judge score sheets live.
@@ -119,9 +145,9 @@ assumed requirements. Let the user steer if they want to. Do not block the pipel
 question tool -- if the user does not intervene, proceed to delivery. (Plan is `Status:
 draft`; delivery consumes it next.)
 
-## Phase 4 -- Deliver (skill: /bn-work)
+## Phase 5 -- Deliver (skill: /bn-work)
 
-Invoke the `/bn-work` flow on the plan from Phase 3, reusing THIS run dir. `/bn-work`
+Invoke the `/bn-work` flow on the plan from Phase 4, reusing THIS run dir. `/bn-work`
 dispatches `bn-delivery-lead`, which makes per-unit atomizer decisions, fans composite
 units out to worktree-isolated unit-leads that self-test and mini-review, and merges in
 dependency order via a single integrator. It commits per unit; it NEVER pushes.
@@ -132,10 +158,10 @@ file, not the lead's prose). If units are BLOCKED, STOP at this gate and surface
 blocked units and why -- do not proceed to review pretending the feature landed. A blocked
 delivery is reported, not hidden.
 
-## Phase 5 -- Review (skill: /bn-review)
+## Phase 6 -- Review (skill: /bn-review)
 
 Invoke the `/bn-review` flow on the delivered changes (the integrated branch from
-Phase 4), reusing THIS run dir. `/bn-review` dispatches `bn-review-lead`, which selects
+Phase 5), reusing THIS run dir. `/bn-review` dispatches `bn-review-lead`, which selects
 the reviewer panel, dedupes findings, and fixes-and-verifies them in place, returning an
 applied verdict. It commits on a clean tree; it NEVER pushes.
 
@@ -146,7 +172,7 @@ remain unaddressed, STOP and surface it -- a red suite or an unresolved blocking
 does not pass the gate. If the gate passes via `UNVERIFIED (no test command)`, surface that
 marker to the user; never treat it as green.
 
-## Phase 6 -- Ship gate (permission cliff, invariant 6)
+## Phase 7 -- Ship gate (permission cliff, invariant 6)
 
 Present the review verdict to the user. **The pipeline NEVER pushes and NEVER opens a
 PR.** Push / PR is a SEPARATE, explicit `bn-ship` step the USER invokes after reading the
@@ -156,7 +182,7 @@ uncommitted, report-only, or unverified. When the verdict carries
 `UNVERIFIED (no test command)`, say the review fixes are not committed by the review lead
 and the result is not suite-green. Do not push here under any circumstances.
 
-## Phase 7 -- Curate handoff (non-blocking)
+## Phase 8 -- Curate handoff (non-blocking)
 
 Prepare curation for this run's `docs/runs/<run-id>/lessons-staging/` candidates. The
 `bn-lesson-harvester` already fired at each subtree boundary throughout the grow, so
@@ -173,11 +199,12 @@ Use the lightest available handoff:
 Do not claim a background curator is running unless one was actually started. Curation
 consolidates knowledge files only and pushes nothing.
 
-## Phase 8 -- Present
+## Phase 9 -- Present
 
 Give the user a SHORT narrative: what was built, the phase outcomes (requirements intake
-when present -> research brief -> plan -> delivery -> review verdict), the ship gate (the
-verdict's commit status, NOT pushed -- ship is yours), and the curation handoff state
+when present -> research brief -> spec-stress gate when present -> plan -> delivery -> review
+verdict), the ship gate (the verdict's commit status, NOT pushed -- ship is yours), and the
+curation handoff state
 (background started, or run `/bn-curate <run-id>`). Point at the ledger path
 `docs/runs/<run-id>/ledger.md` -- it tells the full story; the brief, plan, delivery
 report, and verdict all live under that run dir.
@@ -197,6 +224,8 @@ lines). The trunk checks the gate before proceeding:
 - intake  -> when fuzzy, a requirements doc or finalized requirements summary exists and
   no planning-blocking questions remain
 - research -> `briefs/research-brief.md` exists
+- spec-stress -> skipped for clear lightweight work, or `briefs/spec-stress.md` exists with
+  empty `Resolve Before Planning`
 - plan     -> `docs/plans/...-plan.md` exists and `ledger.md` `## Plan` points at it
 - deliver  -> `delivery-report.md` exists, code changed, units done (not blocked)
 - review   -> `review-verdict.md` exists and the suite is green, OR the verdict explicitly
