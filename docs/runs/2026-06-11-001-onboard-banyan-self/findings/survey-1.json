@@ -1,0 +1,138 @@
+{
+  "surveyor": "survey-1",
+  "docs": [
+    {
+      "source": "README.md",
+      "title": "Banyan — hierarchical self-compounding agent harness for Claude Code",
+      "doc_kind": "README / CONTRIBUTING / dev setup",
+      "target_families": ["instruction-source"],
+      "track": "",
+      "problem_type": "",
+      "slug": "banyan-readme",
+      "confidence": 95,
+      "reason": "Top-level project README covering install, quickstart, workflow descriptions, and repository layout — feeds CLAUDE.md."
+    },
+    {
+      "source": "AGENTS.md",
+      "title": "Agent Instructions — Banyan contributor and authoring contract",
+      "doc_kind": "README / CONTRIBUTING / dev setup",
+      "target_families": ["instruction-source"],
+      "track": "",
+      "problem_type": "",
+      "slug": "banyan-agents-contributor-contract",
+      "confidence": 95,
+      "reason": "Canonical repo instruction file with authoring rules, working agreement, vendoring policy, and contribution conventions — feeds CLAUDE.md."
+    },
+    {
+      "source": "CLAUDE.md",
+      "title": "CLAUDE.md (shim)",
+      "doc_kind": "skip",
+      "target_families": [],
+      "track": "",
+      "problem_type": "",
+      "slug": "",
+      "confidence": 98,
+      "reason": "Single-line stub containing only '@AGENTS.md'; no independent content to classify."
+    },
+    {
+      "source": "docs/README.md",
+      "title": "docs/ directory overview",
+      "doc_kind": "README / CONTRIBUTING / dev setup",
+      "target_families": ["instruction-source"],
+      "track": "",
+      "problem_type": "",
+      "slug": "docs-directory-overview",
+      "confidence": 90,
+      "reason": "Short directory-layout README describing brainstorms, decisions, plans, harness-proposals, and runtime artifact directories — feeds CLAUDE.md orientation."
+    },
+    {
+      "source": "docs/decisions/2026-06-10-fork-vs-greenfield.md",
+      "title": "Decision: new plugin skeleton that harvests v1's leaf assets (not a fork, not pure greenfield)",
+      "doc_kind": "ADR / decision record",
+      "target_families": ["solution-knowledge"],
+      "track": "knowledge",
+      "problem_type": "tooling_decision",
+      "slug": "fork-vs-greenfield-plugin-skeleton",
+      "confidence": 95,
+      "reason": "Accepted ADR in decisions/ with explicit status: accepted, documenting the architectural choice to vendor leaf agents from compound-engineering rather than forking or rebuilding from scratch."
+    },
+    {
+      "source": "docs/harness-changelog.md",
+      "title": "Harness changelog",
+      "doc_kind": "skip",
+      "target_families": [],
+      "track": "",
+      "problem_type": "",
+      "slug": "",
+      "confidence": 92,
+      "reason": "Changelog / audit log of applied harness changes; the CHANGELOG skip rule applies — git is the authoritative record of what changed."
+    },
+    {
+      "source": "docs/review-personas/README.md",
+      "title": "Review personas directory README",
+      "doc_kind": "README / CONTRIBUTING / dev setup",
+      "target_families": ["instruction-source"],
+      "track": "",
+      "problem_type": "",
+      "slug": "review-personas-directory-readme",
+      "confidence": 88,
+      "reason": "Directory README explaining the persona file format and how to contribute personas; no when: key so it is never spawned as a persona itself — feeds CLAUDE.md contributor guidance."
+    },
+    {
+      "source": "eval/README.md",
+      "title": "eval/ directory overview",
+      "doc_kind": "README / CONTRIBUTING / dev setup",
+      "target_families": ["instruction-source"],
+      "track": "",
+      "problem_type": "",
+      "slug": "eval-directory-overview",
+      "confidence": 88,
+      "reason": "Short directory README describing the review-ab evaluation harness structure and how to run it — feeds CLAUDE.md contributor orientation."
+    },
+    {
+      "source": "eval/review-ab/protocol.md",
+      "title": "A/B evaluation protocol: Banyan /bn-review vs compound-engineering /ce-code-review",
+      "doc_kind": "Architecture overview / system design",
+      "target_families": ["instruction-source", "solution-knowledge"],
+      "track": "knowledge",
+      "problem_type": "architecture_pattern",
+      "slug": "review-ab-evaluation-protocol",
+      "confidence": 78,
+      "reason": "Detailed evaluation methodology with durable GO/NO-GO criteria, scoring rubric, metric definitions, and benchmark design decisions — architectural decisions about how the review subtree is validated are durable knowledge; the protocol narrative feeds CLAUDE.md."
+    },
+    {
+      "source": "eval/review-ab/SCORECARD-template.md",
+      "title": "A/B scorecard template",
+      "doc_kind": "skip",
+      "target_families": [],
+      "track": "",
+      "problem_type": "",
+      "slug": "",
+      "confidence": 92,
+      "reason": "Fill-in template form with placeholder values only; no durable content — template files are excluded under the generated/template skip rule."
+    },
+    {
+      "source": "eval/review-ab/results/SCORECARD.md",
+      "title": "Review A/B scorecard — filled results",
+      "doc_kind": "skip",
+      "target_families": [],
+      "track": "",
+      "problem_type": "",
+      "slug": "",
+      "confidence": 72,
+      "reason": "Filled evaluation results artifact living under a results/ output directory; primarily captured run data and a one-time verdict rather than reusable doctrine — skip as raw evaluation output."
+    },
+    {
+      "source": "scripts/README.md",
+      "title": "scripts/ — development and maintenance scripts",
+      "doc_kind": "README / CONTRIBUTING / dev setup",
+      "target_families": ["instruction-source"],
+      "track": "",
+      "problem_type": "",
+      "slug": "scripts-directory-readme",
+      "confidence": 93,
+      "reason": "Dev-loop setup README documenting the PowerShell scripts, their purposes, and the typical development workflow — feeds CLAUDE.md contributor setup."
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,22 @@
+{
+  "transformer": "transform-1",
+  "results": [
+    {
+      "source": "docs/decisions/2026-06-10-fork-vs-greenfield.md",
+      "family": "solution-knowledge",
+      "derivative": "docs/runs/2026-06-11-001-onboard-banyan-self/lessons-staging/fork-vs-greenfield-plugin-skeleton.md",
+      "validator": "passed",
+      "status": "staged",
+      "notes": "Knowledge-track candidate with problem_type tooling_decision. Derives the durable rule (harvest leaf agents into a new skeleton; do not fork; adopt the persistence schema verbatim) faithfully from the accepted decision record. Source linked repo-relative."
+    },
+    {
+      "source": "eval/review-ab/protocol.md",
+      "family": "solution-knowledge",
+      "derivative": "docs/runs/2026-06-11-001-onboard-banyan-self/lessons-staging/review-ab-evaluation-protocol.md",
+      "validator": "passed",
+      "status": "staged",
+      "notes": "Assigned target_families included instruction-source and solution-knowledge. instruction-source produces no derivative file; the solution-knowledge candidate is written. Knowledge-track with problem_type architecture_pattern. Derives the durable evaluation-protocol pattern (separate capture / scoring / gate; de-advertise fixture for fair apply comparison; seeded-bug fixture as primary gate target) from the architecture document. Source linked repo-relative."
+    }
+  ],
+  "errors": []
+}
