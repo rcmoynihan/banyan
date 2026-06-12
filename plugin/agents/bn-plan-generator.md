@@ -29,6 +29,7 @@ block. It carries:
   - `requirements_doc`: a path to `docs/brainstorms/*-requirements.md`, or `none`.
   - `prior`: exactly one of `mvp-first` | `risk-first` | `ops-first` (see below).
   - `research_brief`: a path to `docs/runs/<run-id>/briefs/research-brief.md`, or `none`.
+  - `spec_stress`: a path to `docs/runs/<run-id>/briefs/spec-stress.md`, or `none`.
   - `supplemental_grounding`: a path to `docs/runs/*/briefs/brainstorm-grounding.md` or
     another supporting brief, or `none`.
   - `repo_root`: the target repo root, for grounding file paths against real code.
@@ -43,9 +44,10 @@ block. It carries:
 ## Step 1 — Ground yourself
 
 READ the `requirements_doc` if one exists — it is the product and scope authority. READ the
-`research_brief` and `supplemental_grounding` if either exists — they are factual grounding
-(findings, sources, open questions). Do not re-research from scratch; build on the supplied
-artifacts. Then use `Read`/`Grep`/`Glob` (and read-only `Bash`: `git`, `ls`) against
+`research_brief`, `spec_stress`, and `supplemental_grounding` if any exists — they are factual
+grounding, plan inputs, accepted risks, and verification obligations. Do not re-research from
+scratch; build on the supplied artifacts. Then use `Read`/`Grep`/`Glob` (and read-only `Bash`:
+`git`, `ls`) against
 `repo_root` to anchor your units in **real files and conventions** — match the repo's
 language, test runner, and layout. A plan that names files that do not fit the repo is a
 weak plan.
@@ -136,6 +138,9 @@ Rules for the draft:
 - Do not override the requirements document's scope. If your prior suggests a useful
   addition outside that scope, put it in deferred work or mark it `[assumed]` with a
   confirmation path.
+- Treat `spec_stress` `Plan Inputs` as explicit planning constraints, assumptions, risks, or
+  verification obligations. Treat `Accepted Risks` as scope boundaries. Do not continue if a
+  `Resolve Before Planning` blocker is present.
 - `effort_class: deep` → more units / finer decomposition / an explicit risks table is
   welcome. `standard` → keep it tight.
 

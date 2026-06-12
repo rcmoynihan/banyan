@@ -11,24 +11,32 @@ items or equivalent blocking questions so `/bn-grow` can stop at its intake gate
 ## The menu
 
 Present the visible options with `AskUserQuestion`. Visibility rules: no requirements
-doc hides nothing but changes what gets passed downstream (a summary instead of a path);
-an unresolved `Resolve Before Planning` section hides **Plan implementation** and
-**Build it now**; a failing direct-to-work gate hides **Build it now**.
+doc hides **Stress requirements** and changes what gets passed downstream (a summary instead
+of a path); an unresolved `Resolve Before Planning` section hides **Stress requirements**,
+**Plan implementation**, and **Build it now**; a failing direct-to-work gate hides
+**Build it now**.
 
-1. **Plan implementation with `/bn-plan` (Recommended)** — Move to `/bn-plan` for
+1. **Stress requirements with `/bn-spec-stress` (Recommended)** — Stress-test the
+   requirements document for missing scenarios, hidden assumptions, acceptance gaps, and
+   plan-affecting risks before planning. Shown only when a requirements document exists and
+   `Resolve Before Planning` is empty.
+2. **Plan implementation with `/bn-plan`** — Move to `/bn-plan` for
    structured implementation planning (prior-biased generators, judge panel). Shown only
    when `Resolve Before Planning` is empty.
-2. **Build it now with `/bn-work` direct mode** — Move to `/bn-work` with the finalized
+3. **Build it now with `/bn-work` direct mode** — Move to `/bn-work` with the finalized
    brainstorm output as direct task context. `/bn-work` writes the run-local direct work
    spec before delivery; suited to lightweight, well-defined changes. Shown only when
    `Resolve Before Planning` is empty **and** scope is lightweight, success criteria are
    clear, scope boundaries are clear, and no meaningful technical or research questions
    remain (the "direct-to-work gate").
-3. **Keep refining** — More clarifying questions or another approach pass; return to the
+4. **Keep refining** — More clarifying questions or another approach pass; return to the
    appropriate phase.
-4. **Done for now** — Print the closing summary and stop.
+5. **Done for now** — Print the closing summary and stop.
 
 ## Dispatch
+
+**Stress requirements** — Immediately invoke `/bn-spec-stress` in the current session with
+the requirements document path. Do not print the closing summary first.
 
 **Plan implementation** — Immediately invoke `/bn-plan` in the current session. Pass the
 requirements document path when one exists; otherwise pass a concise summary of the
@@ -63,7 +71,7 @@ Brainstorm complete.
 Decisions: <2-4 bullets — the durable product decisions>
 Outstanding: <open questions, or "none">
 Doc: <repo-relative path to the requirements doc, or "none written — brief alignment only">
-Next: <the natural next step, e.g. "/bn-plan <doc path>">
+Next: <the natural next step, e.g. "/bn-spec-stress <doc path>">
 ```
 
 Substitute the actual requirements-doc path written this run. If no doc was warranted,

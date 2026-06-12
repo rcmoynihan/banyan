@@ -14,8 +14,8 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (41 agents)
-  skills/                      one skill per directory: bn-*/SKILL.md (16 skills)
+  agents/                      one agent per file: bn-*.md (44 agents)
+  skills/                      one skill per directory: bn-*/SKILL.md (17 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
                                boundary check + its tests, frontmatter validator)
@@ -34,12 +34,13 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 
 | Skill | What it does |
 | --- | --- |
-| `/bn-grow` | The full pipeline: optional brainstorm intake → research → plan (judged) → deliver → review → ship gate → curation handoff, from a small trunk. |
-| `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-plan`. |
+| `/bn-grow` | The full pipeline: optional brainstorm intake → research → spec stress when warranted → plan (judged) → deliver → review → ship gate → curation handoff, from a small trunk. |
+| `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-spec-stress` or `/bn-plan`. |
+| `/bn-spec-stress` | Stress-test a requirements doc before planning: missing scenarios, hidden assumptions, acceptance gaps, and plan-affecting risks become a gate brief. |
 | `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |
-| `/bn-plan` | A plan from a requirements doc, research brief, or task: prior-biased generators scored by independent judges, synthesized by the trunk. |
+| `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: prior-biased generators scored by independent judges, synthesized by the trunk. |
 | `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees and a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
@@ -74,8 +75,12 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **Onboarding pair** — `bn-doc-surveyor` is the read-only batch classifier for
   existing documentation corpora; `bn-doc-transformer` writes linked derivative
   artifacts. The `/bn-onboard` trunk owns outward-facing work.
-- **Planning panel** — `bn-plan-generator` (one draft per prior: mvp / risk / ops)
-  and `bn-plan-judge` (independent rubric scoring).
+- **Planning panel** — `bn-plan-generator` (one draft per prior: mvp / risk / ops),
+  `bn-plan-judge` (independent rubric scoring), and `bn-plan-checker` (repo-grounded
+  precheck of the winning draft).
+- **Spec stress lenses** — `bn-spec-scenario-reviewer`, `bn-spec-assumption-reviewer`,
+  and `bn-spec-threat-reviewer` pressure-test requirements before planning when their
+  triggers are present.
 - **Compounding loop** — `bn-lesson-harvester` (the bounded leaf every lead spawns
   before returning) and `bn-knowledge-curator` (consolidates staged lessons into
   `docs/solutions/`).

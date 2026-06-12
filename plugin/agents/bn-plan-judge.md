@@ -37,6 +37,8 @@ block. It carries:
     `docs/runs/<run-id>/briefs/plan-draft-mvp-first.md`,
     `plan-draft-risk-first.md`, `plan-draft-ops-first.md`.
   - `research_brief`: the brief path used to ground feasibility, or `none`.
+  - `spec_stress`: the spec-stress brief used to ground assumptions, risks, and verification,
+    or `none`.
   - `supplemental_grounding`: a path to `docs/runs/*/briefs/brainstorm-grounding.md` or
     another supporting brief, or `none`.
   - `repo_root`: the target repo root, for checking that named files/conventions are real.
@@ -51,7 +53,7 @@ block. It carries:
 ## Step 1 — Read every draft (and the grounding)
 
 READ each path in `draft_paths` in full. READ the `requirements_doc` if present. READ the
-`research_brief` and `supplemental_grounding` if present, and spot-check named files against
+`research_brief`, `spec_stress`, and `supplemental_grounding` if present, and spot-check named files against
 `repo_root` with `Read`/`Grep`/`Glob` — a draft that invents files or ignores the repo's test
 runner loses feasibility points. Score the drafts **as written**; do not rewrite them, and
 do not let draft *length* stand in for quality.
@@ -71,6 +73,8 @@ Score **every** draft on all four criteria. Each score is an integer **1–5** w
 `[assumed]` requirements count against feasibility and verification quality in proportion
 to how much of the plan depends on them. Requirements or scope additions absent from the
 requirements document count as `[assumed]` unless the draft gives a concrete grounding source.
+Drafts should incorporate `spec_stress` plan inputs and accepted risks when present; ignoring a
+material plan input should lower coherence, scope discipline, or verification quality.
 
 Then a **total** per draft (sum of the four, out of 20). Show your scores in a table:
 

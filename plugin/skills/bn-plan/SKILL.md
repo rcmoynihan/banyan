@@ -1,7 +1,7 @@
 ---
 name: bn-plan
-description: "Produce a v1-compatible implementation plan. For standard/deep efforts, generate 2-3 approach drafts with different priors, score them with an independent judge panel, and synthesize the winner; lightweight efforts draft directly. Reads a requirements document and research brief when present. Use to turn a feature/task description, requirements doc, or research brief into a plan doc with stable U-IDs."
-argument-hint: "[feature/task description | path to requirements doc | path to research brief]"
+description: "Produce a v1-compatible implementation plan. For standard/deep efforts, generate 2-3 approach drafts with different priors, score them with an independent judge panel, and synthesize the winner; lightweight efforts draft directly. Reads a requirements document, research brief, and spec-stress brief when present. Use to turn a feature/task description, requirements doc, research brief, or spec-stress brief into a plan doc with stable U-IDs."
+argument-hint: "[feature/task description | path to requirements doc | path to research brief | path to spec-stress brief]"
 ---
 
 # bn-plan
@@ -22,14 +22,16 @@ The trunk produces and consumes these artifacts.
 ## Step 1 — Inputs and grounding
 
 Take the argument as the **task** (a feature/task description), a **path to a requirements
-document** (`docs/brainstorms/*-requirements.md`), OR a **path to a research brief**
-(`docs/runs/<run-id>/briefs/*.md`). Then:
+document** (`docs/brainstorms/*-requirements.md`), a **path to a research brief**
+(`docs/runs/<run-id>/briefs/research-brief.md`), OR a **path to a spec-stress brief**
+(`docs/runs/<run-id>/briefs/spec-stress.md`). Then:
 
 - **Resolve the primary input.** If the argument is a requirements document path, READ it in
   full and use it as the scope authority. If it has a non-empty `Resolve Before Planning`
   section or equivalent planning blocker, STOP and surface those blockers. If the argument is
-  a research brief path, READ it as the initial research grounding. Otherwise treat the
-  argument as the task description.
+  a research brief path, READ it as the initial research grounding. If the argument is a
+  spec-stress brief path, READ it as spec-stress grounding and locate the run from that path.
+  Otherwise treat the argument as the task description.
 - **Locate the run.** If you are already in a run (this skill was reached from `/bn-grow` or a
   prior step), reuse that run dir. If the argument path is under `docs/runs/<run-id>/`, reuse
   that run dir. Otherwise open one via the scaffolder (see `bn-conventions`):
@@ -39,13 +41,22 @@ document** (`docs/brainstorms/*-requirements.md`), OR a **path to a research bri
   Capture the printed run ID and absolute run dir. Fill `ledger.md`'s `## Objective` (produce
   a plan for this task), set the `## Plan` ref to the plan path you will write, and append the
   opening `## Log` line. Add a `U1 | trunk | in-progress | docs/plans/<...>-plan.md` row.
-- **Find the research grounding.** If the argument was a brief path, use it as the research
-  brief. Otherwise look for `docs/runs/<run-id>/briefs/research-brief.md` (written by
+- **Find the research grounding.** If the argument was a research brief path, use it as the
+  research brief. Otherwise look for `docs/runs/<run-id>/briefs/research-brief.md` (written by
   `bn-research-lead`). READ it if it exists — it is the factual grounding for the plan. If a
   requirements document references `docs/runs/<run-id>/briefs/brainstorm-grounding.md` or
   another `docs/runs/*/briefs/*.md` grounding path, READ that as supplemental grounding. If no
   brief exists, note "no brief — planning from task/requirements + repo" in the ledger; the
   generators will do a light grounding pass themselves.
+- **Find the spec-stress grounding.** If the argument was a spec-stress brief path, use it as
+  the spec-stress brief. Otherwise look for `docs/runs/<run-id>/briefs/spec-stress.md`. READ it
+  if it exists. If its `## Resolve Before Planning` section has any item other than `none`,
+  STOP and surface those blockers; the requirements document must be revised or the user must
+  explicitly disposition them before planning. Use `## Plan Inputs` and `## Accepted Risks` as
+  planning grounding only; they do not override the requirements document as scope authority.
+  If the spec-stress brief's `Input` field names a `docs/brainstorms/*-requirements.md` path
+  and no requirements document has been read yet, READ that document and use it as the scope
+  authority.
 - **Detect repo facts for the envelopes:** the repo root (`git rev-parse --show-toplevel`) and
   the test command (`package.json scripts.test`, else `node --test` / `pytest` / `cargo test`
   / `go test ./...`). Record what you found.
@@ -89,6 +100,7 @@ inputs:
   requirements_doc: <docs/brainstorms/...-requirements.md, or "none">
   prior:           <mvp-first | risk-first | ops-first>   # one per generator
   research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
+  spec_stress:     <docs/runs/.../briefs/spec-stress.md, or "none">
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:       <repo root>
 boundaries:      Read-only against the repo except your one artifact. Do NOT edit source,
@@ -133,6 +145,7 @@ inputs:
   requirements_doc: <docs/brainstorms/...-requirements.md, or "none">
   draft_paths:     docs/runs/<run-id>/briefs/plan-draft-mvp-first.md, ...-risk-first.md[, ...-ops-first.md]
   research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
+  spec_stress:     <docs/runs/.../briefs/spec-stress.md, or "none">
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:       <repo root>
 boundaries:      Read-only. Do NOT edit source or touch protected artifacts docs/brainstorms,
@@ -203,6 +216,7 @@ inputs:
   winning_draft_path: docs/runs/<run-id>/briefs/plan-draft-<winning-prior>.md
   graft_list:      <the runner-up ideas the trunk plans to graft, or "none">
   research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
+  spec_stress:     <docs/runs/.../briefs/spec-stress.md, or "none">
   supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:       <repo root>
   test_command:    <the detected test command, or "none detected">
@@ -244,8 +258,8 @@ fixture plan):
 
 - A header block (title; `**Date:** … · **Plan ID:** NNN · **Type:** <type> · **Status:** draft`)
   and a short overview.
-- A **Source documents** block listing the requirements document, formal research brief, and
-  supplemental grounding brief when each exists.
+- A **Source documents** block listing the requirements document, formal research brief,
+  spec-stress brief, and supplemental grounding brief when each exists.
 - A **`## Requirements`** section with stable **R-IDs** (`R1`, `R2`, …) — testable
   requirements the plan satisfies. Every R-ID carries `[confirmed]` or `[assumed]`; each
   `[assumed]` requirement includes an inline `(confirm by: ...)` clause.
@@ -259,8 +273,9 @@ fixture plan):
 - Optionally `## Risks` and `## Deferred to follow-up` for deep efforts.
 
 **Synthesize, don't transcribe.** Treat the requirements document as the product/scope
-authority when one exists; the research brief grounds feasibility and repo facts. For
-standard/deep: build primarily from the **winning
+authority when one exists; the research brief grounds feasibility and repo facts; the
+spec-stress brief contributes plan inputs, accepted risks, and verification obligations
+without overriding scope. For standard/deep: build primarily from the **winning
 draft**, then **graft the best runner-up ideas** the judges named (Step 4's graft list) — e.g.
 adopt the winner's unit decomposition but pull in a runner-up's rollback unit or risk spike.
 Keep each requirement's `[confirmed]` or `[assumed]` tag with the R-ID it describes, and
@@ -270,6 +285,12 @@ open or conditional. Resolve implementation conflicts in the winner's favor, but
 draft override the requirements document's scope. For **lightweight** (panel skipped): the
 trunk drafts the plan directly from the requirements document, brief, and task, same
 structure, tagging every trunk-authored R-ID.
+
+**Fold in the spec-stress plan inputs.** Thread each surviving `Plan Inputs` item from
+`spec-stress.md` into the plan as an `[assumed]` R-ID, risk, verification obligation,
+sequencing constraint, or repo check. Thread `Accepted Risks` into `## Risks` or
+`## Deferred to follow-up` when material. `Resolve Before Planning` blockers stop the skill in
+Step 1; they are never merely copied into a draft plan.
 
 **Fold in the plan-check findings (standard/deep, when the checker ran).** Thread each
 surviving finding from `plan-check.md` into the plan structure — never leave it only in the
@@ -287,13 +308,13 @@ brief:
   open question with a `(confirm by: ...)` clause — recorded, not silently dropped.
 
 Then **record provenance in the ledger**: set U1's row to `done` (artifact = the plan path),
-and append a `## Log` line noting the plan path, the `effort_class`, and — for standard/deep —
-**where the judge score sheets live** (`docs/runs/<run-id>/briefs/plan-judge-*.md`), which
-draft won, and — when the checker ran — the plan-check brief
-(`docs/runs/<run-id>/briefs/plan-check.md`) with the count of findings folded in. For
-lightweight, the log line states the panel was skipped (effort scaling observable in the
-ledger); when `precheck: off` suppressed the checker at standard/deep, the log line records
-that too.
+and append a `## Log` line noting the plan path, the `effort_class`, the spec-stress brief
+when present, and — for standard/deep — **where the judge score sheets live**
+(`docs/runs/<run-id>/briefs/plan-judge-*.md`), which draft won, and — when the checker ran —
+the plan-check brief (`docs/runs/<run-id>/briefs/plan-check.md`) with the count of findings
+folded in. For lightweight, the log line states the panel was skipped (effort scaling
+observable in the ledger); when `precheck: off` suppressed the checker at standard/deep, the
+log line records that too.
 
 ## Step 6 — Present the plan
 
@@ -304,13 +325,15 @@ Present a **short** summary to the user:
   and which runner-up ideas were grafted; for lightweight, that the **panel was skipped** (and
   that this is visible in the ledger);
 - the requirements document path when one grounded the plan;
+- the spec-stress brief path when present, plus the count of plan inputs and accepted risks
+  folded into the plan;
 - for standard/deep when the checker ran: how many plan-check findings were folded in, and
   **any `infeasible-claim` that became a surfaced blocker** the user must resolve before the
   plan leaves `Status: draft`; if `precheck: off` suppressed it, say so;
 - every `[assumed]` R-ID with its `(confirm by: ...)` clause; if none exist, say there are
   no assumed requirements;
-- a one-line pointer to the run dir (`docs/runs/<run-id>/`) for the drafts, score sheets, and
-  plan-check brief.
+- a one-line pointer to the run dir (`docs/runs/<run-id>/`) for the spec-stress brief, drafts,
+  score sheets, and plan-check brief.
 
 Do not paste the whole plan into the reply — point at the file (invariant 3). Note that the
 plan is `Status: draft`; delivery (`/bn-work` or `/bn-grow`) consumes it next.
