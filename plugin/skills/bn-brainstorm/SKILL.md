@@ -138,7 +138,8 @@ If nothing obvious appears after a short scan, say so and continue. Two rules go
 **Research grounding** (opt-in, Standard and Deep only) — never auto-dispatch. When the user asks for deeper grounding, or the dialogue hits a question a short scan cannot answer (how does this codebase actually do X? has the team solved this before? what's the industry standard?), offer to dispatch `bn-research-lead`. If accepted:
 
 1. Use the caller's run ledger if this brainstorm is running as `/bn-grow` intake. Otherwise open the run ledger **now** (lazily — only this branch needs one):
-   `node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs brainstorm-<slug> --root <repo-root>`
+   `node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs brainstorm-<slug> --root <repo-root> --objective "<ground the brainstorm question>" --plan-ref "none -- brainstorm grounding" --unit "research|bn-research-lead|in-progress|docs/runs/<run-id>/briefs/brainstorm-grounding.md" --actor trunk`
+   Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts`.
 2. Spawn `bn-research-lead` **foreground** with a standard envelope: `objective` = the grounding question, `artifact_path` = `docs/runs/<run-id>/briefs/brainstorm-grounding.md`, boundaries read-only, budget `{ max_children: 6, depth_remaining: 3 }`, `effort_class` by question breadth.
 3. READ the brief file (not the lead's prose) and fold its findings into the dialogue.
 4. Note the brief's path in the requirements doc so `/bn-plan` can reuse it instead of re-researching.

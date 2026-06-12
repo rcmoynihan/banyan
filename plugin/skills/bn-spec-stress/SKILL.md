@@ -43,14 +43,20 @@ If no run is active and the input is under `docs/runs/<run-id>/`, reuse that run
 open a run:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs spec-stress-<slug> --root <repo-root>
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs spec-stress-<slug> \
+  --root <repo-root> \
+  --input <requirements-doc-path-if-any> \
+  --objective "<stress-test the requirements before planning>" \
+  --plan-ref "<pending plan path>" \
+  --unit "spec-stress|trunk|in-progress|docs/runs/<run-id>/briefs/spec-stress.md" \
+  --actor trunk
 ```
 
-Fill the ledger objective and log the input path or summary label. In a standalone run, add a
-unit row for `spec-stress`. **When reusing the grow run, do NOT re-seed this row** — the grow
-trunk already owns the `spec-stress` phase row at phase granularity, which this skill updates
-in place (single-writer); per-skill detail stays in this skill's own progress notes rather
-than colliding with grow's phase row.
+Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts`. In a standalone
+run, the script seeds the `spec-stress` unit row. **When reusing the grow run, call the script
+with `--run-id <run-id>` and do NOT add a duplicate row** — the grow trunk already owns the
+`spec-stress` phase row at phase granularity; per-skill detail stays in this skill's own
+progress notes.
 
 ## Step 2 -- Read grounding
 

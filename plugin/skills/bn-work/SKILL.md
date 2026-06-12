@@ -92,11 +92,8 @@ Detect the facts the lead needs; surface anything that would move the user's tre
   the dirty files are user-owned and unsafe to entangle; otherwise continue when the
   delivery lead can isolate the work safely.
 - **Test command.** Detect the repo test command for the envelope. Prefer explicit
-  project instructions first (`AGENTS.md`, `CLAUDE.md`, `README.md`, `scripts/README.md`,
-  or equivalent repo docs). If no command is documented, inspect common manifests and
-  runners: `package.json` `scripts.test`, `node --test`, `pytest`, `cargo test`,
-  `go test ./...`. "none detected" is a valid value -- record the chosen command and
-  source.
+  project instructions first. The scaffolder emits this fact; use its `facts.test_command`
+  and `facts.test_source` after Step 4. "none detected" is a valid value.
 - **Repo root.** `git rev-parse --show-toplevel` for the scaffolder `--root`.
 - **Boundary check script.** Resolve the absolute path
   `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/check-boundary.mjs` and record it
@@ -111,17 +108,21 @@ the grow ledger already tracks. Otherwise scaffold a run dir so the lead reads f
 prose:
 
 ```
-node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug> --root <repo-root>
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug> \
+  --root <repo-root> \
+  --input <delivery-spec-path-if-known> \
+  --objective "<execute this delivery spec or direct work task>" \
+  --plan-ref "<docs/plans/...-plan.md OR pending direct-work spec>" \
+  --actor trunk
 ```
 
 - `<slug>` -> durable-plan mode: kebab-case from the plan name (e.g.
-  `work-add-oauth-login`); direct mode: kebab-case from the direct task. The script prints
-  the run ID and absolute run dir on two lines; capture both.
+  `work-add-oauth-login`); direct mode: kebab-case from the direct task. The script emits
+  JSON; capture `run_id`, `run_dir`, `ledger_path`, and `facts`.
 - `<repo-root>` -> the value from Step 3.
-- Fill the seeded `ledger.md` (when reusing the grow run, append to the existing ledger
-  rather than overwriting it): set `## Objective`, set the `## Plan` ref, record the
-  base branch + detected test command under `## Facts / Context`, and append an opening
-  `## Log` line.
+- When reusing a grow run, call the script with `--run-id <run-id>` so it returns the same
+  structured facts without overwriting the existing ledger. Append only the delivery-specific
+  log line or progress note the active run needs.
 
 Set the delivery spec path:
 

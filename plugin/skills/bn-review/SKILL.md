@@ -75,27 +75,24 @@ the grow ledger already tracks. Otherwise scaffold a run dir, then write the dif
 so the lead reads files, not prose:
 
 ```
-node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs review-<slug> --root <repo-root>
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs review-<slug> \
+  --root <repo-root> \
+  --objective "<review this change and return an applied verdict when scope permits>" \
+  --plan-ref "<docs/plans/...-plan.md, or none -- ad hoc run>" \
+  --unit "review|bn-review-lead|in-progress|docs/runs/<run-id>/review-verdict.md" \
+  --actor trunk
 ```
 
-- `<slug>` -> kebab-case from the intent (e.g. `review-add-oauth-login`). The script
-  prints the run ID and absolute run dir on two lines; capture both.
+- `<slug>` -> kebab-case from the intent (e.g. `review-add-oauth-login`). The script emits
+  JSON; capture `run_id`, `run_dir`, `ledger_path`, and `facts`.
 - `<repo-root>` -> the target repo's root (`git rev-parse --show-toplevel`).
 - Then stage the diff under `docs/runs/<run-id>/`:
   - `full.diff`  <- `git diff -U10 <base>` (use `<base>...<head>` form for a remote PR/branch).
   - `files.txt`  <- `git diff --name-only <base>` (same ref form).
-- Fill the seeded `ledger.md` (when reusing the grow run, append to the existing ledger
-  rather than overwriting it): set `## Objective` (review this change), the `## Plan`
-  ref (the plan doc if one exists, else "none -- ad hoc run"), and append an opening
-  `## Log` line. In a standalone run, add a `U1 | bn-review-lead | in-progress |
-  review-verdict.md` row. **When reusing the grow run, do NOT add a duplicate row** --
-  grow already seeded the `review` phase row, which the review lead updates in place
-  (single-writer).
-- Detect the repo test command for the envelope. Prefer explicit project instructions
-  first (`AGENTS.md`, `CLAUDE.md`, `README.md`, `scripts/README.md`, or equivalent repo
-  docs). If no command is documented, inspect common manifests and runners: `package.json`
-  `scripts.test`, `node --test`, `pytest`, `cargo test`, `go test ./...`. Record the
-  chosen command and source; "none detected" is a valid value.
+- When reusing a grow run, call the script with `--run-id <run-id>` so it returns the same
+  structured facts without overwriting the existing ledger. Do not add a duplicate review
+  row; grow already seeded the `review` phase row.
+- Use `facts.test_command` from the scaffolder for the envelope. "none detected" is valid.
 
 ## Step 4: Build the envelope and spawn bn-review-lead
 

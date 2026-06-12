@@ -11,15 +11,18 @@ Throughout, `<scripts>` means `${CLAUDE_PLUGIN_ROOT}/skills/bn-resolve-pr/script
 Resolver agents are spawns, so this run coordinates through a ledger (invariants 3, 5):
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs resolve-pr-<PR_NUMBER> --root <repo-root>
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs resolve-pr-<PR_NUMBER> \
+  --root <repo-root> \
+  --objective "Resolve review feedback on PR #<PR_NUMBER>." \
+  --plan-ref "none -- ad hoc run" \
+  --unit "resolve-pr|trunk|in-progress|docs/runs/<run-id>/findings/" \
+  --actor trunk
 ```
 
-Capture the run ID and run dir from the two output lines. Fill `ledger.md`: Objective
-("resolve review feedback on PR #N"), plan ref "none -- ad hoc run", and an opening log
-line. The trunk is this ledger's **single writer** — resolvers write only their own
-`findings/resolver-<n>.json` files. Also detect the repo's validation command now
-(project instructions > package.json test script > pytest > cargo test > go test), for
-step 5 and for resolver envelopes.
+Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts.test_command`.
+The script seeds the objective, plan ref, facts, unit row, and opening log line. The trunk is
+this ledger's **single writer** — resolvers write only their own `findings/resolver-<n>.json`
+files.
 
 ## 1. Fetch Unresolved Threads
 

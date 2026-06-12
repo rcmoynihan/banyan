@@ -99,6 +99,32 @@ test('bn-grow recovers gates before surfacing residuals', () => {
   assert.doesNotMatch(grow, /STOP and surface/);
 });
 
+test('planning is owned by bn-plan-lead', () => {
+  const planSkill = readPlugin('skills/bn-plan/SKILL.md');
+  const planLead = readPlugin('agents/bn-plan-lead.md');
+  const grow = readPlugin('skills/bn-grow/SKILL.md');
+
+  assert.match(planSkill, /Spawn one foreground `bn-plan-lead`/);
+  assert.match(planSkill, /Do not scaffold a\s+run, write the ledger/);
+  assert.match(planLead, /name: bn-plan-lead/);
+  assert.match(planLead, /Agent\(bn-plan-generator, bn-plan-judge, bn-plan-checker, bn-lesson-harvester\)/);
+  assert.match(planLead, /Write the Durable Plan/);
+  assert.match(grow, /Phase 4 -- Plan \(subtree: bn-plan-lead/);
+});
+
+test('artifact-backed re-entry is the user touchpoint contract', () => {
+  const pluginAgents = readPlugin('AGENTS.md');
+  const envelope = readPlugin('skills/bn-conventions/references/envelope.md');
+  const ledger = readPlugin('skills/bn-conventions/references/ledger.md');
+  const conventions = readPlugin('skills/bn-conventions/SKILL.md');
+
+  assert.match(pluginAgents, /AskUserQuestion` is trunk-only/);
+  assert.match(pluginAgents, /artifact-backed re-entry/);
+  assert.match(envelope, /User touchpoints: artifact-backed re-entry/);
+  assert.match(ledger, /## Artifact-backed re-entry/);
+  assert.match(conventions, /## Trunk-vs-lead boundary/);
+});
+
 test('adjacent skills expose grow recovery metadata', () => {
   const skillPaths = [
     'skills/bn-brainstorm/references/handoff.md',

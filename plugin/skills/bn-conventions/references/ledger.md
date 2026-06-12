@@ -201,11 +201,25 @@ reads `ledger.md`, `residuals.md`, and the evidence artifacts before choosing th
 the residual is resolved, mark `**Status:** resolved`, append the resolution to `## Resume notes`,
 remove or rewrite the matching `## Open questions` bullet, and continue the run.
 
+## Artifact-backed re-entry
+
+User decisions are represented as artifacts, not as in-memory pauses. A lead that needs user
+authority writes its blocker state into its report or progress file, returns `needs-user` with
+that path, and stops. The trunk reads the artifact, asks the user, then spawns a fresh lead with
+the same run ID and the answer as resume context. The resumed lead reconstructs state from
+`ledger.md`, its report/progress files, and any phase artifacts before writing the durable
+resolution.
+
+`AskUserQuestion` is trunk-only. Leads and leaves do not assume a user-question tool is
+available, and background nested agents treat user interaction as unavailable. Sparse boundary
+touchpoints are valid trunk work: intake before dispatch, approval after a gate artifact, and
+permission-cliff decisions.
+
 ## How a run flows
 
-1. **Trunk opens the run.** It runs the scaffolder (or does the manual fallback in
-   the bn-conventions skill), writes the `## Objective`, sets the `## Plan` ref, and
-   appends the opening line to `## Log`.
+1. **The owning trunk or procedure lead opens the run.** It runs the scaffolder (or does the
+   manual fallback in the bn-conventions skill), writes the `## Objective`, sets the `## Plan`
+   ref, and appends the opening line to `## Log`.
 2. **Trunk dispatches leads** with delegation envelopes (see `references/envelope.md`).
    Each lead's envelope names its artifact paths under this run dir.
 3. **Each lead echoes its envelope** into `progress/<lead>.md` on start, so its

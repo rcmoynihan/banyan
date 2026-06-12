@@ -1,360 +1,114 @@
 ---
 name: bn-plan
-description: "Produce a v1-compatible implementation plan. For standard/deep efforts, generate 2-3 approach drafts with different priors, score them with an independent judge panel, and synthesize the winner; lightweight efforts draft directly. Reads a requirements document, research brief, and spec-stress brief when present. Use to turn a feature/task description, requirements doc, research brief, or spec-stress brief into a plan doc with stable U-IDs."
-argument-hint: "[feature/task description | path to requirements doc | path to research brief | path to spec-stress brief]"
+description: "Thin dispatcher for durable implementation planning. Captures the task or input artifact, sends one envelope to bn-plan-lead, reads the lead's report, and relays the plan path plus assumed-requirement confirmations. The lead owns run setup, the planning panel, synthesis, ledger updates, and the plan doc."
+argument-hint: "[feature/task description | path to requirements doc | path to research brief | path to spec-stress brief] [precheck:on|off]"
 ---
 
 # bn-plan
 
-The trunk's planning procedure. The TRUNK is the **single writer of the plan** (invariant 2)
-— there is no plan-lead agent. This skill has the trunk orchestrate a panel directly: spawn
-approach **generators** with different priors, score their drafts with a **judge panel**,
-then the trunk **synthesizes the winner and writes the plan itself**. Independent judges
-provide the external signal a plan needs — an agent rereading its own draft does not.
+You are the user-facing trunk for planning. Keep this layer thin: capture intent, dispatch
+`bn-plan-lead`, read its report artifact, and handle only user touchpoints. Do not scaffold a
+run, write the ledger, spawn the generator/judge/checker panel yourself, or write the plan doc.
 
-Lightweight efforts **skip the panel entirely** — the trunk drafts directly. The effort
-classification *must* change the spawn count (0 vs. 5+), and that is observable in the ledger.
+Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (invariants 2, 3, 5, and 6; §2.2 recovery),
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`, and
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`; skip any already in
+your context.
 
-Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
-`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
-`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §5 (protected artifacts) plus §2.2 (self-recovery); skip any already in your context.
-The trunk produces and consumes these artifacts.
+## Step 1 - Capture the Request
 
-## Step 1 — Inputs and grounding
+Treat the argument as one of:
 
-Take the argument as the **task** (a feature/task description), a **path to a requirements
-document** (`docs/brainstorms/*-requirements.md`), a **path to a research brief**
-(`docs/runs/<run-id>/briefs/research-brief.md`), OR a **path to a spec-stress brief**
-(`docs/runs/<run-id>/briefs/spec-stress.md`). Then:
+- a feature/task description;
+- a readable requirements document under `docs/brainstorms/`;
+- a readable research brief under `docs/runs/<run-id>/briefs/`;
+- a readable spec-stress brief under `docs/runs/<run-id>/briefs/`.
 
-- **Resolve the primary input.** If the argument is a requirements document path, READ it in
-  full and use it as the scope authority. If it has a non-empty `Resolve Before Planning`
-  section or equivalent planning blocker, surface those blockers in standalone mode. When called
-  by `/bn-grow`, return blocker metadata (`blocker_class`, `proposed_disposition`,
-  `next_safe_action`, `resume_from_phase`) so the grow trunk can run its intake/spec-stress
-  disposition pass. If the argument is
-  a research brief path, READ it as the initial research grounding. If the argument is a
-  spec-stress brief path, READ it as spec-stress grounding and locate the run from that path.
-  Otherwise treat the argument as the task description.
-- **Locate the run.** If you are already in a run (this skill was reached from `/bn-grow` or a
-  prior step), reuse that run dir. If the argument path is under `docs/runs/<run-id>/`, reuse
-  that run dir. Otherwise open one via the scaffolder (see `bn-conventions`):
-  ```
-  node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs plan-<slug> --root <repo-root>
-  ```
-  Capture the printed run ID and absolute run dir. Fill `ledger.md`'s `## Objective` (produce
-  a plan for this task), set the `## Plan` ref to the plan path you will write, and append the
-  opening `## Log` line. In a standalone run, add a
-  `U1 | trunk | in-progress | docs/plans/<...>-plan.md` row. **When reusing the grow run, do
-  NOT re-seed this row** — the grow trunk already owns the `plan` phase row at phase
-  granularity, which this skill updates in place (single-writer); per-skill detail stays in
-  this skill's own progress notes rather than colliding with grow's phase row.
-- **Find the research grounding.** If the argument was a research brief path, use it as the
-  research brief. Otherwise look for `docs/runs/<run-id>/briefs/research-brief.md` (written by
-  `bn-research-lead`). READ it if it exists — it is the factual grounding for the plan. If a
-  requirements document references `docs/runs/<run-id>/briefs/brainstorm-grounding.md` or
-  another `docs/runs/*/briefs/*.md` grounding path, READ that as supplemental grounding. If no
-  brief exists, note "no brief — planning from task/requirements + repo" in the ledger; the
-  generators will do a light grounding pass themselves.
-- **Find the spec-stress grounding.** If the argument was a spec-stress brief path, use it as
-  the spec-stress brief. Otherwise look for `docs/runs/<run-id>/briefs/spec-stress.md`. READ it
-  if it exists. If its `## Resolve Before Planning` section has any item other than `none`,
-  surface those blockers in standalone mode. When called by `/bn-grow`, do not draft through
-  unresolved blockers; return the blocker metadata listed above so the grow trunk can perform
-  one disposition pass before re-entering planning. Use `## Plan Inputs` and `## Accepted Risks` as
-  planning grounding only; they do not override the requirements document as scope authority.
-  If the spec-stress brief's `Input` field names a `docs/brainstorms/*-requirements.md` path
-  and no requirements document has been read yet, READ that document and use it as the scope
-  authority.
-- **Detect repo facts for the envelopes:** the repo root (`git rev-parse --show-toplevel`) and
-  the test command. Prefer explicit project instructions first (`AGENTS.md`, `CLAUDE.md`,
-  `README.md`, `scripts/README.md`, or equivalent repo docs). If no command is documented,
-  inspect common manifests and runners: `package.json` `scripts.test`, `node --test`,
-  `pytest`, `cargo test`, `go test ./...`. Record the chosen command and source;
-  `none detected` is valid.
+Do not pre-read all content into trunk context. If the path is readable, verify only enough to
+classify it and pass the path to the lead. If the user supplied `precheck:on` or `precheck:off`,
+carry that flag; otherwise use `precheck:auto`.
 
-## Step 2 — Effort classification (the spawn dial)
+Ask an intake question at the trunk only when a missing answer is product-defining,
+permission-sensitive, destructive, or dependent on external authority. Use `AskUserQuestion`
+for bounded choices in Claude Code; in a runtime without that tool, stop and wait for the
+answer in chat. Most planning ambiguity should be handed to the lead as an `[assumed]`
+requirement with a confirm-by clause, not handled as a trunk dialogue.
 
-Classify the effort by task size and risk; this **decides whether the panel runs**:
+## Step 2 - Spawn bn-plan-lead
 
-- **`lightweight`** — small, well-understood, low-risk (a one-file helper, a config change, a
-  task fully specified by a thorough brief). **Skip the panel.** The trunk drafts the plan
-  directly and goes to **Step 5**. Spawn count for planning: **0**.
-- **`standard`** — a normal feature with real decomposition. Run the panel with **2
-  generators** (priors `mvp-first`, `risk-first`) + **3 judges**.
-- **`deep`** — large, cross-cutting, or high-risk (touches auth/payments/migrations, or the
-  brief surfaced contradictions/unknowns). Run the panel with **3 generators** (`mvp-first`,
-  `risk-first`, `ops-first`) + **3 judges**.
+Resolve the repo root with `git rev-parse --show-toplevel` when cheap; otherwise pass
+`repo_root: auto` and let the lead's scaffolder resolve it.
 
-Record the chosen `effort_class` in the ledger **before spawning**, so the spawn count is
-auditable. The rule that must hold: a `lightweight` plan spawns strictly fewer agents than
-`standard`, and `standard` no more than `deep`. If effort does not change the spawn count, it
-is not being honored.
-
-## Step 3 — Generator panel (spawn in parallel)
-
-Spawn the generators **in parallel** (one message, multiple `Agent` calls), each a
-`bn-plan-generator` carrying a **different prior**. Each runs at the model pinned in its
-frontmatter (invariant 7 — the envelope carries no model field). For each generator embed
-this envelope verbatim, filling the prior and the draft path:
+Spawn one foreground `bn-plan-lead` with this envelope:
 
 ```
 === BANYAN ENVELOPE ===
-objective:       Draft a full v1-compatible implementation plan for the task, biased by
-                 your assigned prior.
-artifact_path:   docs/runs/<run-id>/briefs/plan-draft-<prior>.md
-output_format:   A v1-compatible plan: ## Requirements (tagged R-IDs: [confirmed] or
-                 [assumed] with inline (confirm by: ...) clauses); ## Implementation Units with stable
-                 U-IDs, each with Goal/Dependencies/Files/Approach/Verification;
-                 ## Sequencing; ## Verification (whole feature). Design invariants if warranted.
+objective:       Produce a durable implementation plan for the supplied task or input artifact,
+                 including warranted generator/judge/checker panels and a concise report.
+artifact_path:   docs/runs/<resolved-run-id>/briefs/plan-lead-report.md
+output_format:   Markdown plan lead report with verdict, plan path, run path, effort, panel,
+                 precheck, assumed requirements, and recovery metadata.
 inputs:
-  task:            <the task description>
-  requirements_doc: <docs/brainstorms/...-requirements.md, or "none">
-  prior:           <mvp-first | risk-first | ops-first>   # one per generator
-  research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
-  spec_stress:     <docs/runs/.../briefs/spec-stress.md, or "none">
-  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
-  repo_root:       <repo root>
+  task:            <feature/task description, requirements summary, or one-line label for the input path>
+  primary_input:   <path supplied by the user, or "none">
+  active_run_id:   <live run ID when this skill is re-entering a run, otherwise "none">
+  active_run_dir:  <live run dir when known, otherwise "none">
+  invocation:      standalone
+  repo_root:       <repo root, or "auto">
+  precheck:        <auto | on | off>
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
-                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
-boundaries:      Read-only against the repo except your one artifact. Do NOT edit source,
-                 switch branches, or touch protected artifacts docs/brainstorms, docs/plans,
-                 docs/solutions, docs/runs (except your own artifact_path). Never write a
-                 sibling generator's draft file. One writer per file set.
-tool_guidance:   Read, Grep, Glob and read-only Bash (git, ls) to ground units in real files;
-                 Write only to artifact_path. No Agent spawns — you are a leaf.
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
+boundaries:      The lead may write the active run's planning artifacts and one durable
+                 plan under docs/plans/. It must not edit source, switch branches, push,
+                 open a PR, delete protected artifacts, or write outside its run artifacts.
+                 The trunk writes no run ledger and no plan doc.
+tool_guidance:   Use the run scaffolder once; Read/Grep/Glob/Bash for grounding; Write the
+                 plan, progress, ledger updates, and report; Agent(...) only for
+                 bn-plan-generator, bn-plan-judge, bn-plan-checker, and bn-lesson-harvester.
 budget:
-  max_children:    0
-  depth_remaining: 1
-effort_class:    <standard | deep>
+  max_children:    8
+  depth_remaining: 3
+effort_class:    auto
 === END ENVELOPE ===
 ```
 
-- **standard → 2 generators**: priors `mvp-first`, `risk-first`.
-- **deep → 3 generators**: priors `mvp-first`, `risk-first`, `ops-first`.
+For artifact-backed re-entry after a `needs-user` report, spawn a fresh `bn-plan-lead` with
+the same active run ID and include the user's answer in `task` or `primary_input` context. The
+lead resumes from the ledger and writes the durable state.
 
-The prior must visibly shape each draft's unit ordering and emphasis (mvp-first = smallest
-shippable slice first; risk-first = retire the biggest unknowns first; ops-first =
-observability/rollback/migration safety first). Each generator writes a full plan DRAFT to its
-`plan-draft-<prior>.md` and returns a verdict plus path.
+## Step 3 - Read the Report
 
-## Step 4 — Judge panel (spawn in parallel), then pick the winner
+When the lead returns, extract the report path from its verdict line and READ that file. Do
+not rely on the lead's prose. The report is load-bearing and must include:
 
-When the drafts are written, spawn **3** `bn-plan-judge` agents **in parallel**, each
-scoring **ALL** drafts independently (fresh context per judge — that independence is the
-PoLL-style panel's whole value). Each runs at the model pinned in its frontmatter
-(invariant 7 — the envelope carries no model field). For each judge `<n>` ∈ {1,2,3}:
+- `**Verdict:** ready | needs-user | blocked`;
+- `**Plan:** <docs/plans/...-plan.md, or "none">`;
+- `**Run:** docs/runs/<run-id>/`;
+- assumed requirements with confirm-by clauses;
+- recovery metadata: `blocker_class`, `recovery_owner`, `next_safe_action`, and
+  `resume_from_phase`.
 
-```
-=== BANYAN ENVELOPE ===
-objective:       Independently score every candidate plan draft on the rubric and name the
-                 strongest draft plus the best idea from each.
-artifact_path:   docs/runs/<run-id>/briefs/plan-judge-<n>.md
-output_format:   Score sheet: a table scoring each draft 1-5 on feasibility, coherence, scope
-                 discipline, verification quality (with one-line justifications) + total, then
-                 a one-paragraph comparative verdict (strongest draft; best idea from each;
-                 any fatal flaw).
-inputs:
-  task:            <the task description>
-  requirements_doc: <docs/brainstorms/...-requirements.md, or "none">
-  draft_paths:     docs/runs/<run-id>/briefs/plan-draft-mvp-first.md, ...-risk-first.md[, ...-ops-first.md]
-  research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
-  spec_stress:     <docs/runs/.../briefs/spec-stress.md, or "none">
-  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
-  repo_root:       <repo root>
-doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
-                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
-boundaries:      Read-only. Do NOT edit source or touch protected artifacts docs/brainstorms,
-                 docs/plans, docs/solutions, docs/runs (except your own artifact_path). Never
-                 write another judge's or a generator's file.
-tool_guidance:   Read, Grep, Glob to read drafts and spot-check named files against the repo;
-                 Write only to artifact_path. No Agent spawns — you are a leaf.
-budget:
-  max_children:    0
-  depth_remaining: 1
-effort_class:    <standard | deep>
-=== END ENVELOPE ===
-```
+If the report is missing or malformed, re-spawn `bn-plan-lead` once with the same primary input
+and a precise artifact failure. If the second attempt also fails, stop with the missing report
+path and the next safe action.
 
-When the judges return, **READ all three `plan-judge-<n>.md` score sheets** (the files, not
-the judges' final-message prose — invariant 3). Then:
+## Step 4 - Handle User Touchpoints
 
-1. **Pick the winning draft** = the draft with the **highest mean total** across the three
-   judges. On a tie, prefer the draft no judge flagged with a fatal flaw; if still tied,
-   prefer the higher mean on **verification quality**, then **feasibility**.
-2. **Note the graft list** = the "best idea from each draft" the judges named for the
-   runner-up drafts, minus any idea a judge flagged as a fatal flaw.
+If `Verdict: needs-user`, read the recovery block and ask exactly the decision the lead names.
+After the user answers, re-spawn `bn-plan-lead` with the same run and the answer as resume
+context. The trunk does not patch the plan or ledger itself.
 
-Why opus judges: plan critique is real reasoning, and a weaker model rewards length over
-soundness — that corrupts the panel signal (see `bn-plan-judge`). The panel is three
-*independent* reads precisely so no single judge's bias decides the plan.
+If `Verdict: blocked`, present the blocker, `next_safe_action`, and run path. Do not invent a
+fallback plan in trunk context.
 
-## Step 4.5 — Ground the winning draft against the repo (standard/deep only)
-
-Before synthesizing, the trunk dispatches **one** `bn-plan-checker` to re-run the repo
-against the **winning draft's** specific claims and emit a typed, evidence-bearing gap list.
-The judges scored the drafts comparatively; the checker does something different — it
-*executes* lookups (grep, glob, `git ls-files`, data-flow tracing) against the named files
-and units of the one draft that won, and emits only findings each backed by a re-runnable
-command. This is the brownfield/shadow-path grounding that otherwise first surfaces at review
-time, after code is written.
-
-**Gating (the optionality contract):**
-
-- **Effort:** runs on **`standard` and `deep` only**. **`lightweight` skips it** — the trunk
-  drafts directly and never reaches this step, keeping the lightweight spawn count below
-  standard.
-- **Opt-out / force-on:** a `precheck: on|off` flag (a `/bn-plan` arg or a plan-frontmatter
-  setting) overrides the effort default at `standard`/`deep`: `precheck: off` suppresses the
-  checker (e.g. a greenfield repo where every `already-exists` check is trivially empty);
-  `precheck: on` forces it where some other signal would skip it. The checker runs against the
-  panel's **winning draft**, so it has no effect at `lightweight` — which drafts directly and
-  produces no winning-draft artifact to check; a lightweight task that needs this grounding
-  should be classified `standard`. When suppressed, record `precheck: off` in the ledger and go
-  to Step 5.
-
-Dispatch one `bn-plan-checker`. It runs at the model pinned in its frontmatter (invariant 7 —
-the envelope carries no model field):
-
-```
-=== BANYAN ENVELOPE ===
-objective:       Ground every load-bearing claim of the winning plan draft against the real
-                 repo and emit a typed, evidence-bearing gap list.
-artifact_path:   docs/runs/<run-id>/briefs/plan-check.md
-output_format:   A plan-check brief: a typed findings list where each finding is one of
-                 already-exists | untraced-path | infeasible-claim and carries a one-line
-                 method: naming the re-runnable command/lookup that proves it; plus a
-                 ## Unverifiable section for claims with no runnable surface, and a
-                 residual line when nothing concrete remained to check.
-inputs:
-  task:            <the task description>
-  requirements_doc: <docs/brainstorms/...-requirements.md, or "none">
-  winning_draft_path: docs/runs/<run-id>/briefs/plan-draft-<winning-prior>.md
-  graft_list:      <the runner-up ideas the trunk plans to graft, or "none">
-  research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
-  spec_stress:     <docs/runs/.../briefs/spec-stress.md, or "none">
-  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
-  repo_root:       <repo root>
-  test_command:    <the detected test command, or "none detected">
-doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
-                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
-boundaries:      Read-only against the repo except your one artifact. Do NOT edit source,
-                 switch branches, or touch protected artifacts docs/brainstorms, docs/plans,
-                 docs/solutions, docs/runs (except your own artifact_path). Never write a
-                 draft, score sheet, or the plan.
-tool_guidance:   Read, Grep, Glob and read-only Bash (git grep, git ls-files, ls, dependency
-                 lookups) to ground the winning draft's named files/units; Write only to
-                 artifact_path. No Agent spawns — you are a leaf.
-budget:
-  max_children:    0
-  depth_remaining: 1
-effort_class:    <standard | deep>
-=== END ENVELOPE ===
-```
-
-When the checker returns, **READ `plan-check.md`** (the file, not the verdict prose —
-invariant 3) before writing the plan in Step 5. The checker never blocks: if it had no
-runnable surface it returns a typed `## Unverifiable` section, and if the draft was too thin
-to ground it returns an empty findings list with a residual note. The trunk folds its
-findings into the plan it writes (Step 5).
-
-## Step 5 — Synthesize and write the plan (the trunk is the single writer)
-
-The **TRUNK writes the final plan** — never a child (invariant 2). Compute the plan path:
-
-```
-docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md
-```
-
-- `YYYY-MM-DD` today; `NNN` the next zero-padded plan sequence for the date (scan
-  `docs/plans/` for the highest existing `NNN`, add 1, start at `001`).
-- `<type>` ∈ `feat` | `fix` | `refactor` | `chore` | … (conventional-commit style); `<name>`
-  kebab-case from the task.
-
-Write the plan in the **v1-compatible structure** (match `docs/plans/*-plan.md` and the
-fixture plan):
-
-- A header block (title; `**Date:** … · **Plan ID:** NNN · **Type:** <type> · **Status:** draft`)
-  and a short overview.
-- A **Source documents** block listing the requirements document, formal research brief,
-  spec-stress brief, and supplemental grounding brief when each exists.
-- A **`## Requirements`** section with stable **R-IDs** (`R1`, `R2`, …) — testable
-  requirements the plan satisfies. Every R-ID carries `[confirmed]` or `[assumed]`; each
-  `[assumed]` requirement includes an inline `(confirm by: ...)` clause.
-- **`## Design invariants`** — only if the task warrants standing constraints across units.
-- **`## Implementation Units`** — each unit a `### U<N>: <name>` with **stable U-IDs** and the
-  v1 fields: **Goal**, **Dependencies** (U-IDs), **Files** (real repo paths, disjoint per unit
-  where they could run as parallel worktrees — name any shared-file hazard, invariant 2),
-  **Approach**, **Verification** (a concrete runnable check + the test command, tracing to R-IDs).
-- **`## Sequencing`** — a dependency diagram/order (what is parallel vs. serial).
-- **`## Verification (whole feature)`** — the end-to-end done check.
-- Optionally `## Risks` and `## Deferred to follow-up` for deep efforts.
-
-**Synthesize, don't transcribe.** Treat the requirements document as the product/scope
-authority when one exists; the research brief grounds feasibility and repo facts; the
-spec-stress brief contributes plan inputs, accepted risks, and verification obligations
-without overriding scope. For standard/deep: build primarily from the **winning
-draft**, then **graft the best runner-up ideas** the judges named (Step 4's graft list) — e.g.
-adopt the winner's unit decomposition but pull in a runner-up's rollback unit or risk spike.
-Keep each requirement's `[confirmed]` or `[assumed]` tag with the R-ID it describes, and
-add confirm-by clauses for any assumed requirements introduced by grafted ideas. Requirements
-carried from a requirements document are `[confirmed]` unless the document itself marks them
-open or conditional. Resolve implementation conflicts in the winner's favor, but do not let a
-draft override the requirements document's scope. For **lightweight** (panel skipped): the
-trunk drafts the plan directly from the requirements document, brief, and task, same
-structure, tagging every trunk-authored R-ID.
-
-**Fold in the spec-stress plan inputs.** Thread each surviving `Plan Inputs` item from
-`spec-stress.md` into the plan as an `[assumed]` R-ID, risk, verification obligation,
-sequencing constraint, or repo check. Thread `Accepted Risks` into `## Risks` or
-`## Deferred to follow-up` when material. `Resolve Before Planning` blockers are handled in
-Step 1; standalone runs surface them, and grow runs return recovery metadata. They are never
-merely copied into a draft plan.
-
-**Fold in the plan-check findings (standard/deep, when the checker ran).** Thread each
-surviving finding from `plan-check.md` into the plan structure — never leave it only in the
-brief:
-
-- **`already-exists`** → drop or narrow the redundant unit, and point its `Files`/`Approach`
-  at the existing capability the checker cited instead of rebuilding it.
-- **`untraced-path`** → add the missing error/empty/nil-handling work as a unit or a unit
-  step, with verification that exercises the path the checker named.
-- **`infeasible-claim`** → correct the unit's `Files`/`Approach` to a real path, or — if the
-  finding invalidates the winning draft's whole approach — fall back to the next viable
-  runner-up draft or run one repair pass over the panel artifacts. In standalone mode, surface a
-  remaining blocker to the user in Step 6 *before* finalizing. When called by `/bn-grow`, emit
-  blocker metadata for the grow trunk if no viable plan remains. **The plan does not leave
-  `Status: draft` with an unaddressed `infeasible-claim`.**
-- Anything in the checker's `## Unverifiable` section becomes an `[assumed]` requirement or an
-  open question with a `(confirm by: ...)` clause — recorded, not silently dropped.
-
-Then **record provenance in the ledger**: set U1's row to `done` (artifact = the plan path),
-and append a `## Log` line noting the plan path, the `effort_class`, the spec-stress brief
-when present, and — for standard/deep — **where the judge score sheets live**
-(`docs/runs/<run-id>/briefs/plan-judge-*.md`), which draft won, and — when the checker ran —
-the plan-check brief (`docs/runs/<run-id>/briefs/plan-check.md`) with the count of findings
-folded in. For lightweight, the log line states the panel was skipped (effort scaling
-observable in the ledger); when `precheck: off` suppressed the checker at standard/deep, the
-log line records that too.
-
-## Step 6 — Present the plan
-
-Present a **short** summary to the user:
+If `Verdict: ready`, present a short summary:
 
 - the plan path;
-- the `effort_class`, and — for standard/deep — the winning prior, the judges' mean scores,
-  and which runner-up ideas were grafted; for lightweight, that the **panel was skipped** (and
-  that this is visible in the ledger);
-- the requirements document path when one grounded the plan;
-- the spec-stress brief path when present, plus the count of plan inputs and accepted risks
-  folded into the plan;
-- for standard/deep when the checker ran: how many plan-check findings were folded in, and
-  **any `infeasible-claim` that became a surfaced blocker** the user must resolve before the
-  plan leaves `Status: draft`; if `precheck: off` suppressed it, say so;
-- every `[assumed]` R-ID with its `(confirm by: ...)` clause; if none exist, say there are
-  no assumed requirements;
-- a one-line pointer to the run dir (`docs/runs/<run-id>/`) for the spec-stress brief, drafts,
-  score sheets, and plan-check brief.
+- the run path;
+- the effort class;
+- panel and precheck status;
+- every assumed requirement with its confirm-by clause, or that there are none.
 
-Do not paste the whole plan into the reply — point at the file (invariant 3). Note that the
-plan is `Status: draft`; delivery (`/bn-work` or `/bn-grow`) consumes it next.
+Do not paste the plan body. The durable plan file is the artifact `/bn-work` or `/bn-grow`
+consumes next.

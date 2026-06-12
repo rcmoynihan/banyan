@@ -134,12 +134,18 @@ open a run.
 Only when work exists, open the run:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs onboard-<repo-slug> --root <root>
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs onboard-<repo-slug> \
+  --root <root> \
+  --objective "<onboard this repository into Banyan-managed knowledge and instruction files>" \
+  --plan-ref "none -- onboarding run" \
+  --unit "onboard|trunk|in-progress|docs/runs/<run-id>/onboarding-report.md" \
+  --actor trunk
 ```
 
-Fill `ledger.md` objective, Facts, and Units. Write
-`docs/runs/<run-id>/briefs/corpus.md` with the corpus list and proposed batch
-assignment. The trunk is the single writer of the ledger.
+Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts`. The script
+seeds the objective, plan ref, facts, unit row, and opening log line. Write
+`docs/runs/<run-id>/briefs/corpus.md` with the corpus list and proposed batch assignment. The
+trunk is the single writer of the ledger.
 
 ## Phase 2 - Classification and Gate
 

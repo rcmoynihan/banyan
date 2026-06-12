@@ -6,6 +6,11 @@ orchestration of a flat agent fleet, it uses **lead agents that own whole subtre
 **file-based run ledger**, **delegation envelopes with budgets**, and **fractal lesson
 harvesting**.
 
+The user-facing top-level thread is the **trunk**: it holds user intent, dispatches the
+owning lead or inline dialogue flow, reads gate artifacts, and handles decisions that
+genuinely need the user. Procedural setup, panels, durable document authorship, and
+phase-local recovery belong in the owning lead or skill layer below it.
+
 This file is the standing contract for everything under `plugin/`. Every Banyan agent and
 skill must obey it. It is also the project-standards source the review subtree reads.
 
@@ -42,6 +47,9 @@ These hold for every agent, skill, and spawn in Banyan.
    summary-of-a-summary-of-a-summary is the telephone game; the filesystem is the ground truth.)
 4. **Decompose on failure, not eagerly.** Default depth is 1–2. Depth 3–5 is *reserve capacity*
    triggered by failure or context pressure, not spent preemptively. Most tasks stay shallow.
+   A procedure-owning lead is the narrow standing reason for one eager level when a command
+   runs a multi-agent panel or writes a durable output document and its user interaction is
+   sparse and boundary-only.
 5. **Budgets are explicit.** Every spawn carries a delegation envelope (objective, artifact path,
    output format, boundaries, tool guidance, and a budget of `max_children` /
    `depth_remaining`). See `skills/bn-conventions/references/envelope.md`.
@@ -127,6 +135,19 @@ User prompt text can steer autonomy for the current run. A request like "be aggr
 ask unless blocked" raises the threshold for escalation; a request like "pause before product
 assumptions" lowers it. This is run-local steering, not a formal mode or enum.
 
+### 2.3 User touchpoints and artifact-backed re-entry
+
+`AskUserQuestion` is trunk-only. Leads do not rely on user-question tools, and background nested
+agents treat user interaction as unavailable. User interaction clusters at boundaries:
+intake before dispatch, approval or recovery after a lead returns, and permission-cliff actions
+that must stay foreground.
+
+When a lead reaches a user-decision point, it writes a blocker artifact and returns
+`needs-user` with `blocker_class`, `recovery_owner`, `next_safe_action`, and
+`resume_from_phase`. The trunk reads that artifact, asks the user, then spawns a fresh lead with
+the same run ID and the answer as resume context. The resumed lead reads the ledger and artifacts
+and writes the durable state; the trunk does not patch lead-owned artifacts itself.
+
 When an autonomous grow run exits early after recovery is exhausted, the grow trunk writes the
 residual state to `docs/runs/<run-id>/residuals.md` before surfacing it. The ledger points at that
 artifact so the run can resume from files rather than conversation memory.
@@ -198,9 +219,9 @@ A **lead** is an agent that owns a subtree end-to-end and returns a verdict, not
   compete with real work for the cap), and it must not block or alter the lead's verdict —
   harvest, then return.
 
-The four core leads are `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`, and
-`bn-debug-lead`. The main session stays a near-empty **trunk** that talks to the user,
-holds intent, and dispatches leads.
+The core leads are `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`,
+`bn-debug-lead`, and `bn-plan-lead`. The main session stays a near-empty **trunk** that talks
+to the user, holds intent, reads gate artifacts, and dispatches owning leads.
 
 ---
 

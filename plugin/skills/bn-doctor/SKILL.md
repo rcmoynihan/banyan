@@ -1,6 +1,6 @@
 ---
 name: bn-doctor
-description: "Capability doctor: checks the host environment (Claude Code >= 2.1.172, node, gh, python3, pwsh), verifies plugin assets are discoverable and well-formed, and runs a LIVE depth-2 nested-spawn probe plus an allowlist-enforcement probe. Prints a green/yellow/red checklist and leaves no files behind."
+description: "Capability doctor: checks the host environment (Claude Code >= 2.1.172, node, gh, python3, pwsh), verifies plugin assets are discoverable and well-formed, and runs a LIVE depth-2 nested-spawn probe plus allowlist and nested user-question probes. Prints a green/yellow/red checklist and leaves no files behind."
 argument-hint: "[--static  (skip the live probe)]"
 ---
 
@@ -8,8 +8,9 @@ argument-hint: "[--static  (skip the live probe)]"
 
 A capability check for the premise Banyan stands on: nested subagents. `/bn-hello` proves
 the plugin loaded; this skill proves the *host can run it* — the version floor, the dev
-toolchain, the asset integrity, and (live) whether a depth-2 nested spawn actually works
-and whether the runtime enforces `Agent(...)` allowlists.
+toolchain, the asset integrity, and (live) whether a depth-2 nested spawn actually works,
+whether the runtime enforces `Agent(...)` allowlists, and whether a nested probe has a reliable
+user-question path.
 
 This is a health check, not a run: it opens **no run ledger**, and every file it creates
 lives in a temporary probe directory that is deleted before the report prints. If the
@@ -60,9 +61,9 @@ Then check, RED only on structural failure:
 
    ```
    === BANYAN ENVELOPE ===
-   objective:       Run the nesting and allowlist probes, write the probe report.
+   objective:       Run the nesting, allowlist, and user-question probes; write the probe report.
    artifact_path:   <probe-dir>/probe-report.txt
-   output_format:   Two lines: "nesting: ..." and "allowlist: ...".
+   output_format:   Three lines: "nesting: ...", "allowlist: ...", and "user-question: ...".
    doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                     ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
    inputs:
@@ -87,6 +88,10 @@ Then check, RED only on structural failure:
      `not-enforced` → **YELLOW**, with this honest note: Banyan's budgets and allowlists
      are prompt-level discipline by design (AGENTS.md); this result only means the
      runtime will not backstop them; `indeterminate` → YELLOW with the probe's reason.
+   - `<probe-dir>/probe-report.txt` `user-question:` line — `unavailable` → GREEN; this is
+     the expected trunk-only boundary. `available` → YELLOW and report that Banyan still keeps
+     user decisions at the trunk because background nested prompts are not a reliable control
+     surface. Missing or malformed → YELLOW.
 
 5. **Cleanup**: `rm -rf .claude/banyan-doctor/` and confirm it is gone. The probe
    directory is the skill's own scratch space — it is not a protected artifact.
@@ -105,6 +110,7 @@ Print one table and stop — no files are left behind, nothing else is written:
 | frontmatter name = stem    | GREEN  | all agents                              |
 | depth-2 nested spawn       | GREEN  | token round-tripped                     |
 | allowlist enforcement      | YELLOW | not enforced by runtime (prompt-level by design) |
+| nested user question       | GREEN  | unavailable in nested probe (trunk-only) |
 ```
 
 End with one line: overall GREEN (all green), YELLOW (any yellow, no red), or RED (any

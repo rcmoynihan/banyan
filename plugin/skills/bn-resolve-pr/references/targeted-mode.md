@@ -28,9 +28,9 @@ returns the matching thread with full comment details.
 
 ## 2. Fix, Reply, Resolve
 
-A resolver agent is a spawn, so open the run ledger first (full-mode step 0:
-`new-run.mjs resolve-pr-<PR_NUMBER>`). Then spawn a single `bn-pr-comment-resolver` for
-the thread, using the full-mode step 4 envelope with this one item — including
+A resolver agent is a spawn, so open the run ledger first using Full Mode step 0. Then spawn
+a single `bn-pr-comment-resolver` for the thread, using the full-mode step 4 envelope with
+this one item — including
 `isOutdated` and the location fields (`line`, `originalLine`, `startLine`,
 `originalStartLine`) — targeted threads can be outdated too and need the same relocation
 handling. Read its outcome artifact, then follow the same validate → commit → push →

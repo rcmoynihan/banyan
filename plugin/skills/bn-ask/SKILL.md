@@ -69,16 +69,16 @@ Before opening a run, read (skip any already in your context):
 Open the run ledger:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs ask-<slug> --root <repo-root>
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs ask-<slug> \
+  --root <repo-root> \
+  --objective "<answer the user's codebase question with sourced evidence>" \
+  --plan-ref "none -- codebase question" \
+  --unit "ask|bn-research-lead|in-progress|docs/runs/<run-id>/briefs/ask-answer.md" \
+  --actor trunk
 ```
 
-Fill `ledger.md` with:
-
-- Objective: the user's question and the done condition: a sourced answer with confidence
-  and explicit unknowns.
-- Plan: `none -- codebase question`.
-- Units: `U1 | bn-research-lead | in-progress | briefs/ask-answer.md`.
-- Log: an opening trunk line.
+Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts`. The script
+seeds the objective, plan ref, unit row, facts, and opening log line.
 
 Spawn `bn-research-lead` foreground with this envelope:
 

@@ -14,7 +14,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (44 agents)
+  agents/                      one agent per file: bn-*.md (45 agents)
   skills/                      one skill per directory: bn-*/SKILL.md (17 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
@@ -40,7 +40,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |
-| `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: prior-biased generators scored by independent judges, synthesized by the trunk. |
+| `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: `bn-plan-lead` owns the generator/judge/checker panel and writes the durable plan. |
 | `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees and a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
@@ -49,14 +49,14 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-curate` | Consolidate harvested lessons into `docs/solutions/`. |
 | `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself (human-applied only). |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
-| `/bn-doctor` | Capability check: environment floor, asset integrity, and a live depth-2 nested-spawn + allowlist-enforcement probe. |
+| `/bn-doctor` | Capability check: environment floor, asset integrity, and live depth-2 nested-spawn, allowlist, and nested user-question probes. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 
 ## Agents
 
 - **Leads** — `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`,
-  `bn-debug-lead`: each owns a subtree end-to-end and returns a verdict plus artifact
-  paths. Their `Agent(...)` allowlists are their team rosters.
+  `bn-debug-lead`, and `bn-plan-lead`: each owns a subtree end-to-end and returns a
+  verdict plus artifact paths. Their `Agent(...)` allowlists are their team rosters.
 - **Delivery workers** — `bn-unit-lead` (one implementation unit in an isolated
   worktree: implement → test-fix → mini-review pair → commit), `bn-integrator` (single
   writer for the merge; runs the full suite; never pushes).
@@ -75,9 +75,9 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **Onboarding pair** — `bn-doc-surveyor` is the read-only batch classifier for
   existing documentation corpora; `bn-doc-transformer` writes linked derivative
   artifacts. The `/bn-onboard` trunk owns outward-facing work.
-- **Planning panel** — `bn-plan-generator` (one draft per prior: mvp / risk / ops),
-  `bn-plan-judge` (independent rubric scoring), and `bn-plan-checker` (repo-grounded
-  precheck of the winning draft).
+- **Planning subtree** — `bn-plan-lead` writes durable plans; `bn-plan-generator` (one draft
+  per prior: mvp / risk / ops), `bn-plan-judge` (independent rubric scoring), and
+  `bn-plan-checker` (repo-grounded precheck of the winning draft).
 - **Spec stress lenses** — `bn-spec-scenario-reviewer`, `bn-spec-assumption-reviewer`,
   and `bn-spec-threat-reviewer` pressure-test requirements before planning when their
   triggers are present.
@@ -87,7 +87,8 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **`bn-harness-engineer`** — mines run ledgers and transcripts for recurring harness
   failures and writes proposals to `docs/harness-proposals/`; never self-applies.
 - **Doctor probes** — `bn-probe` + `bn-probe-leaf` (the probe pair `/bn-doctor` uses
-  to verify live depth-2 nesting and allowlist enforcement; health-check only).
+  to verify live depth-2 nesting, allowlist enforcement, and nested user-question availability;
+  health-check only).
 
 ## Install for development
 

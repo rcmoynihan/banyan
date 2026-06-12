@@ -182,6 +182,24 @@ upward in its verdict line. If a delivery unit names its own runnable `Verificat
 check, the unit runs that check as a substitute and records exactly what ran. The
 upward marker remains because the repo-level validation spine is unavailable.
 
+## User touchpoints: artifact-backed re-entry
+
+Leads do not ask the user directly. `AskUserQuestion` and equivalent blocking user-question
+tools are trunk-level surfaces because nested/background agents cannot rely on them. A lead
+that reaches a user-decision point writes its normal report or blocker artifact with:
+
+- `verdict: needs-user`;
+- `blocker_class`: `permission-cliff` | `no-safe-default` | `missing-external-authority` |
+  `unsafe-working-tree` | `recovery-exhausted`;
+- `recovery_owner`;
+- `next_safe_action`;
+- `resume_from_phase`.
+
+The lead then returns a verdict plus the artifact path. The trunk reads the artifact, asks the
+user, and re-spawns the owning lead with the same run ID plus the answer as resume context. The
+resumed lead reads the ledger and writes the durable update. The trunk may relay a gate verdict
+from artifacts, but it does not patch lead-owned reports, plans, findings, or progress files.
+
 ---
 
 ## effort_class -> spawn-count scaling

@@ -49,24 +49,31 @@ assumptions. Ask before opening the run only when the missing decision would be 
 default because it is product-defining, permission-sensitive, destructive, or dependent on
 external authority the repo cannot infer.
 
-Open ONE run ledger via the scaffolder:
+Open ONE run ledger via the scaffolder. Pass the phase rows up front so the ledger is usable
+without hand-written setup:
 
 ```
-node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs grow-<slug> --root <repo-root>
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs grow-<slug> \
+  --root <repo-root> \
+  --objective "<2-3 line objective and done condition>" \
+  --plan-ref "<pending plan path>" \
+  --unit "research|bn-research-lead|pending|docs/runs/<run-id>/briefs/research-brief.md" \
+  --unit "spec-stress|trunk|pending|docs/runs/<run-id>/briefs/spec-stress.md" \
+  --unit "plan|trunk|pending|docs/plans/<pending-plan-path>" \
+  --unit "deliver|bn-delivery-lead|pending|docs/runs/<run-id>/delivery-report.md" \
+  --unit "review|bn-review-lead|pending|docs/runs/<run-id>/review-verdict.md"
 ```
 
-- `<slug>` -> kebab-case from the feature (e.g. `grow-add-oauth-login`). The script
-  prints the run ID and absolute run dir on two lines; capture both.
+- `<slug>` -> kebab-case from the feature (e.g. `grow-add-oauth-login`). The script emits
+  JSON; capture `run_id`, `run_dir`, `ledger_path`, and `facts`.
 - `<repo-root>` -> the target repo root (`git rev-parse --show-toplevel`).
-- Fill the seeded `ledger.md`: write the 2-3 line intent into `## Objective`, seed one
-  `## Units` row per phase (intake when fuzzy, then research / spec-stress / plan / deliver
-  / review, owner = the lead or trunk that runs it, status `pending`, artifact = that
-  phase's gate file), and append the opening `## Log` line. The `## Plan` ref stays a
-  placeholder until the plan phase writes the plan path.
+- If fuzzy intake is in scope, include an additional
+  `--unit "intake|trunk|pending|docs/brainstorms/<pending-requirements>.md"` row. The script
+  seeds `## Objective`, `## Plan`, `## Facts / Context`, and the phase rows.
 
-This single run dir is reused by every phase below -- pass its run ID and run dir
-through to `/bn-spec-stress`, `/bn-plan`, `/bn-work`, and `/bn-review` so they do NOT each
-open a fresh run.
+This single run dir is reused by every phase below -- pass its run ID and run dir to
+`/bn-spec-stress`, `bn-plan-lead`, `/bn-work`, and `/bn-review` so they do NOT each open a
+fresh run.
 
 ### Fuzzy intake (skill: /bn-brainstorm)
 
@@ -143,25 +150,56 @@ no-safe-default decisions in `Resolve Before Planning`. Continue when that secti
 empty. If no-safe-default blockers remain, write `residuals.md` with phase `spec-stress`
 and exit.
 
-## Phase 4 -- Plan (skill: /bn-plan, with a judge panel)
+## Phase 4 -- Plan (subtree: bn-plan-lead, with a judge panel)
 
-Invoke the `/bn-plan` flow with the requirements document path when fuzzy intake produced
-one. Otherwise pass the finalized requirements summary (the clear-task objective or the
-no-doc brainstorm summary). Reuse THIS run dir so `/bn-plan` also reads
-`docs/runs/<run-id>/briefs/research-brief.md` and `docs/runs/<run-id>/briefs/spec-stress.md`
-when present. `/bn-plan` reads the requirements document when present, the formal research
-brief, the spec-stress brief, and any referenced brainstorm grounding brief;
-classifies effort; runs its generator + judge panel for standard/deep (skips it for
-lightweight); and -- as the single writer of the plan (invariant 2) -- writes the plan doc
-and records which draft won + where the judge score sheets live.
+Spawn `bn-plan-lead` with the requirements document path when fuzzy intake produced one.
+Otherwise pass the finalized requirements summary (the clear-task objective or the no-doc
+brainstorm summary). Reuse THIS run dir so `bn-plan-lead` also reads
+`docs/runs/<run-id>/briefs/research-brief.md`, `docs/runs/<run-id>/briefs/spec-stress.md`,
+and any referenced brainstorm grounding brief. The plan lead classifies effort; runs its
+generator + judge panel for standard/deep (skips it for lightweight); dispatches the checker
+when warranted; writes the plan doc as the single writer; records planning detail in
+`progress/bn-plan-lead.md`; writes `docs/runs/<run-id>/briefs/plan-lead-report.md`; and
+harvests lessons before returning.
+
+```
+=== BANYAN ENVELOPE ===
+objective:       Produce a durable implementation plan for the grow run's finalized scope.
+artifact_path:   docs/runs/<run-id>/briefs/plan-lead-report.md
+output_format:   Markdown plan lead report with verdict, plan path, run path, effort, panel,
+                 precheck, assumed requirements, and recovery metadata.
+inputs:
+  task:            <finalized requirements summary or one-line label for requirements_doc>
+  primary_input:   <requirements doc path, or "none">
+  active_run_id:   <run-id>
+  active_run_dir:  docs/runs/<run-id>/
+  invocation:      grow
+  repo_root:       <repo root>
+  precheck:        auto
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
+boundaries:      The lead may write this run's planning artifacts and one durable plan under
+                 docs/plans/. It must not edit source, switch branches, push, open a PR,
+                 delete protected artifacts, or write outside this run's artifacts.
+tool_guidance:   Use the run scaffolder once with --run-id; Read/Grep/Glob/Bash for grounding;
+                 Write the plan, progress, ledger plan ref, and report; Agent(...) only for
+                 bn-plan-generator, bn-plan-judge, bn-plan-checker, and bn-lesson-harvester.
+budget:
+  max_children:    8
+  depth_remaining: 3
+effort_class:    auto
+=== END ENVELOPE ===
+```
 
 **GATE:** a plan doc exists at `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md` and the
-ledger's `## Plan` ref points at it. READ the plan (its `## Implementation Units` and
-`## Sequencing`). If no plan file was produced, or `/bn-plan` surfaced an infeasible claim
-that has a clear repo-grounded fix, re-enter `/bn-plan` once with the same run dir and the
-research/spec-stress artifacts explicitly named. The repair pass may correct the winning
-draft, fall back to a runner-up draft, or convert safe unknowns to `[assumed]` R-IDs. If no
-usable plan exists after the repair pass, write `residuals.md` with phase `plan` and exit.
+ledger's `## Plan` ref points at it. READ `docs/runs/<run-id>/briefs/plan-lead-report.md`,
+then READ the plan's `## Implementation Units` and `## Sequencing`. If no plan file was
+produced, or the report surfaces an infeasible claim that has a clear repo-grounded fix,
+re-enter `bn-plan-lead` once with the same run dir and the research/spec-stress artifacts
+explicitly named. The repair pass may correct the winning draft, fall back to a runner-up
+draft, or convert safe unknowns to `[assumed]` R-IDs. If no usable plan exists after the
+repair pass, write `residuals.md` with phase `plan` and exit.
 
 **Natural checkpoint (do not hard-block):** this is the right moment for the user to
 approve the plan before code changes. Surface the plan PATH, a one-line summary, and any

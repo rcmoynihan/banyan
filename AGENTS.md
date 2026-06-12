@@ -94,7 +94,9 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
   under `~/.claude/plugins/` — that cache is machine state, not a repo surface.
 - **The dev loop is PowerShell-driven:** `pwsh scripts/smoke.ps1` (fixture sandbox +
   headless `/bn-hello`), `scripts/dev-install.ps1`, `scripts/fixture-init.ps1` — see
-  `scripts/README.md`. The plugin itself never requires `pwsh` at runtime.
+  `scripts/README.md`. The plugin itself never requires `pwsh` at runtime. PowerShell /
+  `pwsh` guidance is relevant only when developing on a Windows machine; on macOS or Linux,
+  do not require or run `pwsh` checks unless explicitly requested.
 - **The review subtree has a standing A/B eval harness:** `pwsh eval/review-ab/run-ab.ps1`
   captures both arms headlessly against the seeded-bug fixture; `eval/review-ab/protocol.md`
   defines the GO/NO-GO scoring, and `eval/review-ab/results/SCORECARD.md` is the kept record.
@@ -106,7 +108,7 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
   -Status`); `ported` files are Banyan-owned, and every substantive edit to one gets a
   one-line entry in its group's edit log under `vendor/edits/`.
 - **Component counts are stated in prose.** `README.md` and `plugin/README.md` both claim
-  agent/skill counts (currently 44 agents, 17 skills); adding or removing a component
+  agent/skill counts (currently 45 agents, 17 skills); adding or removing a component
   means updating both.
 - **Frontmatter and naming rules for `plugin/` components live in `plugin/AGENTS.md` §3**,
   and `scripts/validate-frontmatter.py` checks `docs/solutions/` frontmatter. Read

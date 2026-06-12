@@ -36,13 +36,22 @@ Read the one you need; do not read them all by reflex.
 
 ## Opening a new run
 
-A trunk opens a run before dispatching any lead. Preferred path is the scaffolder; a
-manual fallback is below for environments without Node.
+A trunk or procedure-owning lead opens a run before dispatching deeper work. Preferred path is
+the scaffolder; a manual fallback is below for environments without Node.
+
+## Trunk-vs-lead boundary
+
+A command gets a lead when it runs a multi-agent panel or writes a durable output document
+and its user interaction is sparse and boundary-only. Dialogue-dominated commands stay inline
+at the trunk; `/bn-brainstorm` is the standing example because requirements exploration is the
+user interaction. Trivial commands stay inline. `/bn-debug` is the boundary-interaction
+pattern: `bn-debug-lead` returns a diagnosis artifact, then the trunk asks whether to fix,
+keep the diagnosis, or rethink design.
 
 ### Preferred: the scaffolder
 
 ```
-node scripts/new-run.mjs <slug> [--root <repo-root>] [--date YYYY-MM-DD] [--force]
+node scripts/new-run.mjs <slug> [--root <repo-root>] [--date YYYY-MM-DD] [--run-id <run-id>] [--input <path>] [--objective <text>] [--plan-ref <ref>] [--fact <fact>] [--unit "unit|owner|status|artifact"] [--force]
 ```
 
 - `<slug>` -- kebab-case task name (e.g. `add-oauth-login`).
@@ -50,13 +59,32 @@ node scripts/new-run.mjs <slug> [--root <repo-root>] [--date YYYY-MM-DD] [--forc
   under `<root>/docs/runs/`.
 - `--date` -- ISO date for the run ID (default: today). Accept it for deterministic
   scaffolding; tests pass an explicit date.
+- `--run-id` -- adopt an existing live run under `<root>/docs/runs/`.
+- `--input` -- path to an input artifact. Inputs under `docs/runs/<run-id>/` adopt that
+  run; durable artifacts that mention exactly one live `docs/runs/<run-id>/` origin adopt it.
+  Ambiguous inputs scaffold a fresh run.
+- `--objective`, `--plan-ref`, `--fact`, and `--unit` seed a fresh ledger. Repeat `--fact`
+  and `--unit` as needed.
 - `--force` -- overwrite an existing run dir for the same ID instead of refusing.
 
-It computes the run ID `<date>-<NNN>-<slug>` (next zero-padded `NNN` for that date),
-creates the full layout -- `ledger.md` seeded from the template plus empty
-`progress/`, `findings/`, `briefs/`, `lessons-staging/` dirs -- and prints the run ID
-and absolute path. After it runs, fill in `## Objective` and the `## Plan` ref, then
-append the opening line to `## Log`.
+It resolves an existing run when the arguments identify exactly one live run; otherwise it
+computes the run ID `<date>-<NNN>-<slug>` (next zero-padded `NNN` for that date), creates
+the full layout, detects repo facts, seeds `ledger.md`, and emits JSON:
+
+```json
+{
+  "created": true,
+  "reason": "no-live-run",
+  "run_id": "2026-06-10-001-add-oauth-login",
+  "run_dir": "/repo/docs/runs/2026-06-10-001-add-oauth-login",
+  "ledger_path": "/repo/docs/runs/2026-06-10-001-add-oauth-login/ledger.md",
+  "facts": {
+    "repo_root": "/repo",
+    "test_command": "npm test",
+    "test_source": "package.json scripts.test"
+  }
+}
+```
 
 (The script lives at `plugin/skills/bn-conventions/scripts/new-run.mjs`; invoke it by
 its path from wherever you are, e.g. `node <plugin>/skills/bn-conventions/scripts/new-run.mjs ...`.)

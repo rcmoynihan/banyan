@@ -27,7 +27,7 @@ flowchart TD
   trunk -->|"fuzzy intake"| brainstorm["/bn-brainstorm<br/>requirements intake"]
   trunk -->|"one envelope"| research["bn-research-lead"]
   trunk -->|"stress gate"| specstress["/bn-spec-stress<br/>requirements stress"]
-  trunk -->|"one envelope"| plan["/bn-plan<br/>trunk-written plan"]
+  trunk -->|"one envelope"| plan["bn-plan-lead<br/>durable plan"]
   trunk -->|"one envelope"| delivery["bn-delivery-lead"]
   trunk -->|"one envelope"| review["bn-review-lead"]
   trunk -->|"one envelope"| debug["bn-debug-lead"]
@@ -100,7 +100,7 @@ Each stage is also independently invocable:
 | `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying the documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The flagship review subtree: reviews a diff, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (commits on a clean tree, never pushes). |
-| `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
+| `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: `bn-plan-lead` owns the generator/judge/checker panel and writes the durable plan. |
 | `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees plus a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel fresh-context investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
@@ -109,10 +109,10 @@ Each stage is also independently invocable:
 | `/bn-curate` | Consolidate harvested lessons into `docs/solutions/` (sleep-time compute; receives the `/bn-grow` curation handoff). |
 | `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself — proposals only, a human applies them. |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
-| `/bn-doctor` | Capability check: environment floor, asset integrity, and a live depth-2 nested-spawn + allowlist-enforcement probe. |
+| `/bn-doctor` | Capability check: environment floor, asset integrity, and live depth-2 nested-spawn, allowlist, and nested user-question probes. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 
-The plugin ships 44 agents: the four lead subtrees (review, research, delivery, debug) plus `bn-unit-lead`/`bn-integrator`, 19 reviewer/researcher personas vendored from compound-engineering (including `bn-deployment-verifier`), the native `bn-yagni-reviewer` and `bn-dogfood-verifier`, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-plan-checker`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, the `bn-spec-scenario-reviewer`/`bn-spec-assumption-reviewer`/`bn-spec-threat-reviewer` stress lenses, the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, the `bn-doc-surveyor`/`bn-doc-transformer` onboarding pair, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
+The plugin ships 45 agents: the five lead subtrees (review, research, delivery, debug, plan) plus `bn-unit-lead`/`bn-integrator`, 19 reviewer/researcher personas vendored from compound-engineering (including `bn-deployment-verifier`), the native `bn-yagni-reviewer` and `bn-dogfood-verifier`, the `bn-finding-owner`/`bn-thread-chaser`/`bn-plan-generator`/`bn-plan-judge`/`bn-plan-checker`/`bn-pr-comment-resolver`/`bn-hypothesis-investigator` workers, the `bn-spec-scenario-reviewer`/`bn-spec-assumption-reviewer`/`bn-spec-threat-reviewer` stress lenses, the `bn-lesson-harvester` + `bn-knowledge-curator` compounding loop, the `bn-harness-engineer`, the `bn-doc-surveyor`/`bn-doc-transformer` onboarding pair, and the `bn-probe`/`bn-probe-leaf` doctor pair. See [`plugin/README.md`](plugin/README.md) for the roster and [`plugin/AGENTS.md`](plugin/AGENTS.md) for the conventions contract (the eight invariants, the lead pattern, allowlist-as-org-chart).
 
 ## Workflows
 
@@ -304,7 +304,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 ## Repository layout
 
 ```
-plugin/        the Claude Code plugin (44 agents, 17 skills, schemas, AGENTS.md contract)
+plugin/        the Claude Code plugin (45 agents, 17 skills, schemas, AGENTS.md contract)
 docs/          founding brainstorm, decision records, plans, harness changelog & proposals
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation
