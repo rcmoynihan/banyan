@@ -93,6 +93,7 @@ Each stage is also independently invocable:
 | Skill | What it does |
 | --- | --- |
 | `/bn-brainstorm` | Collaborative requirements dialogue producing a requirements doc that hands off to `/bn-plan` — the front of the loop for fuzzy ideas. |
+| `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying the documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The flagship review subtree: reviews a diff, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (commits on a clean tree, never pushes). |
 | `/bn-plan` | A plan from a requirements doc, research brief, or task: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
@@ -156,6 +157,17 @@ doesn't have to invent product behavior. The handoff menu flows straight into `/
 (or `/bn-work` direct mode for lightweight, well-defined changes); for grounding questions
 a short scan can't answer, it can dispatch the research subtree and fold the brief in.
 `/bn-grow` uses the same requirements-intake contract automatically when its input is fuzzy.
+
+### Ask about a codebase
+
+```
+/bn-ask how does the review lead choose conditional reviewers?
+/bn-ask is lesson harvesting mandatory before every lead returns?
+```
+
+Use `/bn-ask` for read-only orientation, codebase questions, and hypothesis checks. It
+answers with source evidence, confidence, and explicit unknowns; broad questions use the
+research subtree and return a distilled answer rather than raw research.
 
 ### Review a change
 
@@ -274,7 +286,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 ## Repository layout
 
 ```
-plugin/        the Claude Code plugin (41 agents, 15 skills, schemas, AGENTS.md contract)
+plugin/        the Claude Code plugin (41 agents, 16 skills, schemas, AGENTS.md contract)
 docs/          founding brainstorm, decision records, plans, harness changelog & proposals
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation
