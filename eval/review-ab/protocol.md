@@ -2,9 +2,8 @@
 
 This protocol produces HONEST, reproducible evidence on whether the lead-owned
 review subtree (`/bn-review`) is at least as good as the flat reviewer wave its
-personas are vendored from (`/ce-code-review`). It is the go/no-go gate
-referenced as unit U9 in the implementation plan
-(`docs/plans/2026-06-10-001-feat-banyan-core-plan.md`).
+personas are vendored from (`/ce-code-review`). It is the standing go/no-go gate
+for the review subtree.
 
 The split of labor is deliberate:
 

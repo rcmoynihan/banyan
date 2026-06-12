@@ -43,11 +43,10 @@ simultaneously the plugin's source and an ordinary Banyan host repo. Keep the ro
 separate:
 
 - **Project documents (authoring):** `docs/brainstorms/` (founding brainstorm),
-  `docs/decisions/`, `docs/plans/` (the core implementation plan),
-  `docs/harness-changelog.md`.
+  `docs/decisions/`, `docs/harness-changelog.md`.
 - **Banyan local state:** `.banyan/runs/<run-id>/` (local per-run ledgers),
   `.banyan/solutions/` (the knowledge store), `.banyan/brainstorms/`,
-  `.banyan/plans/`, `.banyan/harness-proposals/`, and
+  `.banyan/plans/`, `.banyan/harness-proposals/`, `.banyan/memory/`, and
   `.banyan/onboarding-manifest.md`.
 
 `docs/` is project-owned. Banyan may read, write, and edit project documentation there

@@ -4,8 +4,6 @@ Project-owned documentation for the Banyan plugin source repo.
 
 - **`brainstorms/`** — founding brainstorm (verbatim session export).
 - **`decisions/`** — architecture decision records.
-- **`plans/`** — implementation plans (the `YYYY-MM-DD-NNN-<type>-<slug>-plan.md`
-  convention with stable U-IDs).
 - **`harness-changelog.md`** — human-maintained audit log of applied harness changes.
 
 This repository is itself a Banyan host repo — the plugin is installed here to

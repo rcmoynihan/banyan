@@ -305,7 +305,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 
 ```
 plugin/        the Claude Code plugin (45 agents, 17 skills, schemas, AGENTS.md contract)
-docs/          founding brainstorm, decision records, plans, harness changelog
+docs/          founding brainstorms, decision records, harness changelog
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation
 test/          seeded-bug fixture repo and a planted two-hop research scenario
@@ -316,11 +316,27 @@ Only `plugin/` ships when the plugin is installed; every other directory is auth
 and development context. The split, and the rules for keeping the two apart, are in
 [`AGENTS.md`](AGENTS.md).
 
+## `.banyan/` layout
+
+`.banyan/` is ignored local state for a host repo using Banyan. It may contain:
+
+| Path | Purpose |
+| --- | --- |
+| `.banyan/runs/<run-id>/` | Per-run coordination ledger and phase artifacts. Common files include `ledger.md`, `residuals.md`, `delivery-report.md`, `review-verdict.md`, `curation-summary.md`, and subdirectories such as `briefs/`, `progress/`, `findings/`, and `lessons-staging/`. |
+| `.banyan/solutions/` | Curated knowledge store used by future runs. Entries live in category subdirectories and use the solution frontmatter schema. |
+| `.banyan/brainstorms/` | Requirements and intake documents produced by `/bn-brainstorm` or the fuzzy-intake stage of `/bn-grow`. |
+| `.banyan/plans/` | Durable implementation plans produced by `/bn-plan` or `/bn-grow`, named with stable unit IDs for `/bn-work`. |
+| `.banyan/harness-proposals/` | Evidence-cited `/bn-tune` proposals for improving Banyan itself. |
+| `.banyan/memory/` | Derived memory indexes and other generated retrieval state. |
+| `.banyan/onboarding-manifest.md` | `/bn-onboard` manifest describing the local artifact graph and curation handoff paths. |
+
+The root `.banyan/` directory is never staged, committed, or pushed in a host repo.
+Fixture repositories under `test/` may contain tracked `.banyan/` trees as test data.
+
 ## Documents
 
 - [Founding brainstorm](docs/brainstorms/2026-06-10-banyan-v2-brainstorm.md) — the research synthesis and full v2 ideation (verbatim export).
 - [Fork vs greenfield decision](docs/decisions/2026-06-10-fork-vs-greenfield.md) — why Banyan is a new plugin that vendors compound-engineering's leaf agents rather than a fork.
-- [Implementation plan](docs/plans/2026-06-10-001-feat-banyan-core-plan.md) — the phased plan the codebase is built to.
 
 ## License
 
