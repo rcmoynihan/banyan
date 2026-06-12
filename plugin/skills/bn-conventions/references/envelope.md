@@ -162,7 +162,7 @@ Test-command detection stays cheap and finite. When an envelope carries
 `test_command: "none detected"`, every consumer treats validation as unavailable:
 it never claims the suite was run, green, or passed; it names the missing validation
 in its artifact; and it propagates an explicit `UNVERIFIED (no test command)` marker
-upward in its verdict line. If a plan unit names its own runnable `Verification`
+upward in its verdict line. If a delivery unit names its own runnable `Verification`
 check, the unit runs that check as a substitute and records exactly what ran. The
 upward marker remains because the repo-level validation spine is unavailable.
 
@@ -170,9 +170,9 @@ upward marker remains because the repo-level validation spine is unavailable.
 
 ## effort_class -> spawn-count scaling
 
-`effort_class` is the dial that makes effort scaling visible in the ledger (the
-plan's "effort scaling everywhere" cross-cut: the classification *must* change
-spawn counts). A lead reads `effort_class` and sizes its panel accordingly:
+`effort_class` is the dial that makes effort scaling visible in the ledger: the
+classification *must* change spawn counts. A lead reads `effort_class` and sizes
+its panel accordingly:
 
 | effort_class | what the lead does | spawns |
 |---|---|---|

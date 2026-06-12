@@ -96,7 +96,7 @@ Each stage is also independently invocable:
 | `/bn-onboard` | Onboard an existing repo by classifying the documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The flagship review subtree: reviews a diff, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (commits on a clean tree, never pushes). |
 | `/bn-plan` | A plan from a requirements doc, research brief, or task: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
-| `/bn-work` | Execute a plan via worktree-isolated unit subtrees plus a single integrator. |
+| `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees plus a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel fresh-context investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description — the one place in Banyan allowed to push. |
@@ -153,9 +153,9 @@ For standalone ideas that aren't yet feature descriptions. A collaborative dialo
 question per turn, scope-tiered rigor probes, 2-3 concrete approaches with a recommendation
 — ending in a requirements document under `docs/brainstorms/` strong enough that planning
 doesn't have to invent product behavior. The handoff menu flows straight into `/bn-plan`
-(or `/bn-work` for lightweight, well-defined changes); for grounding questions a short
-scan can't answer, it can dispatch the research subtree and fold the brief in. `/bn-grow`
-uses the same requirements-intake contract automatically when its input is fuzzy.
+(or `/bn-work` direct mode for lightweight, well-defined changes); for grounding questions
+a short scan can't answer, it can dispatch the research subtree and fold the brief in.
+`/bn-grow` uses the same requirements-intake contract automatically when its input is fuzzy.
 
 ### Review a change
 
@@ -234,10 +234,22 @@ Use this split instead of `/bn-grow` when you want a human gate between planning
 execution. `/bn-plan` drafts competing approaches under different priors (mvp-first /
 risk-first / ops-first), scores them with an independent judge panel, and synthesizes the
 winner into a plan doc with stable unit IDs; pass it a requirements-doc path or
-research-brief path instead of a description to ground it in prior work. `/bn-work`
-executes the latest plan (or a path you give it): atomic units inline, composite units in
-isolated worktrees with their own test-fix loop and mini-review, and a single integrator
-merging in dependency order.
+research-brief path instead of a description to ground it in prior work. Blank `/bn-work`
+executes the latest durable plan, and `/bn-work docs/plans/...-plan.md` executes that plan
+explicitly.
+
+For lightweight work where the executable plan already exists in the conversation, pass a
+direct instruction:
+
+```
+/bn-work use the plan above
+```
+
+Direct mode gates for clear scope, file boundaries, simple dependencies, obvious
+verification, and low risk. When it passes, `/bn-work` writes
+`docs/runs/<run-id>/briefs/direct-work-plan.md` itself and then runs the same delivery
+subtree: atomic units inline, composite units in isolated worktrees with their own
+test-fix loop and mini-review, and a single integrator merging in dependency order.
 
 ### Keep the harness compounding
 
