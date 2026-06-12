@@ -80,10 +80,9 @@ permission cliff (outward actions at trunk only), envelopes, and artifact contra
 
 ## bn-review-lead.md (Banyan-native file; cross-noted here)
 
-- `Agent(...)` allowlist += `bn-previous-comments-reviewer` (and `bn-custom-reviewer`,
-  see AGENTS.md §2.1); Step 2 gains the PR-context spawn-gate conditional and the
-  host-persona selection block; Step 3 notes the two persona-specific envelope inputs;
-  Step 4 notes reviewer-agnostic merging; Step 7 coverage lists custom personas.
+- `Agent(...)` allowlist += `bn-previous-comments-reviewer`; Step 2 gains the PR-context
+  spawn-gate conditional; Step 3 notes the PR-comment envelope input; Step 4 notes
+  reviewer-agnostic merging.
 
 ---
 

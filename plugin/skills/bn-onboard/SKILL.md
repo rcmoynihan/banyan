@@ -27,8 +27,7 @@ Read these first:
 This skill runs at the trunk, foreground, with the user present. Prompt-worthy actions
 stay here:
 
-- scaffolding `docs/{brainstorms,plans,solutions,runs}/` and optional
-  `docs/review-personas/`;
+- scaffolding `docs/{brainstorms,plans,solutions,runs}/`;
 - `.gitignore` fixes for rules that exclude Banyan artifacts;
 - the classification gate;
 - per-file instruction approval;
@@ -73,9 +72,8 @@ Run inline in the trunk.
    commit oracle. A commit is allowed only when this output is empty.
 
 3. Check `.gitignore` for rules that exclude `docs/`, `docs/runs/`,
-   `docs/brainstorms/`, `docs/plans/`, `docs/solutions/`, or
-   `docs/review-personas/`. Present the offending lines and the minimal fix. Apply the
-   fix only after user approval.
+   `docs/brainstorms/`, `docs/plans/`, or `docs/solutions/`. Present the offending lines
+   and the minimal fix. Apply the fix only after user approval.
 
 4. Say one line that `/bn-doctor` checks the environment floor and live nested-spawn
    behavior. Do not repeat doctor checks here.
@@ -211,7 +209,6 @@ After classification approval, the trunk scaffolds:
 - `docs/plans/`
 - `docs/solutions/`
 - `docs/runs/`
-- `docs/review-personas/` only when classified personas exist
 
 Add `.gitkeep` files to empty directories. `docs/plans/` stays empty because plans come
 from `/bn-plan`.
@@ -258,7 +255,6 @@ Family outputs:
   `status: candidate` under `docs/runs/<run-id>/lessons-staging/`. Onboard never writes
   `docs/solutions/` directly.
 - `brainstorm`: write `docs/brainstorms/<today>-<topic>-requirements.md`.
-- `persona`: write `docs/review-personas/<name>.md` with required `name` and `when`.
 - `instruction-source`: no derivative file; it feeds Phase 4.
 
 ## Phase 4 - Instruction Files

@@ -41,9 +41,9 @@ one hop.
   curator promotes candidates into `docs/solutions/`.
 - **Curator** — `bn-knowledge-curator`: consolidates staged candidates
   (promote, merge, prune), then empties `lessons-staging/`.
-- **Review persona** — a host-repo reviewer definition under
-  `docs/review-personas/` with a `when:` frontmatter key, embodied at review
-  time by the generic `bn-custom-reviewer`.
+- **Review panel** — the shipped `/bn-review` reviewer roster. Repo-specific
+  review rules live in instruction files and are audited by
+  `bn-project-standards-reviewer`.
 - **Protected artifacts** — `docs/brainstorms/`, `docs/plans/`,
   `docs/solutions/`, `docs/runs/`: no agent deletes, gitignores, or "cleans up"
   files under them (`plugin/AGENTS.md` §5).

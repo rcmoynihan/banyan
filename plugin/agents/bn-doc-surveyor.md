@@ -23,7 +23,6 @@ source. Also use:
 - `skills/bn-conventions/references/knowledge-store.md` for v1 solution enums.
 - `skills/bn-brainstorm/references/brainstorm-sections.md` for PRD and
   requirements derivatives.
-- `skills/bn-review/references/review-personas.md` for persona eligibility.
 
 ## Input
 
@@ -103,8 +102,7 @@ Do not pre-resolve derivative paths. The trunk owns slug and target collision re
 - Write only `artifact_path`.
 - Never edit source documents.
 - Never write `docs/onboarding-manifest.md`.
-- Never write derivatives, instruction files, `docs/solutions/`, `docs/brainstorms/`, or
-  `docs/review-personas/`.
+- Never write derivatives, instruction files, `docs/solutions/`, or `docs/brainstorms/`.
 - Never touch protected artifacts except the single survey artifact under this run.
 - Never run commands.
 - Never spawn agents.

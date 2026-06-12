@@ -46,8 +46,7 @@ share `docs/`:
   `docs/decisions/`, `docs/plans/` (the core implementation plan),
   `docs/harness-proposals/`, `docs/harness-changelog.md`.
 - **Runtime artifacts (written/read by the installed plugin):** `docs/runs/<run-id>/`
-  (per-run ledgers), `docs/solutions/` (the knowledge store), `docs/review-personas/`
-  (host-repo reviewer personas for `/bn-review`).
+  (per-run ledgers), `docs/solutions/` (the knowledge store).
 - **Both at once:** `/bn-brainstorm` and `/bn-plan` write new documents into
   `docs/brainstorms/` and `docs/plans/` beside the founding project documents. That is by
   design — the founding docs and run-produced docs follow the same conventions.
@@ -107,7 +106,7 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
   -Status`); `ported` files are Banyan-owned, and every substantive edit to one gets a
   one-line entry in its group's edit log under `vendor/edits/`.
 - **Component counts are stated in prose.** `README.md` and `plugin/README.md` both claim
-  agent/skill counts (currently 40 agents, 15 skills); adding or removing a component
+  agent/skill counts (currently 39 agents, 15 skills); adding or removing a component
   means updating both.
 - **Frontmatter and naming rules for `plugin/` components live in `plugin/AGENTS.md` §3**,
   and `scripts/validate-frontmatter.py` checks `docs/solutions/` frontmatter. Read

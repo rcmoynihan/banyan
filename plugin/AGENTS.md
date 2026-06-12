@@ -81,22 +81,18 @@ Rules:
 > depth/child accounting falls back to the prompt-level contract in the envelope.
 > `/bn-doctor`'s live probe reports whether the runtime enforces the allowlist in this host.
 
-### 2.1 Host-repo reviewer personas (extension via data, not roster edits)
+### 2.1 Host-repo review rules
 
-The allowlist stays closed, but a host repo can still extend the **review** panel: persona
-files under the target repo's `docs/review-personas/*.md` are embodied at review time by the
-one generic `bn-custom-reviewer` already on `bn-review-lead`'s allowlist. The org chart
-remains declared; hosts extend via data.
+The review panel is shipped with Banyan. Host repos express project-specific review
+criteria in their instruction files (`AGENTS.md`, `CLAUDE.md`, and directory-scoped
+equivalents), and `bn-project-standards-reviewer` audits diffs against those written
+rules.
 
-- A persona file needs a `when:` frontmatter key to be eligible — files without one
-  (READMEs, templates) are skipped, never spawned.
-- The lead judges each persona's `when:` against the diff (agent judgment, like every
-  conditional reviewer) and spawns **at most 3** per review, counted against `max_children`.
-- A persona file carries the same trust as the host repo's `CLAUDE.md`: it defines what to
-  review for, but cannot widen `bn-custom-reviewer`'s boundaries (read-only, single artifact
-  write, no spawns) or replace the schema's confidence anchors.
-- Format spec and worked example: `skills/bn-review/references/review-personas.md`.
-  Reviewers only — research personas are not extensible this way.
+- The review lead never spawns reviewer types outside its `Agent(...)` allowlist.
+- Project-specific rules must be concrete enough for a reviewer to cite the rule and the
+  violating diff line.
+- Broadly useful specialist lenses belong in `plugin/agents/` as shipped reviewers with
+  explicit conditional spawn gates.
 
 ---
 

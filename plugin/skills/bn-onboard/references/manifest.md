@@ -36,7 +36,7 @@ Column rules:
 - `sha256 (12-hex prefix)`: first 12 lowercase hex characters of the source SHA-256.
 - `classification`: family plus useful subtype, such as
   `solution-bug:runtime_error`, `solution-knowledge:architecture_pattern`,
-  `brainstorm`, `persona`, `instruction-source`, or `skip`.
+  `brainstorm`, `instruction-source`, or `skip`.
 - `derivative`: repo-relative derivative path, source-linked existing path, or empty when
   no derivative exists.
 - `status`: one status value from the enum below. For skipped rows, include the reason in
@@ -49,7 +49,7 @@ Column rules:
 | `staged` | A solution candidate remains in `docs/runs/<run-id>/lessons-staging/`. |
 | `promoted` | The curator promoted the candidate into `docs/solutions/`; `derivative` names the promoted path. |
 | `merged` | The curator merged the candidate into an existing `docs/solutions/` doc; `derivative` names that doc. |
-| `transformed` | A non-solution derivative was written, such as a brainstorm or persona. |
+| `transformed` | A non-solution derivative was written, such as a brainstorm. |
 | `skipped: <reason>` | The source matched a skip or uncertainty rule. |
 | `deferred` | Deep-mode corpus cap deferred the source. |
 | `source-removed` | The source is no longer present; derivative is kept and flagged in the report. |
