@@ -7,7 +7,7 @@ argument-hint: "[blank = current branch | PR number/URL | base:<ref>] [--dogfood
 # bn-review
 
 Thin trunk-side entry to the Banyan review subtree. This skill does four cheap
-things -- detect scope, stage the diff into a fresh run dir, build one envelope, and
+things -- detect scope, stage the diff into the run dir, build one envelope, and
 dispatch `bn-review-lead` -- then presents the verdict the lead writes. All the
 orchestration (reviewer selection, dedup, fix-and-verify, harvesting) lives inside
 the lead, not here. Keep this procedure small.
@@ -65,7 +65,11 @@ ask the user before proceeding -- the review runs regardless.
 
 ## Step 3: Open the run ledger and stage the diff
 
-Scaffold a run dir, then write the diff into it so the lead reads files, not prose.
+**Locate the run.** If you are already in a run (this skill was reached from `/bn-grow` or
+a prior step that passed its run ID and run dir), reuse that run dir — do NOT scaffold a
+new one; stage the diff and write `review-verdict.md` under the same `docs/runs/<run-id>/`
+the grow ledger already tracks. Otherwise scaffold a run dir, then write the diff into it
+so the lead reads files, not prose:
 
 ```
 node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs review-<slug> --root <repo-root>
@@ -77,9 +81,13 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs review-<slu
 - Then stage the diff under `docs/runs/<run-id>/`:
   - `full.diff`  <- `git diff -U10 <base>` (use `<base>...<head>` form for a remote PR/branch).
   - `files.txt`  <- `git diff --name-only <base>` (same ref form).
-- Fill the seeded `ledger.md`: set `## Objective` (review this change), the `## Plan`
+- Fill the seeded `ledger.md` (when reusing the grow run, append to the existing ledger
+  rather than overwriting it): set `## Objective` (review this change), the `## Plan`
   ref (the plan doc if one exists, else "none -- ad hoc run"), and append an opening
-  `## Log` line. Add a `U1 | bn-review-lead | in-progress | review-verdict.md` row.
+  `## Log` line. In a standalone run, add a `U1 | bn-review-lead | in-progress |
+  review-verdict.md` row. **When reusing the grow run, do NOT add a duplicate row** --
+  grow already seeded the `review` phase row, which the review lead updates in place
+  (single-writer).
 - Detect the repo test command for the envelope: `package.json` `scripts.test` if
   present, else `node --test` (node project), `pytest` (python), `cargo test` (rust),
   `go test ./...` (go). Record what you found; "none detected" is a valid value.

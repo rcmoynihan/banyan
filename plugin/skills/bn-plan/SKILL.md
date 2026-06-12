@@ -1,6 +1,6 @@
 ---
 name: bn-plan
-description: "Produce a v1-compatible implementation plan. For standard/deep efforts, generate 2-3 approach drafts with different priors, score them with a cheap judge panel, and synthesize the winner; lightweight efforts draft directly. Reads a requirements document and research brief when present. Use to turn a feature/task description, requirements doc, or research brief into a plan doc with stable U-IDs."
+description: "Produce a v1-compatible implementation plan. For standard/deep efforts, generate 2-3 approach drafts with different priors, score them with an independent judge panel, and synthesize the winner; lightweight efforts draft directly. Reads a requirements document and research brief when present. Use to turn a feature/task description, requirements doc, or research brief into a plan doc with stable U-IDs."
 argument-hint: "[feature/task description | path to requirements doc | path to research brief]"
 ---
 

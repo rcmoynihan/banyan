@@ -178,7 +178,7 @@ its panel accordingly:
 |---|---|---|
 | `lightweight` | Inline check. Trivial input -- a one-line diff, a yes/no question. The lead does the work itself or spawns a single scout. | 0, or minimal |
 | `standard` | The normal panel: the always-on set for this subtree (e.g. the standard reviewer panel), plus conditionals triggered by the input. | the normal N |
-| `deep` | Full panel plus optional extras: the conditional reviewers, sampling/multiple-attempt modes, an extra judge pass. | N + extras |
+| `deep` | Full panel plus optional extras: the conditional reviewers and an extra judge pass. | N + extras |
 
 The rule that must hold: on the *same input*, a `lightweight` run spawns strictly
 fewer agents than a `standard` run, and `standard` no more than `deep`. If

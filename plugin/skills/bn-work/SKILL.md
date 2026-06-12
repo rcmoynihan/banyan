@@ -98,7 +98,11 @@ Detect the facts the lead needs; surface anything that would move the user's tre
 
 ## Step 4: Open the run ledger and prepare the delivery spec
 
-Scaffold a run dir so the lead reads files, not prose:
+**Locate the run.** If you are already in a run (this skill was reached from `/bn-grow` or
+a prior step that passed its run ID and run dir), reuse that run dir — do NOT scaffold a
+new one; the delivery report and progress notes belong under the same `docs/runs/<run-id>/`
+the grow ledger already tracks. Otherwise scaffold a run dir so the lead reads files, not
+prose:
 
 ```
 node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug> --root <repo-root>
@@ -108,7 +112,8 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug>
   `work-add-oauth-login`); direct mode: kebab-case from the direct task. The script prints
   the run ID and absolute run dir on two lines; capture both.
 - `<repo-root>` -> the value from Step 3.
-- Fill the seeded `ledger.md`: set `## Objective`, set the `## Plan` ref, record the
+- Fill the seeded `ledger.md` (when reusing the grow run, append to the existing ledger
+  rather than overwriting it): set `## Objective`, set the `## Plan` ref, record the
   base branch + detected test command under `## Facts / Context`, and append an opening
   `## Log` line.
 
@@ -174,12 +179,15 @@ For both modes, READ the `## Implementation Units` and `## Sequencing` from
 `delivery_spec_path`. You only need enough to populate the ledger and the envelope; the
 lead re-reads the spec in full.
 
-Seed the `## Units` table from the delivery spec's Implementation Units -- one row per
-U-ID, owner `bn-delivery-lead`, status `pending`, artifact
+In a standalone run, seed the `## Units` table from the delivery spec's Implementation
+Units -- one row per U-ID, owner `bn-delivery-lead`, status `pending`, artifact
 `docs/runs/<run-id>/progress/unit-<U>.md` (the unit-lead's progress artifact; its scoped
 mini-review pair lands separately at `findings/unit-<U>-review.json` and
 `findings/unit-<U>-spec-fidelity.json`). The lead owns these rows from here on
-(single-writer); the trunk does not rewrite them after dispatch.
+(single-writer); the trunk does not rewrite them after dispatch. **When reusing the grow
+run, do NOT re-seed this table** -- the grow trunk already owns it at phase granularity
+(the `deliver` row the Phase 4 gate tracks), so per-unit detail stays in the delivery
+lead's `progress/` notes rather than colliding with grow's phase rows.
 
 ## Step 5: Build the envelope and spawn bn-delivery-lead
 
