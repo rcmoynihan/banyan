@@ -63,6 +63,8 @@ Then check, RED only on structural failure:
    objective:       Run the nesting and allowlist probes, write the probe report.
    artifact_path:   <probe-dir>/probe-report.txt
    output_format:   Two lines: "nesting: ..." and "allowlist: ...".
+   doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                    ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
    inputs:
      token:     <token>
      probe_dir: <probe-dir>

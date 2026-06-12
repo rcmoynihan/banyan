@@ -64,13 +64,17 @@ artifact_path:   docs/runs/<run-id>/debug-diagnosis.md
 output_format:   Markdown diagnosis per the bn-debug-lead contract: Bug / Reproduction /
                  Root cause / Causal chain / Hypotheses tested / Recommended fix /
                  Confidence / Open questions.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 inputs:
   mode:          investigate
   bug_summary:   <the 2-4 line statement>
   repro:         <repro command or failing test, or "none known">
   test_command:  <detected repo test command, or "none detected">
-  doctrine:      skills/bn-debug/references/investigation-techniques.md,
-                 skills/bn-debug/references/anti-patterns.md
+  methodology:   ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/investigation-techniques.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/anti-patterns.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/defense-in-depth.md
 boundaries:      Investigation is read-and-run only: never edit source, config, or
                  tests. NEVER push. Never touch protected artifacts (docs/brainstorms,
                  docs/plans, docs/solutions, docs/runs except this run's own artifacts).
@@ -109,10 +113,16 @@ Then:
   objective:       Apply the diagnosed fix test-first and return a fix report.
   artifact_path:   docs/runs/<run-id>/debug-fix-report.md
   output_format:   Markdown fix report per the bn-debug-lead contract.
+  doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                   ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                   ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
   inputs:
     mode:           fix
     diagnosis_path: docs/runs/<run-id>/debug-diagnosis.md
     test_command:   <the repo test command>
+    methodology:    ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/investigation-techniques.md,
+                    ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/anti-patterns.md,
+                    ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/defense-in-depth.md
   boundaries:      Edit only the files the diagnosis implicates plus the regression
                    test. Commit only on a pre-fix-clean tree with a green suite. NEVER
                    push. Never touch protected artifacts.

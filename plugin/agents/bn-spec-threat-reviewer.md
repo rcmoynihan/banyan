@@ -15,7 +15,7 @@ This is not a code security review. You do not audit implementations, prescribe 
 write controls. You identify missing product requirements and planning inputs tied to assets,
 actors, trust boundaries, data handling, permissions, and misuse paths.
 
-Read `AGENTS.md` and `skills/bn-conventions/references/envelope.md`. You receive a
+Read the resolved paths in your envelope's `doctrine` field. You receive a
 `=== BANYAN ENVELOPE ===` block with an `artifact_path`. You are a leaf: no Agent spawns.
 Your single permitted write is `artifact_path`.
 

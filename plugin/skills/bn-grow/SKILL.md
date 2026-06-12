@@ -1,6 +1,6 @@
 ---
 name: bn-grow
-description: "End-to-end feature pipeline: open a run ledger, optionally run brainstorm intake for fuzzy ideas, then research -> spec stress -> plan (with a judge panel) -> deliver -> review, each owned by its own subtree, with explicit gates between, finishing at a ship gate (push stays yours) and a background knowledge-curation dispatch. The trunk stays small -- it holds intent and reads artifacts, the subtrees do the work."
+description: "Hands-off end-to-end feature pipeline: open a run ledger, optionally run brainstorm intake for fuzzy ideas, then research -> spec stress -> plan (with a judge panel) -> deliver -> review, each owned by its own subtree, with explicit artifact gates and bounded self-recovery before user escalation. Finishes at a ship gate (push stays yours) and a background knowledge-curation dispatch. The trunk stays small -- it holds intent and reads artifacts, the subtrees do the work."
 argument-hint: "[idea | feature/task description]"
 ---
 
@@ -14,17 +14,24 @@ on. The trunk does NOT do the research, write the plan's units, edit the code, o
 the reviewers -- the subtrees do. The trunk holds intent and enforces gates. That is the
 entire job.
 
-Read `AGENTS.md` (esp. invariant 1 context-centric decomposition, invariant 3
-artifacts-over-prose, invariant 6 permission cliff),
-`skills/bn-conventions/references/ledger.md`, and
-`skills/bn-conventions/references/envelope.md`. The phases you choreograph each have
-their own contract: `/bn-brainstorm`, `bn-research-lead` (the agent), `/bn-spec-stress`,
-`/bn-plan`, `/bn-work`, `/bn-review`. You invoke them; you do not reimplement them here.
+Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 1 context-centric decomposition,
+invariant 3 artifacts-over-prose, invariant 6 permission cliff, and §2.2 self-recovery),
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`. The phases you
+choreograph each have their own contract: `/bn-brainstorm`, `bn-research-lead` (the agent),
+`/bn-spec-stress`, `/bn-plan`, `/bn-work`, `/bn-review`. You invoke them; you do not
+reimplement them here.
 
 ONE run ledger spans the whole grow. Every phase reuses the same run dir, so the ledger
 tells the full story end to end -- optional requirements intake, research brief, spec-stress
 brief when present, plan ref, delivery report, review verdict, and the log of gate decisions
 all live under one `docs/runs/<run-id>/`.
+
+This skill is hands-off by default. Do not ask the user or exit at the first failed gate.
+A failed gate is a recovery signal for the phase that owns it. Use the stage recovery
+caps in **Gates recover before surfacing**; write `docs/runs/<run-id>/residuals.md` only
+when bounded recovery is exhausted or the blocker requires user authority. Honor prompt-local
+autonomy steering from the user without inventing formal modes.
 
 ## Phase 1 -- Assess intake and open the run
 
@@ -37,8 +44,10 @@ condition). Classify the input before choosing the intake path:
   shape, has contested scope, is ambitious enough that product choices matter, or uses
   language like "what if", "help me think through", "maybe", "explore", or "not sure".
 
-If the request is genuinely ambiguous but not fuzzy, ask ONE clarifying question before
-opening the run -- otherwise proceed; do not stall the pipeline on a question.
+If the request is ambiguous but not fuzzy, route it into fuzzy intake or proceed with explicit
+assumptions. Ask before opening the run only when the missing decision would be unsafe to
+default because it is product-defining, permission-sensitive, destructive, or dependent on
+external authority the repo cannot infer.
 
 Open ONE run ledger via the scaffolder:
 
@@ -72,11 +81,13 @@ If the input is a fuzzy idea, invoke the `/bn-brainstorm` flow in **grow intake 
   finalized requirements summary when the brainstorm correctly decides no document is
   warranted.
 
-**GATE:** fuzzy intake yields a requirements document or finalized requirements summary,
-and it does not contain unresolved items that must be settled before planning. READ the
-requirements document if one exists. If intake leaves a `Resolve Before Planning` section
-or equivalent blocking open question, STOP and surface it -- do not research or plan from
-unsettled product shape.
+**GATE:** fuzzy intake yields a requirements document or finalized requirements summary.
+READ the requirements document if one exists. If intake leaves a `Resolve Before Planning`
+section or equivalent blocking open question, run one intake disposition pass: ask
+`/bn-brainstorm` in grow intake mode to either revise the requirements, record a safe
+assumption, or identify the item as no-safe-default. Continue when the blocker is resolved
+or safely recorded. If no safe default exists, write `residuals.md` and exit with the
+blocker, evidence, recovery attempt, and resume phase.
 
 If the input is already a clear feature/task, skip fuzzy intake and treat the 2-3 line
 objective as the finalized requirements summary.
@@ -85,17 +96,24 @@ objective as the finalized requirements summary.
 
 Spawn `bn-research-lead` with the finalized requirements document or summary framed as a
 research question and an envelope naming `artifact_path:
-docs/runs/<run-id>/briefs/research-brief.md` (see `bn-research-lead` for the envelope it
-expects; set `effort_class` by question breadth). If fuzzy intake produced
+docs/runs/<run-id>/briefs/research-brief.md` plus `doctrine:
+${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md` (see
+`bn-research-lead` for the envelope it expects; set `effort_class` by question breadth).
+If fuzzy intake produced
 `docs/runs/<run-id>/briefs/brainstorm-grounding.md`, include that path in `inputs` so the
 research lead can reuse it instead of repeating the same grounding. The lead owns the
 research subtree -- it dispatches the warranted researchers, chases threads, and
 synthesizes ONE brief.
 
 **GATE:** `docs/runs/<run-id>/briefs/research-brief.md` exists. READ that file (not the
-lead's final-message prose). If the brief is MISSING, STOP and surface it -- do not plan
-from nothing. If the brief stands but flags unresolved open questions that would change
-the plan, carry them into Phase 3 and surface them to the user rather than barreling ahead.
+lead's final-message prose). If the brief is missing or malformed, re-enter
+`bn-research-lead` once with the same run dir, the missing artifact path, and the concrete
+artifact failure. If the brief stands but flags unresolved open questions that would change
+the plan, send those questions into spec stress or planning as explicit assumptions unless
+they have no safe default. If recovery still leaves no usable brief, write `residuals.md`
+with phase `research` and exit.
 
 ## Phase 3 -- Stress requirements (skill: /bn-spec-stress)
 
@@ -116,10 +134,14 @@ When running spec stress, invoke `/bn-spec-stress` with the requirements documen
 the finalized requirements summary if no document exists. Reuse THIS run dir. The output path is
 `docs/runs/<run-id>/briefs/spec-stress.md`.
 
-**GATE:** if skipped, record the skip and reason in the ledger. If run, `spec-stress.md` exists
-and the trunk READS it (the file, not the skill's final-message prose). If `Resolve Before
-Planning` is non-empty, STOP and surface the blockers and required dispositions. Otherwise pass
-the requirements document or summary plus `spec-stress.md` to Phase 4.
+**GATE:** if skipped, record the skip and reason in the ledger. If run, `spec-stress.md`
+exists and the trunk READS it (the file, not the skill's final-message prose). If
+`Resolve Before Planning` is non-empty, run one disposition pass through `/bn-spec-stress`
+or `/bn-brainstorm` using the same run dir: promote safe items into `Plan Inputs` or
+`Accepted Risks`, revise the requirements when the answer is inferable, and leave only
+no-safe-default decisions in `Resolve Before Planning`. Continue when that section is
+empty. If no-safe-default blockers remain, write `residuals.md` with phase `spec-stress`
+and exit.
 
 ## Phase 4 -- Plan (skill: /bn-plan, with a judge panel)
 
@@ -135,8 +157,11 @@ and records which draft won + where the judge score sheets live.
 
 **GATE:** a plan doc exists at `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md` and the
 ledger's `## Plan` ref points at it. READ the plan (its `## Implementation Units` and
-`## Sequencing`). If NO plan file was produced, STOP and surface it -- there is nothing to
-deliver.
+`## Sequencing`). If no plan file was produced, or `/bn-plan` surfaced an infeasible claim
+that has a clear repo-grounded fix, re-enter `/bn-plan` once with the same run dir and the
+research/spec-stress artifacts explicitly named. The repair pass may correct the winning
+draft, fall back to a runner-up draft, or convert safe unknowns to `[assumed]` R-IDs. If no
+usable plan exists after the repair pass, write `residuals.md` with phase `plan` and exit.
 
 **Natural checkpoint (do not hard-block):** this is the right moment for the user to
 approve the plan before code changes. Surface the plan PATH, a one-line summary, and any
@@ -153,10 +178,13 @@ units out to worktree-isolated unit-leads that self-test and mini-review, and me
 dependency order via a single integrator. It commits per unit; it NEVER pushes.
 
 **GATE:** `docs/runs/<run-id>/delivery-report.md` exists, code actually changed, and the
-report says the units are done (or names blocked units explicitly). READ the report (the
-file, not the lead's prose). If units are BLOCKED, STOP at this gate and surface the
-blocked units and why -- do not proceed to review pretending the feature landed. A blocked
-delivery is reported, not hidden.
+report says the units are done or names blocked units explicitly. READ the report (the
+file, not the lead's prose). If units are blocked, inspect the report's recovery section.
+When the blocker is recoverable by delivery ownership (boundary under-scope, shared-file
+assignment, worktree isolation fallback, a bounced unit with a concrete fix path), re-enter
+`/bn-work` once with the blocked-unit context and the same run dir. Do not proceed to review
+unless the report says all required units are done. If delivery remains blocked after the
+retry, write `residuals.md` with phase `deliver` and exit.
 
 ## Phase 6 -- Review (skill: /bn-review)
 
@@ -167,10 +195,12 @@ applied verdict. It commits on a clean tree; it NEVER pushes.
 
 **GATE:** `docs/runs/<run-id>/review-verdict.md` exists and the test suite is green, OR the
 verdict explicitly carries `UNVERIFIED (no test command)`. READ the verdict (the file, not
-the lead's prose). If the verdict is MISSING, or the suite is RED, or material findings
-remain unaddressed, STOP and surface it -- a red suite or an unresolved blocking finding
-does not pass the gate. If the gate passes via `UNVERIFIED (no test command)`, surface that
-marker to the user; never treat it as green.
+the lead's prose). If the verdict is missing, the suite is red, or material findings remain
+unaddressed with a clear fix/routing path, re-enter `/bn-review` once with the same run dir
+and the verdict's recovery metadata. If the result is still red or still carries unresolved
+blocking findings after that retry, write `residuals.md` with phase `review` and exit. If the
+gate passes via `UNVERIFIED (no test command)`, surface that marker to the user; never treat
+it as green.
 
 ## Phase 7 -- Ship gate (permission cliff, invariant 6)
 
@@ -203,8 +233,8 @@ consolidates knowledge files only and pushes nothing.
 
 Give the user a SHORT narrative: what was built, the phase outcomes (requirements intake
 when present -> research brief -> spec-stress gate when present -> plan -> delivery -> review
-verdict), the ship gate (the verdict's commit status, NOT pushed -- ship is yours), and the
-curation handoff state
+verdict), any recovery attempts that materially changed the path, the ship gate (the verdict's
+commit status, NOT pushed -- ship is yours), and the curation handoff state
 (background started, or run `/bn-curate <run-id>`). Point at the ledger path
 `docs/runs/<run-id>/ledger.md` -- it tells the full story; the brief, plan, delivery
 report, and verdict all live under that run dir.
@@ -216,7 +246,7 @@ finds itself reading raw researcher dumps, transcribing plan units, or stepping 
 diffs, the choreography has leaked work upward -- push it back into the owning subtree. The
 ledger, not the trunk's context, is where the full run lives.
 
-## Gates are explicit and fail-soft
+## Gates recover before surfacing
 
 Each phase has ONE gate, and the gate is a FILE plus a condition (see the per-phase GATE
 lines). The trunk checks the gate before proceeding:
@@ -231,7 +261,19 @@ lines). The trunk checks the gate before proceeding:
 - review   -> `review-verdict.md` exists and the suite is green, OR the verdict explicitly
   carries `UNVERIFIED (no test command)` surfaced to the user
 
-If a gate is NOT met -- no brief, no plan, blocked units, a red suite, a missing verdict --
-STOP at that gate and surface it to the user with the run dir and what failed. Do NOT
-barrel ahead to the next phase. Each phase's failure is reported up the trunk, never
-swallowed. A run can be resumed from its ledger once the blocker is cleared.
+If a gate is not met, recover before surfacing:
+
+1. **Retry the owning phase once** when the failure is a missing/malformed artifact, blocked
+   unit, red suite, or unresolved finding with a concrete owner.
+2. **Keep the same run dir** and record the attempt in `ledger.md`; do not open a sibling run
+   for recovery.
+3. **Promote safe uncertainty** into explicit assumptions, `Plan Inputs`, accepted risks, or
+   `[assumed]` R-IDs with confirm-by clauses.
+4. **Respect nested caps.** Delivery's per-unit retry cap and review's owner-recovery cap are
+   owned inside those leads; the grow trunk counts one re-entry into the phase, not every child
+   retry inside it.
+5. **Exit only for unrecoverable state:** permission cliffs, no-safe-default product/business
+   decisions, missing external authority, unsafe dirty-tree conflicts, or exhausted recovery.
+
+When exiting before the ship gate, write `docs/runs/<run-id>/residuals.md` using the ledger
+template, point `ledger.md` at it, and then surface the residual path plus the next safe action.

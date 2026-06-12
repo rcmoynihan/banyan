@@ -16,6 +16,12 @@ The durable output of this workflow is a **requirements document**. In other wor
 
 This skill does not implement code. It explores, clarifies, and documents decisions for later planning or execution. It is a **trunk-level dialogue** skill: a pure-dialogue brainstorm spawns nothing and opens no run ledger; the one optional spawn (research grounding, Phase 1.1) opens a ledger lazily at that point. When reached from `/bn-grow`, this skill runs as **grow intake**: it completes the requirements artifact step, returns the requirements document path or finalized summary to `/bn-grow`, and skips the standalone handoff menu.
 
+Grow intake is more autonomous than standalone brainstorming. Ask the user only when the missing
+answer changes product behavior and has no safe default. Otherwise write the requirements doc with
+the assumption explicit in **Assumptions**, **Dependencies**, **Plan Inputs**, or **Resolve Before
+Planning** as appropriate, and return blocker dispositions to `/bn-grow` so the grow trunk can run
+its recovery ladder.
+
 The requirements doc lands in `docs/brainstorms/` — a **protected artifact family** (AGENTS.md §5): no Banyan agent may delete, gitignore, or "clean up" anything under it. This skill creates and updates docs there; it never removes them.
 
 **IMPORTANT: All file references in generated documents must use repo-relative paths (e.g., `src/models/user.rb`), never absolute paths. Absolute paths break portability across machines, worktrees, and teammates.**

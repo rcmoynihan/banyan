@@ -8,7 +8,7 @@
 
 This content is loaded when Phase 2.5 fires — after Phase 2 (approaches chosen) and before Phase 3 (write requirements doc). The synthesis is the user's last opportunity to correct the agent's interpretation before the doc lands. It serves two purposes: synthesis confirmation (the user agreed to many individual things in dialogue but never saw the whole) and a transition checkpoint ("about to write a doc").
 
-Fires for **all tiers** including Lightweight. Skip Phase 2.5 entirely on the Phase 0.1b non-software (universal-brainstorming) route. The skill is interactive by design — brainstorming requires dialogue with a synchronous user. There is no non-interactive mode; if an automated workflow needs a requirements doc without dialogue, the right move is to write the doc from context directly, not to invoke `bn-brainstorm`.
+Fires for **all tiers** including Lightweight. Skip Phase 2.5 entirely on the Phase 0.1b non-software (universal-brainstorming) route. The standalone skill is interactive by design — brainstorming requires dialogue with a synchronous user. In `/bn-grow` intake, use the synthesis internally as the doc-write input; ask only for no-safe-default product decisions, and otherwise record explicit assumptions before returning control to the grow trunk.
 
 ---
 
@@ -42,7 +42,7 @@ Each section answers a different question:
 - **What did we cut?** → deferred items a reader would expect to see acknowledged
 - **Where might you redirect?** → residual forks: post-dialogue consequences, silent inferences, late-cycle bets
 
-Then the confirmation: *"Confirm and I'll write the requirements doc next, drawing on our dialogue and this synthesis. Or tell me what to change."* The phrasing sets the expectation that confirm → doc-write, so the user knows what's about to happen and can interrupt without ambiguity.
+Then the confirmation: *"Confirm and I'll write the requirements doc next, drawing on our dialogue and this synthesis. Or tell me what to change."* The phrasing sets the expectation that confirm → doc-write, so the user knows what's about to happen and can interrupt without ambiguity. In grow intake, replace the user confirmation with an internal assumption check: safe assumptions go into the doc; no-safe-default decisions go into `Resolve Before Planning` with a proposed disposition for `/bn-grow`.
 
 ### Path A vs Path B: the gate that fires the confirmation question
 

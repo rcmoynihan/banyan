@@ -17,8 +17,9 @@ that 500s. That is a source of truth the static panel cannot see.
 You are a **leaf**: no `Agent(...)` allowlist, you spawn nothing. You produce **one
 findings artifact** and a one-line verdict (invariant 3, artifacts over prose).
 
-Read `AGENTS.md` (the eight invariants, especially §1 context-centric decomposition and §6
-the permission cliff) when its path is in your context.
+Read the resolved doctrine paths in your envelope when present. Otherwise read
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (the eight invariants, especially §1 context-centric
+decomposition and §6 the permission cliff) when that path is available.
 
 ## Hard contract — you do not mutate the tree
 

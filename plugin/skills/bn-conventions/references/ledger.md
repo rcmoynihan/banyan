@@ -28,6 +28,7 @@ dirs for the date; see "Opening a run" below.
 ```
 docs/runs/<run-id>/
   ledger.md            # task ledger: objective, plan ref, facts, unit-status table, append-only log
+  residuals.md         # grow trunk-owned unresolved state after exhausted recovery
   progress/<agent>.md  # per-subtree progress notes (one writer per file)
   findings/            # review findings JSON, one file per reviewer/finding
   briefs/              # research briefs, plan-judge outputs, direct-work specs
@@ -45,6 +46,8 @@ prose):
 - `debug-diagnosis.md`    -- the debug subtree's diagnosis (`bn-debug-lead`, investigate mode).
 - `debug-fix-report.md`   -- the debug subtree's fix outcome (`bn-debug-lead`, fix mode).
 - `onboarding-report.md`  -- the onboarding outcome (`/bn-onboard` trunk).
+- `residuals.md`          -- grow trunk-owned unresolved blockers after bounded recovery is
+  exhausted. This file is present only when an autonomous grow run exits before the ship gate.
 
 (The research subtree's report is a brief, so it lives under `briefs/research-brief.md`, not the
 run root.) Each report is single-writer (the named lead or trunk). A `/bn-grow` phase gate is "the
@@ -88,6 +91,9 @@ Reads parallelize; writes serialize. Every file in the layout has a defined owne
   children co-write one file.
 - **`lessons-staging/` -- one file per candidate.** Each harvester drops distinct
   candidate files; the curator is the single reader/consumer.
+- **`residuals.md` -- grow trunk only.** Child leads and leaves never write this file. They
+  expose blocked reasons and next safe actions in their own artifacts; the grow trunk reads
+  those artifacts and writes the single residual summary when recovery is exhausted.
 
 Parents read these artifacts directly. A lead reads its children's `findings/`,
 `briefs/`, and `progress/` files for anything load-bearing -- it does not extract
@@ -158,6 +164,43 @@ Notes on the template:
 - Statuses are exactly: `pending`, `in-progress`, `blocked`, `done`, `abandoned`.
 - `## Log` lines are `- <ISO8601> <agent>: <event>` -- append only.
 - `## Open questions` is a living list: add when blocked, remove when resolved.
+
+## residuals.md template
+
+`residuals.md` exists only for a grow run that has exhausted bounded recovery before the ship
+gate. The grow trunk writes it once when exiting early and updates it when resuming the same run.
+Use this structure:
+
+```markdown
+# Residuals -- <run-id>
+
+**Status:** active | resolved
+**Phase:** intake | research | spec-stress | plan | deliver | review | ship-gate
+**Resume from:** <phase name and owning skill/lead>
+
+## Blockers
+
+- R1. <short blocker title>
+  - **Class:** permission-cliff | no-safe-default | missing-external-authority |
+    unsafe-working-tree | recovery-exhausted
+  - **Evidence:** <artifact path and section/line if available>
+  - **Recovery attempted:** <attempts made, with artifact paths>
+  - **Next safe action:** <what a resumed trunk or user should do>
+
+## Safe assumptions already made
+
+- <assumption and where it was recorded, or "none">
+
+## Resume notes
+
+- <phase-specific state needed to resume, or "none">
+```
+
+When writing `residuals.md`, the grow trunk also appends one `## Log` line and adds or updates one
+`## Open questions` bullet that points at `docs/runs/<run-id>/residuals.md`. On resume, the trunk
+reads `ledger.md`, `residuals.md`, and the evidence artifacts before choosing the resume phase. When
+the residual is resolved, mark `**Status:** resolved`, append the resolution to `## Resume notes`,
+remove or rewrite the matching `## Open questions` bullet, and continue the run.
 
 ## How a run flows
 

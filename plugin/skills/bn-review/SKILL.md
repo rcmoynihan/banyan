@@ -37,8 +37,11 @@ Rules that always hold:
 
 - NEVER `git checkout`, `git switch`, or otherwise move HEAD. If a mode needs content
   you do not have locally, fetch read-only (`git fetch`) and diff refs; do not switch.
-- If no base can be resolved for a standalone review, STOP with a clear message naming
-  what you tried. Do NOT fall back to `git diff HEAD` -- an unscoped diff is not a review.
+- If no base can be resolved for a standalone review, inspect the active run first when
+  reached from `/bn-grow`: read `delivery-report.md`, `ledger.md`, and the branch / commit
+  state to derive the integration base and head. If no scoped base can be derived, surface
+  blocker metadata for `residuals.md` (`blocker_class`, `recovery_owner`, `next_safe_action`,
+  `resume_from_phase`). Do NOT fall back to `git diff HEAD` -- an unscoped diff is not a review.
 - `scope_mode` is one of: `local-aligned`, `pr-remote`, `branch-remote`, `standalone`.
   It drives the lead's APPLY-vs-REPORT decision (Step 4 boundaries).
 
@@ -113,6 +116,9 @@ inputs:
   plan_ref:        <docs/plans/...-plan.md, or "none">
   test_command:    <detected repo test command, or "none detected">
   dogfood:         <off | auto | on>   # default off; opt-in execution-grounded verifier
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      APPLY (edit + commit on a clean tree) ONLY when scope_mode is
                  local-aligned or standalone; otherwise REPORT only -- propose fixes,
                  do not edit. NEVER push or open a PR. NEVER touch protected artifacts
@@ -146,6 +152,9 @@ the lead's final-message prose -- invariant 3) and present to the user:
   could not drive — "verify manually");
 - review coverage (which reviewers ran, and — when the dogfood verifier was in scope —
   whether it drove the app, was skipped (with the reason), or was not run).
+- recovery metadata for `/bn-grow` when the verdict is not ready: `blocker_class`,
+  `recovery_owner`, `next_safe_action`, and `resume_from_phase`; say `none` when no recovery
+  metadata is needed.
 
 Then state explicitly that **push remains the user's step** -- the lead commits on a
 clean tree but never pushes (permission cliff, invariant 6). Point the user at

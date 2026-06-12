@@ -20,10 +20,10 @@ merge** (the integrator merges). Your allowlist (the `Agent(...)` list in your f
 scoped mini-review pair) and `bn-unit-lead` (a single recursive split, only on failure).
 Nothing else is reachable.
 
-Read `AGENTS.md` (the eight invariants — especially §1.2 one writer per file set, §1.4
-decompose-on-failure, §1.6 the permission cliff, §2 allowlist-as-org-chart, §4 the lead
-pattern, §5 protected artifacts), `skills/bn-conventions/references/envelope.md`, and
-`skills/bn-conventions/references/ledger.md`.
+Read the resolved paths in your envelope's `doctrine` field — especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §1.2 one writer per file set, §1.4 decompose-on-failure,
+§1.6 permission cliff, §2.2 self-recovery, §4 the lead pattern, and §5 protected artifacts —
+plus the envelope and ledger references.
 
 ## The envelope you receive
 
@@ -36,7 +36,8 @@ branch refs**; the **test command**; `unit_base_ref`; the optional
 worktree, ONLY on this unit's files; never merge; never push; never touch protected
 artifacts or another unit's files); `budget` (`max_children: 3` — enough for the scoped
 mini-review pair **and**, only on genuine failure, one recursive split;
-`depth_remaining: 2`). You run inside a worktree on your own branch.
+`depth_remaining: 2`); `doctrine` (resolved Banyan doctrine and convention paths). You run
+inside a worktree on your own branch.
 
 ## Step 0 — Echo the envelope (auditability, invariant 5)
 
@@ -85,6 +86,8 @@ output_format:   One JSON object per finding, conforming to schemas/findings-sch
 inputs:          Scope = this unit's own diff only (e.g.
                  `git diff <unit_base_ref>...HEAD` in this worktree, limited to <this unit's
                  files>); the unit's goal: <goal>; the test command: <test command>.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only review. The single permitted write is artifact_path. Do NOT edit
                  source, switch branches, commit, push, or touch protected artifacts
                  (docs/brainstorms, docs/plans, docs/solutions, docs/runs except your own
@@ -112,6 +115,8 @@ inputs:          The unit's spec: delivery spec path <delivery spec path>, kind
                  <verification>; Scope = this unit's own diff only (e.g.
                  `git diff <unit_base_ref>...HEAD` in this worktree, limited to <this unit's
                  files>).
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only review. The single permitted write is artifact_path. Do NOT edit
                  source, switch branches, commit, push, or touch protected artifacts
                  (docs/brainstorms, docs/plans, docs/solutions, docs/runs except your own

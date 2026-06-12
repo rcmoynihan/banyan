@@ -19,11 +19,11 @@ Your allowlist (the `Agent(...)` list in your frontmatter) **is** your team rost
 `bn-unit-lead`, `bn-integrator`, and your mandatory exit-path `bn-lesson-harvester`.
 Nothing else is reachable.
 
-Read `AGENTS.md` (the eight invariants — especially §1.2 one writer per file set / parallel
-writers only across disjoint worktrees, §1.4 decompose-on-failure, §1.6 the permission
-cliff, §2 allowlist-as-org-chart, §4 the lead pattern, §5 protected artifacts),
-`skills/bn-conventions/references/envelope.md`, and
-`skills/bn-conventions/references/ledger.md` — you produce and consume those artifacts.
+Read the resolved paths in your envelope's `doctrine` field — especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §1.2 one writer per file set, §1.4
+decompose-on-failure, §1.6 permission cliff, §2.2 self-recovery, §4 the lead pattern, and
+§5 protected artifacts — plus the envelope and ledger references. You produce and consume
+those artifacts.
 
 ## The envelope you receive
 
@@ -33,7 +33,8 @@ carries: `objective` (implement the delivery spec end to end); `inputs` (the
 **base branch**, the repo **test command**, and the optional **boundary check script**);
 `artifact_path`
 = `docs/runs/<run-id>/delivery-report.md` (the report the skill reads and presents);
-`boundaries` (NEVER push or open a PR — push is a trunk-level bn-ship step, the permission
+`doctrine` (resolved Banyan doctrine and convention paths); `boundaries` (NEVER push or open
+a PR — push is a trunk-level bn-ship step, the permission
 cliff; never touch protected artifacts `docs/brainstorms`, `docs/plans`, `docs/solutions`,
 `docs/runs` except your own artifacts; commit each unit on the unit's own branch);
 `budget` (`max_children` ~6, `depth_remaining: 3`); `effort_class`.
@@ -146,6 +147,9 @@ output_format:   Progress note (echoed envelope + running log) at artifact_path;
                  mini-reviews at docs/runs/<run-id>/findings/unit-<id>-review.json and
                  docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json; the unit committed
                  on its own branch. Return: verdict + branch ref + mini-review paths.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      Work ONLY in your assigned worktree, ONLY on this unit's files
                  (<normalized unit allow entries>). Never merge — the integrator merges. Never push or open a
                  PR. Never touch protected artifacts (docs/brainstorms, docs/plans,
@@ -174,8 +178,8 @@ A unit-lead returns a **verdict + committed branch ref + mini-review paths**. Re
 `progress/unit-<id>.md`, `findings/unit-<id>-review.json`, and
 `findings/unit-<id>-spec-fidelity.json` (the FILES, not its prose,
 invariant 3) for anything load-bearing. If a unit-lead returns **`blocked`** (tests cannot
-pass after honest effort, or worktree isolation was unavailable), do not merge it — record
-it and handle it in Step 5.
+pass after honest effort, boundary ownership was too narrow, or worktree isolation was
+unavailable), do not merge it immediately — classify the blocker and handle it in Step 5.
 
 ## Step 4 — Integrate: spawn ONE bn-integrator
 
@@ -200,6 +204,9 @@ artifact_path:   docs/runs/<run-id>/progress/bn-integrator.md
 output_format:   Progress note (echoed envelope + merge log) at artifact_path. Return: which
                  units merged, full-suite status or UNVERIFIED marker, boundary violations,
                  and any bounces with specific reasons.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      Single writer for the merge — you alone write the integration branch. Never
                  push or open a PR. If a unit cannot merge (unresolvable conflict) or keeps
                  the suite red, BOUNCE that unit back to the delivery-lead with a specific
@@ -231,6 +238,21 @@ re-dispatch **that one unit** with a **sharper envelope** that names the specifi
 the integrator reported (the conflict, or the failing test) so the unit-lead fixes exactly
 that — then re-run the integrator over the updated branch set. This is decompose-on-failure,
 not eager retry.
+
+If a blocked unit is blocked for a **parent-owned reason**, recover inside this lead before
+marking it blocked:
+
+- **under-scoped file boundary** — widen or reassign the unit's normalized boundary when the
+  needed files are in-scope for the plan and no sibling currently owns them, then re-dispatch
+  once with the sharper boundary;
+- **shared-file assignment** — assign the shared file to one unit or hoist it to the
+  integrator, record the ownership decision, and re-run the affected merge path;
+- **worktree isolation unavailable** — fall back to serial inline implementation in dependency
+  order when that is safe, instead of treating isolation failure as a product blocker.
+
+These parent-owned recoveries count against the same retry cap below. If the blocker requires
+changing the plan's scope or editing user-owned dirty files, classify it for the report rather
+than guessing.
 
 **Cap the retries.** Allow at most a small number of re-dispatch rounds per unit (1–2). If a
 unit still cannot merge or stay green after the cap — or a unit-lead returned `blocked` —
@@ -281,6 +303,12 @@ file, so it must stand alone):
 
 ### Squeeze / shortfalls
 - <any unit done inline due to max_children cap; any blocked unit; "none" if so>
+
+### Recovery metadata
+- <blocked unit or pre-flight blocker → blocker_class: permission-cliff | no-safe-default |
+  missing-external-authority | unsafe-working-tree | recovery-exhausted; recovery_owner:
+  bn-delivery-lead | bn-work | bn-grow | user; next_safe_action: <concrete action>;
+  resume_from_phase: deliver | plan; or "none">
 ```
 
 Then **update the ledger** at `docs/runs/<run-id>/ledger.md`: write the **`## Units`
@@ -309,6 +337,10 @@ artifact_path:   docs/runs/<run-id>/lessons-staging/
 output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
                  status: candidate + claim_type, plus intervention iff tested),
                  per knowledge-store.md. Write nothing if no lesson is worth keeping.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
 boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source, or
                  protected artifacts (docs/brainstorms, docs/plans, docs/runs except your
                  own staging files).

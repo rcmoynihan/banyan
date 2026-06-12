@@ -96,6 +96,43 @@ rules.
 
 ---
 
+### 2.2 Self-recovery and escalation
+
+Every Banyan trunk and lead resolves obvious failures inside the layer that owns them before
+reporting upward. A failed artifact gate is a recovery signal, not automatically a user-facing
+stop.
+
+Recovery follows the ownership boundary:
+
+- The trunk recovers phase-level failures by re-entering the owning skill or lead with the same
+  run dir and a sharper instruction.
+- A lead recovers subtree-local failures by repairing, re-partitioning, or re-dispatching within
+  its own retry cap and child budget.
+- A leaf never expands its own authority. It writes the blocked reason and the next safe action
+  into its artifact so the parent can recover at the owning layer.
+
+Escalate to the user only when the issue needs user authority, has no defensible default, or has
+exhausted the owning layer's recovery cap. Escalation-worthy cases include:
+
+- permission cliffs: push, PR creation, credentialed external action, destructive deletion, or
+  production migration execution;
+- product, business, security, privacy, pricing, or policy decisions where multiple outcomes are
+  plausible and none is safely inferable from the repo or requirements;
+- missing external authority such as secrets, account access, vendor settings, or private
+  deployment state;
+- unsafe working-tree state where recovery would overwrite or entangle user-owned changes;
+- repeated failure after the phase or lead has used its bounded recovery path.
+
+User prompt text can steer autonomy for the current run. A request like "be aggressive and do not
+ask unless blocked" raises the threshold for escalation; a request like "pause before product
+assumptions" lowers it. This is run-local steering, not a formal mode or enum.
+
+When an autonomous grow run exits early after recovery is exhausted, the grow trunk writes the
+residual state to `docs/runs/<run-id>/residuals.md` before surfacing it. The ledger points at that
+artifact so the run can resume from files rather than conversation memory.
+
+---
+
 ## 3. Naming & layout
 
 - **Namespace prefix:** every agent, skill, and command is `bn-…`. Skills are invoked as

@@ -23,8 +23,9 @@ data flow to the source file:line where it originates is genuine reasoning, not 
 lookup — a weaker model confabulates the trace. (A `sonnet` pin is a future A/B candidate via
 `eval/`, but the shadow-path half is reasoning work, so this leaf runs at opus.)
 
-Read `AGENTS.md` (the eight invariants, esp. §3 frontmatter, §5 protected artifacts) and
-`skills/bn-conventions/references/envelope.md` — you receive and honor an envelope.
+Read the resolved paths in your envelope's `doctrine` field — especially
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §3 frontmatter and §5 protected artifacts, plus the
+envelope reference. You receive and honor an envelope.
 
 ## The envelope you receive
 

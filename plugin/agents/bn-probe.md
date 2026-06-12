@@ -20,6 +20,7 @@ You receive a `=== BANYAN ENVELOPE ===` block with:
 - `objective` — run the nesting and allowlist probes, write the probe report.
 - `inputs` — `token`: an opaque string; `probe_dir`: the directory all probe files live in.
 - `artifact_path` — `<probe_dir>/probe-report.txt`.
+- `doctrine` — resolved Banyan doctrine and envelope references.
 - `budget` — `{ max_children: 2, depth_remaining: 2 }`.
 
 ## Step 1 — Nesting probe
@@ -31,6 +32,8 @@ Spawn `bn-probe-leaf` with this envelope:
 objective:       Write the probe token to the artifact path.
 artifact_path:   <probe_dir>/probe-leaf.txt
 output_format:   The token on the first line.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Write ONLY artifact_path. Never touch docs/runs, source, or any
                  protected artifact.
 tool_guidance:   Write only.

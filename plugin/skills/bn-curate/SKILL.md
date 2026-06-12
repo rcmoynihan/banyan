@@ -85,6 +85,8 @@ output_format:   Curation summary per the curator's template: promoted N, merged
                  patterns P, held H (claim_type gate), marked-stale X, discoverability
                  edits, staging-empty status, REPORT-ONLY items. Every promoted/merged
                  doc validated.
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      WRITE SCOPE (pre-granted) is ONLY: docs/solutions/ (promote/merge),
                  CONCEPTS.md, CLAUDE.md (minimal discoverability -- update only, never
                  create CONCEPTS.md here), and clearing the named lessons-staging/ dirs
