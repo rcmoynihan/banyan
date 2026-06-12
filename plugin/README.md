@@ -15,7 +15,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
   agents/                      one agent per file: bn-*.md (41 agents)
-  skills/                      one skill per directory: bn-*/SKILL.md (15 skills)
+  skills/                      one skill per directory: bn-*/SKILL.md (16 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
                                boundary check + its tests, frontmatter validator)
@@ -36,6 +36,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | --- | --- |
 | `/bn-grow` | The full pipeline: optional brainstorm intake → research → plan (judged) → deliver → review → ship gate → curation handoff, from a small trunk. |
 | `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-plan`. |
+| `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |
 | `/bn-plan` | A plan from a requirements doc, research brief, or task: prior-biased generators scored by independent judges, synthesized by the trunk. |
