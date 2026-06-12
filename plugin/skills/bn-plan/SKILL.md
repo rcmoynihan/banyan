@@ -44,7 +44,11 @@ document** (`docs/brainstorms/*-requirements.md`), a **path to a research brief*
   ```
   Capture the printed run ID and absolute run dir. Fill `ledger.md`'s `## Objective` (produce
   a plan for this task), set the `## Plan` ref to the plan path you will write, and append the
-  opening `## Log` line. Add a `U1 | trunk | in-progress | docs/plans/<...>-plan.md` row.
+  opening `## Log` line. In a standalone run, add a
+  `U1 | trunk | in-progress | docs/plans/<...>-plan.md` row. **When reusing the grow run, do
+  NOT re-seed this row** — the grow trunk already owns the `plan` phase row at phase
+  granularity, which this skill updates in place (single-writer); per-skill detail stays in
+  this skill's own progress notes rather than colliding with grow's phase row.
 - **Find the research grounding.** If the argument was a research brief path, use it as the
   research brief. Otherwise look for `docs/runs/<run-id>/briefs/research-brief.md` (written by
   `bn-research-lead`). READ it if it exists — it is the factual grounding for the plan. If a

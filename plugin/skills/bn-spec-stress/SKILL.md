@@ -46,8 +46,11 @@ open a run:
 node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs spec-stress-<slug> --root <repo-root>
 ```
 
-Fill the ledger objective, add a unit row for `spec-stress`, and log the input path or
-summary label.
+Fill the ledger objective and log the input path or summary label. In a standalone run, add a
+unit row for `spec-stress`. **When reusing the grow run, do NOT re-seed this row** — the grow
+trunk already owns the `spec-stress` phase row at phase granularity, which this skill updates
+in place (single-writer); per-skill detail stays in this skill's own progress notes rather
+than colliding with grow's phase row.
 
 ## Step 2 -- Read grounding
 
