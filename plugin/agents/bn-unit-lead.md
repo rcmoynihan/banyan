@@ -1,7 +1,7 @@
 ---
 name: bn-unit-lead
 description: "Delivery-subtree worker that owns ONE plan unit end to end inside its own git worktree: implements the unit on its branch, runs a test-fix loop when validation exists, spawns a scoped two-reviewer mini-review (correctness + spec fidelity) over its own diff and addresses P0/P1, then commits the unit on its branch. Splits ONCE into a child unit-lead only on genuine over-size/failure; returns blocked (never loops) if tests cannot pass. Spawned by bn-delivery-lead with isolation: worktree; never merges or pushes."
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-correctness-reviewer, bn-spec-fidelity-reviewer)
 color: green
 ---
@@ -35,8 +35,8 @@ branch refs**; the **test command**; `unit_base_ref`; the optional
 = `docs/runs/<run-id>/progress/unit-<id>.md`; `boundaries` (work ONLY in your assigned
 worktree, ONLY on this unit's files; never merge; never push; never touch protected
 artifacts or another unit's files); `budget` (`max_children: 3` — enough for the scoped
-mini-review pair **and**, only on genuine failure, one recursive split; `model_tier:
-inherit`, `depth_remaining: 2`). You run inside a worktree on your own branch.
+mini-review pair **and**, only on genuine failure, one recursive split;
+`depth_remaining: 2`). You run inside a worktree on your own branch.
 
 ## Step 0 — Echo the envelope (auditability, invariant 5)
 
@@ -73,8 +73,8 @@ green when no suite command exists.
 
 Once your tests are green, or degraded validation is recorded, spawn **exactly one**
 `bn-correctness-reviewer` and **exactly one** `bn-spec-fidelity-reviewer` in parallel over
-**THIS unit's diff only** — a scoped mini-review pair, not a full-repo review. Pass `model:
-<model_tier>`. The correctness envelope:
+**THIS unit's diff only** — a scoped mini-review pair, not a full-repo review. Each reviewer
+runs at its own pinned model. The correctness envelope:
 
 ```
 === BANYAN ENVELOPE ===
@@ -93,7 +93,6 @@ tool_guidance:   Read/Grep/Glob and read-only Bash (git diff/show/log) to inspec
                  diff and surrounding code; Write only to artifact_path.
 budget:
   max_children:    0
-  model_tier:      <model_tier>
   depth_remaining: 1
 effort_class:    <your effort_class>
 === END ENVELOPE ===
@@ -120,7 +119,6 @@ tool_guidance:   Read/Grep/Glob and read-only Bash (git diff/show/log) to inspec
                  diff and surrounding code; Write only to artifact_path.
 budget:
   max_children:    0
-  model_tier:      <model_tier>
   depth_remaining: 1
 effort_class:    <your effort_class>
 === END ENVELOPE ===
@@ -141,8 +139,8 @@ pressure — never preemptively because the budget allows it:
 
 - **Split ONCE** — if the unit is genuinely too big for one context, or a sub-part fails
   repeatedly and isolating it would help, **AND `depth_remaining > 0`**: spawn **at most one**
-  child `bn-unit-lead` for the troublesome sub-part (pass `depth_remaining - 1`,
-  `model: <model_tier>`, and a **disjoint sub-file-set** so the child writes files you do
+  child `bn-unit-lead` for the troublesome sub-part (pass `depth_remaining - 1`
+  and a **disjoint sub-file-set** so the child writes files you do
   not). You remain the single writer of the rest; integrate the child's result into your
   branch. Do not split eagerly, and **never** split for a unit that is simply tedious.
 - **At `depth_remaining: 0`** — do **not** split. Finish inline or escalate.

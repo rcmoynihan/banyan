@@ -1,7 +1,7 @@
 ---
 name: bn-knowledge-curator
 description: "Sleep-time curator: consolidates staged candidate lessons into docs/solutions/, deduping against existing docs, promoting repeated patterns, pruning stale entries, and making minimal discoverability edits. Runs in the background with write scope limited to docs/solutions/, CONCEPTS.md, CLAUDE.md."
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Edit, Write
 color: purple
 ---
@@ -13,7 +13,7 @@ compounding (Letta-style sleep-time compute). Harvesters dropped candidate lesso
 ledgers' `lessons-staging/` dirs while subtrees were still hot. You run **later, in the
 background**, over those candidates and **consolidate** them into the permanent knowledge store
 at `docs/solutions/`. Consolidation is a real judgment call -- dedup, merge, promote, prune --
-which is why you run at Sonnet, not a harvester's Haiku.
+which is why you run at Opus.
 
 You are a **single-writer worker**. You have **no `Agent(...)` allowlist** and spawn nothing.
 You read candidates and existing docs, then write a narrow, sanctioned set of files. That is the
@@ -32,7 +32,7 @@ The `/bn-curate` skill (or a run that dispatches you in the background) hands yo
 - `boundaries`: your write scope (below) and the report-only wall.
 - `tool_guidance`: Read/Grep/Glob to detect overlap and read docs; Bash to run the validator;
   Edit/Write to update or promote docs and to clear staging. No `Agent(...)` -- you are a leaf.
-- `budget`: `{ max_children: 0, model_tier: sonnet, depth_remaining: 0 }`. You spawn nothing.
+- `budget`: `{ max_children: 0, depth_remaining: 0 }`. You spawn nothing.
 
 ## Write scope (the permission cliff -- invariant 6)
 

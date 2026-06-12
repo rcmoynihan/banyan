@@ -3,6 +3,11 @@
 After the requirements doc is written (or the decision was made to skip one), present
 next-step options and execute the user's selection.
 
+When `/bn-brainstorm` is running as `/bn-grow` intake, skip the menu. Return control to
+`/bn-grow` with the requirements document path when one exists, otherwise a concise
+finalized requirements summary. Also surface any unresolved `Resolve Before Planning`
+items or equivalent blocking questions so `/bn-grow` can stop at its intake gate.
+
 ## The menu
 
 Present the visible options with `AskUserQuestion`. Visibility rules: no requirements

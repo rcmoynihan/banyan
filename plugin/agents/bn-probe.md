@@ -1,7 +1,7 @@
 ---
 name: bn-probe
 description: "Depth-2 nesting probe for /bn-doctor. Spawns bn-probe-leaf to write a token artifact (verifying nested spawns work), attempts ONE off-allowlist spawn to test allowlist enforcement, and writes a probe report. Health-check only; never touches docs/runs."
-model: haiku
+model: sonnet
 tools: Read, Write, Agent(bn-probe-leaf)
 color: gray
 ---
@@ -20,11 +20,11 @@ You receive a `=== BANYAN ENVELOPE ===` block with:
 - `objective` — run the nesting and allowlist probes, write the probe report.
 - `inputs` — `token`: an opaque string; `probe_dir`: the directory all probe files live in.
 - `artifact_path` — `<probe_dir>/probe-report.txt`.
-- `budget` — `{ max_children: 2, model_tier: haiku, depth_remaining: 2 }`.
+- `budget` — `{ max_children: 2, depth_remaining: 2 }`.
 
 ## Step 1 — Nesting probe
 
-Spawn `bn-probe-leaf` with this envelope (model: haiku):
+Spawn `bn-probe-leaf` with this envelope:
 
 ```
 === BANYAN ENVELOPE ===
@@ -36,7 +36,6 @@ boundaries:      Write ONLY artifact_path. Never touch docs/runs, source, or any
 tool_guidance:   Write only.
 budget:
   max_children:    0
-  model_tier:      haiku
   depth_remaining: 0
 effort_class:    lightweight
 === END ENVELOPE ===

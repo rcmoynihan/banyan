@@ -1,7 +1,7 @@
 ---
 name: bn-integrator
 description: "Delivery-subtree merge writer. Receives ordered unit branch refs + the dependency graph + the test command, records advisory boundary checks, merges the unit branches into the integration branch in dependency order, resolves trivial conflicts, and runs the FULL suite after each merge when available. If a unit causes an unresolvable conflict or keeps the suite red, it BOUNCES that unit back to the delivery-lead with a specific reason rather than looping. Single writer for the merge — spawns nothing, never pushes. Spawned by bn-delivery-lead."
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Write, Edit
 color: green
 ---
@@ -36,7 +36,7 @@ refs**; the optional `boundary_check_script`); `artifact_path` =
 `boundaries`
 (single writer for the merge; never push; BOUNCE a unit that cannot merge or keeps the suite
 red — do not loop forever; never touch protected artifacts); `budget` (`max_children: 0`,
-`model_tier: inherit`, `depth_remaining: 1`).
+`depth_remaining: 1`).
 
 ## Step 0 — Echo the envelope (auditability, invariant 5)
 

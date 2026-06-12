@@ -29,19 +29,20 @@ travels outside them.
 | `output_format` | What the artifact contains: schema name, section headings, or "JSON per `schemas/findings-schema.json`". The parent reads the file expecting this shape. |
 | `boundaries` | Explicit do-not-touch paths and do-not-do actions. Always includes the protected artifacts (AGENTS.md section 5). Names the file sets this child must stay out of so siblings can write them (invariant 2). |
 | `tool_guidance` | Which tools and approaches to use; least privilege. Names the read/search tools expected, whether Bash may run the suite, and -- for a child that is itself a lead -- which `Agent(...)` types are in play. |
-| `budget` | `{ max_children, model_tier, depth_remaining }`. The hard limits: how many children this agent may spawn, what model tier its children run at, and how many more delegation hops remain. |
+| `budget` | `{ max_children, depth_remaining }`. The hard limits: how many children this agent may spawn and how many more delegation hops remain. |
 | `effort_class` | `lightweight` \| `standard` \| `deep`. Scales the spawn count (see below). The parent sets this from its own effort read; the child honors it. |
 
 `budget` sub-fields:
 
 - `max_children` -- integer. The most children this agent may spawn (0 means
   "do it inline, spawn nothing").
-- `model_tier` -- the model the children run at: `opus` \| `sonnet` \| `haiku`.
-  The agent passes this as `model:` on each Agent call (invariant 7, model
-  tiering -- step down as you descend).
 - `depth_remaining` -- integer. Delegation hops left below this agent. When this
   agent spawns a child it passes `depth_remaining - 1`. At `depth_remaining: 0`
   the agent does the work **inline** and spawns nothing.
+
+Model is **not** an envelope field. Each agent runs at the model pinned in its
+own `model:` frontmatter (invariant 7); a lead does not pass a `model:` override
+when it spawns, so a child always runs at its declared tier.
 
 ---
 
@@ -60,7 +61,6 @@ boundaries:      <do-not-touch paths/actions; always lists protected artifacts>
 tool_guidance:   <tools + approach; least privilege>
 budget:
   max_children:    <int>
-  model_tier:      <opus | sonnet | haiku>
   depth_remaining: <int>
 effort_class:    <lightweight | standard | deep>
 === END ENVELOPE ===
@@ -69,8 +69,8 @@ effort_class:    <lightweight | standard | deep>
 ### Filled-in example
 
 A `bn-review-lead` (at `depth_remaining: 3`, effort `standard`) spawning one
-`bn-correctness-reviewer`. The lead passes `model: sonnet` on the Agent call to
-match `model_tier`, and `depth_remaining: 2` (its own 3, minus one):
+`bn-correctness-reviewer`. The reviewer runs at its own pinned model; the lead
+passes `depth_remaining: 2` (its own 3, minus one):
 
 ```
 === BANYAN ENVELOPE ===
@@ -85,7 +85,6 @@ tool_guidance:   Read, Grep, Glob to inspect the diff and surrounding code; Bash
                  privilege -- no Agent spawns.
 budget:
   max_children:    0
-  model_tier:      sonnet
   depth_remaining: 2
 effort_class:    standard
 === END ENVELOPE ===
@@ -112,7 +111,6 @@ boundaries:      Read-only. Do NOT edit source or touch docs/brainstorms, docs/p
 tool_guidance:   Read, Grep, Glob to trace the code; Write only to artifact_path.
 budget:
   max_children:    1
-  model_tier:      sonnet
   depth_remaining: 2
 effort_class:    deep
 === END ENVELOPE ===
@@ -133,7 +131,7 @@ runtime; they are enforced by prompt discipline and audited from the ledger.
 the first block of its progress file, `docs/runs/<run-id>/progress/<lead>.md`. This
 makes every later spawn checkable against the budget the lead was actually handed:
 a reviewer counting spawns in the progress log can see whether the lead exceeded
-`max_children` or skipped a `model_tier` step-down. No echo, no audit trail.
+`max_children`. No echo, no audit trail.
 
 (b) **Depth accounting is prompt-level.** The harness exposes no depth counter, so
 depth lives only in the envelope. When a lead spawns a child it passes
@@ -147,17 +145,12 @@ visible in the ledger.
 run. If the work needs more hands than the cap allows, the lead does the remainder
 inline or reports the shortfall upward -- it does not quietly exceed the cap.
 
-(d) **Model step-down.** A lead runs each child at `model_tier` by passing `model:`
-on the Agent call (e.g. `model: sonnet`). Strong model at the trunk and leads;
-Sonnet-class mid-tree; Haiku-class for harvesters and scouts (invariant 7). A child
-that is itself a lead steps its own children down again.
-
-(e) **Honor boundaries.** A child treats `boundaries` as hard walls: it does not
+(d) **Honor boundaries.** A child treats `boundaries` as hard walls: it does not
 read, edit, or "clean up" anything they forbid, and it never writes a file set a
 sibling owns (invariant 2, one writer per file set). The protected artifacts
 (AGENTS.md section 5) are always off-limits regardless of what `boundaries` lists.
 
-(f) **Decompose on failure, not eagerly.** Default depth is 1-2 (invariant 4).
+(e) **Decompose on failure, not eagerly.** Default depth is 1-2 (invariant 4).
 Depths 3-5 are *reserve capacity*: a lead spends them only when a child fails, the
 work is genuinely too big for one context, or context pressure forces a split --
 never preemptively because the budget *allows* it. A generous `depth_remaining` is
@@ -208,8 +201,7 @@ Two mechanisms bound a spawn, and they are orthogonal:
   (AGENTS.md section 2). If a type is not in the allowlist, no envelope can summon
   it.
 - **The envelope** -- `max_children` and `depth_remaining` -- bounds **how many**
-  children this agent may spawn and **how deep** the chain may go. `model_tier`
-  bounds **what** they run at.
+  children this agent may spawn and **how deep** the chain may go.
 
 So the allowlist is the roster of who *can* play; the envelope is how many you put
 on the field and how far they may run. A lead can never spawn a type outside its

@@ -114,7 +114,6 @@ tool_guidance:   Read, Grep, Glob, Bash, Edit to read the plan and implement ATO
                  is not in this lead's roster.
 budget:
   max_children:    6
-  model_tier:      inherit
   depth_remaining: 3
 effort_class:    <lightweight | standard | deep>
 === END ENVELOPE ===

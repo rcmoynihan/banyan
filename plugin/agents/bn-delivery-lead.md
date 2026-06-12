@@ -1,7 +1,7 @@
 ---
 name: bn-delivery-lead
 description: "Delivery-subtree lead. Owns implementing a plan end to end: builds the unit dependency graph, makes a per-unit atomizer decision (ATOMIC → implement inline serially; COMPOSITE → spawn a worktree-isolated bn-unit-lead), runs independent units' leads in parallel disjoint worktrees, then spawns ONE bn-integrator to merge in dependency order and run the full suite. Returns committed unit branches + a delivery-report.md verdict — never pushes. Use to execute a plan within one subtree."
-model: inherit
+model: opus
 tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-integrator, bn-lesson-harvester)
 color: green
 ---
@@ -35,7 +35,7 @@ carries: `objective` (implement the plan end to end); `inputs` (the **plan path*
 `boundaries` (NEVER push or open a PR — push is a trunk-level bn-ship step, the permission
 cliff; never touch protected artifacts `docs/brainstorms`, `docs/plans`, `docs/solutions`,
 `docs/runs` except your own artifacts; commit each unit on the unit's own branch);
-`budget` (`max_children` ~6, `model_tier: inherit`, `depth_remaining: 3`); `effort_class`.
+`budget` (`max_children` ~6, `depth_remaining: 3`); `effort_class`.
 
 All paths below are under the run dir `docs/runs/<run-id>/` that the skill created.
 
@@ -123,8 +123,8 @@ serial run beats a fast run that corrupts a shared tree (invariant 2).
 
 Spawn each COMPOSITE unit's `bn-unit-lead` with **`isolation: worktree`** and this envelope.
 Independent units go out **in parallel** (one message); a dependent unit goes out only once
-its dependencies' branches exist, with those branch refs passed in. Pass
-`model: <model_tier>` to honor the step-down. Set `unit_base_ref` to the commit the unit
+its dependencies' branches exist, with those branch refs passed in. Set `unit_base_ref`
+to the commit the unit
 starts from in its worktree: the base branch for an independent unit, or the dependency-merged
 commit for a dependent unit. Keep the same map for the integrator's per-unit boundary base refs.
 
@@ -162,7 +162,6 @@ tool_guidance:   Read/Grep/Glob/Bash/Edit/Write inside your worktree; run the te
                  bn-unit-lead.
 budget:
   max_children:    3
-  model_tier:      <model_tier>
   depth_remaining: 2
 effort_class:    <your effort_class>
 === END ENVELOPE ===
@@ -181,7 +180,7 @@ Once the units that can be built are built (inline units committed on the workin
 composite units committed on their worktree branches), spawn **exactly one**
 `bn-integrator` to merge in dependency order and run the full suite. The integrator has
 **no `Agent(...)` allowlist** — it is the single merge writer; it reports bounces to you
-rather than re-dispatching. Pass `model: <model_tier>`.
+rather than re-dispatching.
 
 ```
 === BANYAN ENVELOPE ===
@@ -209,7 +208,6 @@ tool_guidance:   Read/Grep/Glob/Bash (git merge, conflict resolution) /Edit/Writ
                  Spawn nothing.
 budget:
   max_children:    0
-  model_tier:      <model_tier>
   depth_remaining: 1
 effort_class:    <your effort_class>
 === END ENVELOPE ===
@@ -289,11 +287,11 @@ composite), and the artifact (the branch ref / `progress/unit-<id>.md`). You own
 (single-writer). **Append** one event line to `## Log`
 (`- <ISO8601> bn-delivery-lead: <event>`). Do not edit any row or log line you do not own.
 
-**Before returning, spawn ONE `bn-lesson-harvester`** (`model: haiku`) with an envelope
+**Before returning, spawn ONE `bn-lesson-harvester`** with an envelope
 pointing at your `progress/bn-delivery-lead.md` + your `findings/` and `briefs/` dirs and
 `artifact_path` under `docs/runs/<run-id>/lessons-staging/`. This is the fractal-compounding
 harvest: capture the still-fresh lessons of this subtree now, while the context is rich,
-instead of losing them to a summary later. It is cheap (one Haiku child, bounded output) and
+instead of losing them to a summary later. It is bounded (read-only mining, tiny write surface) and
 must not block or alter your verdict — harvest, then return. Do not wait on it for
 correctness. Use the canonical envelope shape:
 
@@ -314,7 +312,6 @@ tool_guidance:   Read/Grep/Glob to mine the progress files and findings; Write o
                  lessons-staging/. No Agent, Bash, or Edit.
 budget:
   max_children:    0
-  model_tier:      haiku
   depth_remaining: 1
 effort_class:    lightweight
 === END ENVELOPE ===

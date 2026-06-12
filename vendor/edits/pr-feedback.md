@@ -84,3 +84,13 @@ permission cliff (outward actions at trunk only), envelopes, and artifact contra
   see AGENTS.md §2.1); Step 2 gains the PR-context spawn-gate conditional and the
   host-persona selection block; Step 3 notes the two persona-specific envelope inputs;
   Step 4 notes reviewer-agnostic merging; Step 7 coverage lists custom personas.
+
+---
+
+## 2026-06-11 — model re-pinned to Opus (invariant 7)
+
+Invariant 7 now pins each agent's model in `model:` frontmatter (Opus by default; Sonnet only
+for mechanical leaves) and a lead no longer overrides a child's model at spawn time:
+
+- **bn-pr-comment-resolver:** `inherit` -> `opus` (validity assessment plus local fixes).
+- **bn-previous-comments-reviewer:** `inherit` -> `opus` (semantic "was this addressed" judgment).

@@ -1,7 +1,7 @@
 ---
 name: bn-repo-researcher
 description: "Conducts thorough research on repository structure, documentation, conventions, and implementation patterns. Use when onboarding to a new codebase or understanding project conventions."
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 ---
 

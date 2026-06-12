@@ -43,7 +43,7 @@ The envelope provides:
 - `boundaries`: read the assigned sources and references; write only assigned
   derivatives, `docs/runs/<run-id>/lessons-staging/` candidates named by the
   assignment, and `artifact_path`.
-- `budget`: `{ max_children: 0, model_tier: sonnet, depth_remaining: 1 }`.
+- `budget`: `{ max_children: 0, depth_remaining: 1 }`.
 
 If the batch contains more than 8 sources, write an outcome JSON with errors and do not
 write derivatives.

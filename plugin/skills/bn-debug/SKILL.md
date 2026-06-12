@@ -79,7 +79,6 @@ tool_guidance:   Read, Grep, Glob, Bash to reproduce and inspect; Write to this 
                  the exit-path harvester.
 budget:
   max_children:    6
-  model_tier:      inherit
   depth_remaining: 3
 effort_class:    <lightweight | standard | deep>
 === END ENVELOPE ===
@@ -121,7 +120,6 @@ Then:
                    harvester.
   budget:
     max_children:    1
-    model_tier:      inherit
     depth_remaining: 2
   effort_class:    standard
   === END ENVELOPE ===

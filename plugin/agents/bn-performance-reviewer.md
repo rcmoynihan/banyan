@@ -1,7 +1,7 @@
 ---
 name: bn-performance-reviewer
 description: Conditional code-review persona, selected when the diff touches database queries, loop-heavy data transforms, caching layers, or I/O-intensive paths. Reviews code for runtime performance and scalability issues.
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 color: blue
 ---

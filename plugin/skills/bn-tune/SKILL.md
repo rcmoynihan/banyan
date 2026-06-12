@@ -83,7 +83,6 @@ tool_guidance:   Read, Grep, Glob to mine ledgers, progress files (echoed envelo
                  docs/harness-proposals/ and the changelog. No Edit. No Agent spawns.
 budget:
   max_children:    0
-  model_tier:      inherit
   depth_remaining: 0
 effort_class:    deep
 === END ENVELOPE ===
@@ -91,9 +90,8 @@ effort_class:    deep
 
 - `max_children: 0` and `depth_remaining: 0` make the agent a leaf -- it mines inline and
   spawns nothing (it has no `Agent(...)` allowlist either).
-- `model_tier: inherit` matches the agent's declared `model: inherit`: whole-system analysis
-  steers edits to the harness itself, so it runs at the session's strong model, not stepped
-  down.
+- The agent runs at its pinned `model: opus`: whole-system analysis steers edits to the
+  harness itself.
 
 ## Step 4: Present the proposals (human applies)
 

@@ -1,7 +1,7 @@
 ---
 name: bn-custom-reviewer
 description: "Generic host-repo reviewer persona. Reads the persona charter file named in its envelope (inputs.persona_file, a doc under the target repo's docs/review-personas/), embodies that charter -- what to hunt, what not to flag, severity calibration -- and reviews the staged diff exactly like any shipped reviewer, writing findings JSON per schemas/findings-schema.json. Spawned by bn-review-lead; spawns nothing."
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 color: blue
 ---
@@ -27,7 +27,7 @@ and this file.
   reviewer inputs — path to `full.diff`, path to `files.txt`, base ref, intent summary,
   `scope_mode`.
 - `artifact_path`: `docs/runs/<run-id>/findings/custom-<name>.json`.
-- `budget`: `{ max_children: 0, model_tier: sonnet, depth_remaining: 1 }` — you are a
+- `budget`: `{ max_children: 0, depth_remaining: 1 }` — you are a
   leaf.
 
 ## Step 1 — Read the persona file (fail-soft)

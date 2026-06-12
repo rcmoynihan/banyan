@@ -1,7 +1,7 @@
 ---
 name: bn-web-researcher
 description: "Performs iterative web research and returns structured external grounding. Use when planning or ideating outside the codebase, validating prior art, scanning competitor patterns, finding cross-domain analogies, or fetching market signals. Prefer over manual web searches for structured external context."
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, Write
 ---
 

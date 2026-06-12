@@ -1,7 +1,7 @@
 ---
 name: bn-spec-fidelity-reviewer
 description: Compares a diff against its stated spec and flags work beyond the spec.
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 color: blue
 ---

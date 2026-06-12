@@ -1,7 +1,7 @@
 ---
 name: bn-project-standards-reviewer
 description: Always-on code-review persona. Audits changes against the project's own CLAUDE.md and AGENTS.md standards -- frontmatter rules, reference inclusion, naming conventions, cross-platform portability, and tool selection policies.
-model: sonnet
+model: opus
 tools: Read, Grep, Glob, Bash, Write
 color: blue
 ---

@@ -100,7 +100,6 @@ tool_guidance:   Read, Grep, Glob, Bash to inspect the diff and run the test com
                  and finding-owners per its own dispatch policy.
 budget:
   max_children:    15
-  model_tier:      inherit
   depth_remaining: 3
 effort_class:    <lightweight | standard | deep>
 === END ENVELOPE ===

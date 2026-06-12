@@ -141,7 +141,6 @@ tool_guidance:   Read/Grep/Glob to inspect; Edit to fix; Bash for targeted tests
                  read-only git; Write only to artifact_path.
 budget:
   max_children:    0
-  model_tier:      inherit
   depth_remaining: 1
 effort_class:    standard
 === END ENVELOPE ===
@@ -316,13 +315,12 @@ tool_guidance:   Read/Grep/Glob to mine; Write only to lessons-staging/. No Agen
                  or Edit.
 budget:
   max_children:    0
-  model_tier:      haiku
   depth_remaining: 1
 effort_class:    lightweight
 === END ENVELOPE ===
 ```
 
-Spawn it as `bn-lesson-harvester` with `model: haiku`. Then update `ledger.md` (units
+Spawn it as `bn-lesson-harvester`. Then update `ledger.md` (units
 done, closing log line) and present a concise summary of all work done. Group by
 verdict, one line per item describing *what was done* not just *where*. This is the
 primary output the user sees.

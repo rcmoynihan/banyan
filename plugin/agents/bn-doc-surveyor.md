@@ -35,7 +35,7 @@ The envelope provides:
 - `artifact_path`: `docs/runs/<run-id>/findings/survey-<n>.json`.
 - `boundaries`: read only the listed sources and required references; write only the
   artifact path.
-- `budget`: `{ max_children: 0, model_tier: sonnet, depth_remaining: 1 }`.
+- `budget`: `{ max_children: 0, depth_remaining: 1 }`.
 
 If the batch contains more than 25 docs, write an artifact with an error entry for the
 batch and classify nothing else.

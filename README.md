@@ -24,6 +24,7 @@ flowchart TD
   ledger[("docs/runs/&lt;run-id&gt;<br/>ledger + artifacts")]
 
   trunk -. reads gate artifacts .-> ledger
+  trunk -->|"fuzzy intake"| brainstorm["/bn-brainstorm<br/>requirements intake"]
   trunk -->|"one envelope"| research["bn-research-lead"]
   trunk -->|"one envelope"| plan["/bn-plan<br/>trunk-written plan"]
   trunk -->|"one envelope"| delivery["bn-delivery-lead"]
@@ -82,10 +83,10 @@ pwsh scripts/smoke.ps1   # builds the fixture sandbox, installs the plugin, runs
 In a `claude` session inside the repo you want to work on:
 
 ```
-/bn-grow <feature or task description>
+/bn-grow <idea or feature/task description>
 ```
 
-`/bn-grow` runs the full pipeline — research → plan (judged) → deliver → review → ship gate → curation handoff — coordinating through a run ledger at `docs/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
+`/bn-grow` runs the full pipeline — optional brainstorm intake for fuzzy ideas → research → plan (judged) → deliver → review → ship gate → curation handoff — coordinating through a run ledger at `docs/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
 
 Each stage is also independently invocable:
 
@@ -94,7 +95,7 @@ Each stage is also independently invocable:
 | `/bn-brainstorm` | Collaborative requirements dialogue producing a requirements doc that hands off to `/bn-plan` — the front of the loop for fuzzy ideas. |
 | `/bn-onboard` | Onboard an existing repo by classifying the documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The flagship review subtree: reviews a diff, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (commits on a clean tree, never pushes). |
-| `/bn-plan` | A plan from a judge panel: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
+| `/bn-plan` | A plan from a requirements doc, research brief, or task: prior-biased generators (mvp / risk / ops) scored by independent judges, synthesized by the trunk. |
 | `/bn-work` | Execute a plan via worktree-isolated unit subtrees plus a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel fresh-context investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
@@ -127,9 +128,10 @@ manifest with the artifact graph and handoff paths.
 /bn-grow add per-tenant rate limiting to the public API
 ```
 
-The trunk clarifies intent with you, opens a run ledger, then dispatches the subtrees in
-sequence — research → plan (judged) → deliver → review — with an explicit artifact gate
-between each stage, so a failed stage stops the pipeline instead of being papered over.
+The trunk classifies the input, opens a run ledger, runs brainstorm intake when the idea is
+still fuzzy, then dispatches the subtrees in sequence — research → plan (judged) → deliver
+→ review — with an explicit artifact gate between each stage, so a failed stage stops the
+pipeline instead of being papered over.
 Watch the run live:
 
 ```
@@ -147,12 +149,13 @@ mid-pipeline resumes from its ledger once the blocker is cleared.
 /bn-brainstorm what if rate limits were configurable per customer tier?
 ```
 
-For ideas that aren't yet feature descriptions. A collaborative dialogue — one question
-per turn, scope-tiered rigor probes, 2-3 concrete approaches with a recommendation —
-ending in a requirements document under `docs/brainstorms/` strong enough that planning
+For standalone ideas that aren't yet feature descriptions. A collaborative dialogue — one
+question per turn, scope-tiered rigor probes, 2-3 concrete approaches with a recommendation
+— ending in a requirements document under `docs/brainstorms/` strong enough that planning
 doesn't have to invent product behavior. The handoff menu flows straight into `/bn-plan`
 (or `/bn-work` for lightweight, well-defined changes); for grounding questions a short
-scan can't answer, it can dispatch the research subtree and fold the brief in.
+scan can't answer, it can dispatch the research subtree and fold the brief in. `/bn-grow`
+uses the same requirements-intake contract automatically when its input is fuzzy.
 
 ### Review a change
 
@@ -230,10 +233,11 @@ pattern instead of churning.
 Use this split instead of `/bn-grow` when you want a human gate between planning and
 execution. `/bn-plan` drafts competing approaches under different priors (mvp-first /
 risk-first / ops-first), scores them with an independent judge panel, and synthesizes the
-winner into a plan doc with stable unit IDs; pass it a research-brief path instead of a
-description to ground it in prior research. `/bn-work` executes the latest plan (or a
-path you give it): atomic units inline, composite units in isolated worktrees with their
-own test-fix loop and mini-review, and a single integrator merging in dependency order.
+winner into a plan doc with stable unit IDs; pass it a requirements-doc path or
+research-brief path instead of a description to ground it in prior work. `/bn-work`
+executes the latest plan (or a path you give it): atomic units inline, composite units in
+isolated worktrees with their own test-fix loop and mini-review, and a single integrator
+merging in dependency order.
 
 ### Keep the harness compounding
 

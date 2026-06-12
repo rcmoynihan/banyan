@@ -1,7 +1,7 @@
 ---
 name: bn-plan
-description: "Produce a v1-compatible implementation plan. For standard/deep efforts, generate 2-3 approach drafts with different priors, score them with a cheap judge panel, and synthesize the winner; lightweight efforts draft directly. Reads a research brief if one exists. Use to turn a feature/task description (or a research brief) into a plan doc with stable U-IDs."
-argument-hint: "[feature/task description | path to a research brief]"
+description: "Produce a v1-compatible implementation plan. For standard/deep efforts, generate 2-3 approach drafts with different priors, score them with a cheap judge panel, and synthesize the winner; lightweight efforts draft directly. Reads a requirements document and research brief when present. Use to turn a feature/task description, requirements doc, or research brief into a plan doc with stable U-IDs."
+argument-hint: "[feature/task description | path to requirements doc | path to research brief]"
 ---
 
 # bn-plan
@@ -21,22 +21,31 @@ The trunk produces and consumes these artifacts.
 
 ## Step 1 — Inputs and grounding
 
-Take the argument as the **task** (a feature/task description) OR a **path to a research
-brief**. Then:
+Take the argument as the **task** (a feature/task description), a **path to a requirements
+document** (`docs/brainstorms/*-requirements.md`), OR a **path to a research brief**
+(`docs/runs/<run-id>/briefs/*.md`). Then:
 
+- **Resolve the primary input.** If the argument is a requirements document path, READ it in
+  full and use it as the scope authority. If it has a non-empty `Resolve Before Planning`
+  section or equivalent planning blocker, STOP and surface those blockers. If the argument is
+  a research brief path, READ it as the initial research grounding. Otherwise treat the
+  argument as the task description.
 - **Locate the run.** If you are already in a run (this skill was reached from `/bn-grow` or a
-  prior step), reuse that run dir. Otherwise open one via the scaffolder (see
-  `bn-conventions`):
+  prior step), reuse that run dir. If the argument path is under `docs/runs/<run-id>/`, reuse
+  that run dir. Otherwise open one via the scaffolder (see `bn-conventions`):
   ```
   node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs plan-<slug> --root <repo-root>
   ```
   Capture the printed run ID and absolute run dir. Fill `ledger.md`'s `## Objective` (produce
   a plan for this task), set the `## Plan` ref to the plan path you will write, and append the
   opening `## Log` line. Add a `U1 | trunk | in-progress | docs/plans/<...>-plan.md` row.
-- **Find the research brief.** If the argument was a brief path, use it. Otherwise look for
-  `docs/runs/<run-id>/briefs/research-brief.md` (written by `bn-research-lead`). READ it if it
-  exists — it is the factual grounding for the plan. If none exists, note "no brief — planning
-  from task + repo" in the ledger; the generators will do a light grounding pass themselves.
+- **Find the research grounding.** If the argument was a brief path, use it as the research
+  brief. Otherwise look for `docs/runs/<run-id>/briefs/research-brief.md` (written by
+  `bn-research-lead`). READ it if it exists — it is the factual grounding for the plan. If a
+  requirements document references `docs/runs/<run-id>/briefs/brainstorm-grounding.md` or
+  another `docs/runs/*/briefs/*.md` grounding path, READ that as supplemental grounding. If no
+  brief exists, note "no brief — planning from task/requirements + repo" in the ledger; the
+  generators will do a light grounding pass themselves.
 - **Detect repo facts for the envelopes:** the repo root (`git rev-parse --show-toplevel`) and
   the test command (`package.json scripts.test`, else `node --test` / `pytest` / `cargo test`
   / `go test ./...`). Record what you found.
@@ -76,8 +85,10 @@ output_format:   A v1-compatible plan: ## Requirements (tagged R-IDs: [confirmed
                  ## Sequencing; ## Verification (whole feature). Design invariants if warranted.
 inputs:
   task:            <the task description>
+  requirements_doc: <docs/brainstorms/...-requirements.md, or "none">
   prior:           <mvp-first | risk-first | ops-first>   # one per generator
-  research_brief:  docs/runs/<run-id>/briefs/research-brief.md   (or "none")
+  research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:       <repo root>
 boundaries:      Read-only against the repo except your one artifact. Do NOT edit source,
                  switch branches, or touch protected artifacts docs/brainstorms, docs/plans,
@@ -87,7 +98,6 @@ tool_guidance:   Read, Grep, Glob and read-only Bash (git, ls) to ground units i
                  Write only to artifact_path. No Agent spawns — you are a leaf.
 budget:
   max_children:    0
-  model_tier:      sonnet
   depth_remaining: 1
 effort_class:    <standard | deep>
 === END ENVELOPE ===
@@ -118,8 +128,10 @@ output_format:   Score sheet: a table scoring each draft 1-5 on feasibility, coh
                  any fatal flaw).
 inputs:
   task:            <the task description>
+  requirements_doc: <docs/brainstorms/...-requirements.md, or "none">
   draft_paths:     docs/runs/<run-id>/briefs/plan-draft-mvp-first.md, ...-risk-first.md[, ...-ops-first.md]
-  research_brief:  docs/runs/<run-id>/briefs/research-brief.md   (or "none")
+  research_brief:  <docs/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:       <repo root>
 boundaries:      Read-only. Do NOT edit source or touch protected artifacts docs/brainstorms,
                  docs/plans, docs/solutions, docs/runs (except your own artifact_path). Never
@@ -128,7 +140,6 @@ tool_guidance:   Read, Grep, Glob to read drafts and spot-check named files agai
                  Write only to artifact_path. No Agent spawns — you are a leaf.
 budget:
   max_children:    0
-  model_tier:      sonnet
   depth_remaining: 1
 effort_class:    <standard | deep>
 === END ENVELOPE ===
@@ -143,7 +154,7 @@ the judges' final-message prose — invariant 3). Then:
 2. **Note the graft list** = the "best idea from each draft" the judges named for the
    runner-up drafts, minus any idea a judge flagged as a fatal flaw.
 
-Why sonnet judges, not haiku: plan critique is real reasoning, and haiku rewards length over
+Why opus judges: plan critique is real reasoning, and a weaker model rewards length over
 soundness — that corrupts the panel signal (see `bn-plan-judge`). The panel is three
 *independent* reads precisely so no single judge's bias decides the plan.
 
@@ -165,6 +176,8 @@ fixture plan):
 
 - A header block (title; `**Date:** … · **Plan ID:** NNN · **Type:** <type> · **Status:** draft`)
   and a short overview.
+- A **Source documents** block listing the requirements document, formal research brief, and
+  supplemental grounding brief when each exists.
 - A **`## Requirements`** section with stable **R-IDs** (`R1`, `R2`, …) — testable
   requirements the plan satisfies. Every R-ID carries `[confirmed]` or `[assumed]`; each
   `[assumed]` requirement includes an inline `(confirm by: ...)` clause.
@@ -177,13 +190,18 @@ fixture plan):
 - **`## Verification (whole feature)`** — the end-to-end done check.
 - Optionally `## Risks` and `## Deferred to follow-up` for deep efforts.
 
-**Synthesize, don't transcribe.** For standard/deep: build primarily from the **winning
+**Synthesize, don't transcribe.** Treat the requirements document as the product/scope
+authority when one exists; the research brief grounds feasibility and repo facts. For
+standard/deep: build primarily from the **winning
 draft**, then **graft the best runner-up ideas** the judges named (Step 4's graft list) — e.g.
 adopt the winner's unit decomposition but pull in a runner-up's rollback unit or risk spike.
 Keep each requirement's `[confirmed]` or `[assumed]` tag with the R-ID it describes, and
-add confirm-by clauses for any assumed requirements introduced by grafted ideas. Resolve any
-conflict in the winner's favor. For **lightweight** (panel skipped): the trunk drafts the
-plan directly from the brief + task, same structure, tagging every trunk-authored R-ID.
+add confirm-by clauses for any assumed requirements introduced by grafted ideas. Requirements
+carried from a requirements document are `[confirmed]` unless the document itself marks them
+open or conditional. Resolve implementation conflicts in the winner's favor, but do not let a
+draft override the requirements document's scope. For **lightweight** (panel skipped): the
+trunk drafts the plan directly from the requirements document, brief, and task, same
+structure, tagging every trunk-authored R-ID.
 
 Then **record provenance in the ledger**: set U1's row to `done` (artifact = the plan path),
 and append a `## Log` line noting the plan path, the `effort_class`, and — for standard/deep —
@@ -199,6 +217,7 @@ Present a **short** summary to the user:
 - the `effort_class`, and — for standard/deep — the winning prior, the judges' mean scores,
   and which runner-up ideas were grafted; for lightweight, that the **panel was skipped** (and
   that this is visible in the ledger);
+- the requirements document path when one grounded the plan;
 - every `[assumed]` R-ID with its `(confirm by: ...)` clause; if none exist, say there are
   no assumed requirements;
 - a one-line pointer to the run dir (`docs/runs/<run-id>/`) for the drafts and score sheets.
