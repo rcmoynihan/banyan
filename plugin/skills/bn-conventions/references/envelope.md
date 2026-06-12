@@ -20,11 +20,13 @@ write any agent that spawns children.
 ## The envelope fields
 
 Every spawn carries these fields. They are the whole contract; nothing load-bearing
-travels outside them.
+travels outside them -- the load-bearing data lives *inside* the listed fields, `inputs`
+included.
 
 | field | what it is |
 |---|---|
 | `objective` | One crisp goal, one sentence. Not a role ("be a reviewer") -- a target ("find correctness bugs in the diff at HEAD"). |
+| `inputs` | Optional. The task-specific payload the parent hands the child: base ref, diff/files paths, intent summary, scope mode, plan ref, test command, and any flags -- the shapes review/delivery/debug leads already pass. Resolved paths, never bare host-repo paths (see the `doctrine` footgun). |
 | `artifact_path` | The single file the child MUST write (invariant 3, artifacts over prose). The child's final message is a verdict plus this path -- never the payload. |
 | `output_format` | What the artifact contains: schema name, section headings, or "JSON per `schemas/findings-schema.json`". The parent reads the file expecting this shape. |
 | `doctrine` | Resolved paths to the Banyan doctrine and required convention references. Include `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` whenever the child needs Banyan invariants, lead pattern, protected artifacts, or recovery doctrine; do not rely on a bare `AGENTS.md`, which belongs to the host repo. |
@@ -56,6 +58,8 @@ echoed envelopes line up, and a violation is a visible diff. Copy this block:
 ```
 === BANYAN ENVELOPE ===
 objective:       <one crisp goal, one sentence>
+inputs:          <optional task-specific payload: base ref, diff/files paths, intent
+                 summary, scope mode, plan ref, test command, flags -- resolved paths>
 artifact_path:   docs/runs/<run-id>/<dir>/<file>
 output_format:   <schema name | headings | "JSON per schemas/...">
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
