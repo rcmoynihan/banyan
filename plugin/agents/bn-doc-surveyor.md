@@ -31,7 +31,7 @@ The envelope provides:
 - `run_id`: the active run ID.
 - `surveyor`: `survey-<n>`.
 - `inputs`: at most 25 repo-relative source paths.
-- `artifact_path`: `docs/runs/<run-id>/findings/survey-<n>.json`.
+- `artifact_path`: `.banyan/runs/<run-id>/findings/survey-<n>.json`.
 - `boundaries`: read only the listed sources and required references; write only the
   artifact path.
 - `budget`: `{ max_children: 0, depth_remaining: 1 }`.
@@ -101,8 +101,8 @@ Do not pre-resolve derivative paths. The trunk owns slug and target collision re
 - Read only the listed sources and required references.
 - Write only `artifact_path`.
 - Never edit source documents.
-- Never write `docs/onboarding-manifest.md`.
-- Never write derivatives, instruction files, `docs/solutions/`, or `docs/brainstorms/`.
+- Never write `.banyan/onboarding-manifest.md`.
+- Never write derivatives, instruction files, `.banyan/solutions/`, or `.banyan/brainstorms/`.
 - Never touch protected artifacts except the single survey artifact under this run.
 - Never run commands.
 - Never spawn agents.
@@ -112,4 +112,4 @@ Do not pre-resolve derivative paths. The trunk owns slug and target collision re
 
 Return one line:
 
-`survey-<n>: 25 classified, 4 skip, 3 instruction-source -> docs/runs/<run-id>/findings/survey-<n>.json`
+`survey-<n>: 25 classified, 4 skip, 3 instruction-source -> .banyan/runs/<run-id>/findings/survey-<n>.json`

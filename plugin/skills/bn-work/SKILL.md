@@ -1,7 +1,7 @@
 ---
 name: bn-work
 description: "Implement a durable plan or lightweight direct-work spec via a delivery subtree: a lead makes per-unit atomizer decisions, spawns worktree-isolated unit-leads that self-test and mini-review, and a single integrator merges in dependency order. Commits per unit; never pushes."
-argument-hint: "[path to docs/plans/*-plan.md | direct task/context | blank to discover the latest plan]"
+argument-hint: "[path to .banyan/plans/*-plan.md | direct task/context | blank to discover the latest plan]"
 ---
 
 # bn-work
@@ -28,26 +28,26 @@ permission cliff, and §2.2 self-recovery). Skip any already in your context.
 
 Resolve exactly one delivery input. There are two modes:
 
-- **Durable-plan mode** -- execute an existing plan doc under `docs/plans/`.
+- **Durable-plan mode** -- execute an existing plan doc under `.banyan/plans/`.
 - **Direct mode** -- synthesize a lightweight run-local delivery spec from the command
   argument, readable non-plan input files, and the current conversation context.
 
 Dispatch rules:
 
-- **No arg** -> discover the most recent `docs/plans/*-plan.md` (highest
+- **No arg** -> discover the most recent `.banyan/plans/*-plan.md` (highest
   `YYYY-MM-DD-NNN` prefix; the plan naming is
-  `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`). If the branch/context names a
+  `.banyan/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`). If the branch/context names a
   specific plan, prefer that. Do NOT ask the user before proceeding if a clear latest
   plan exists. If no plan exists, STOP with a clear message naming where you looked
-  (`docs/plans/`) and tell the user to pass a direct task/context argument for direct
+  (`.banyan/plans/`) and tell the user to pass a direct task/context argument for direct
   mode or run `/bn-plan`.
-- **Arg is a readable path resolving under `docs/plans/` and matching `*-plan.md`** ->
+- **Arg is a readable path resolving under `.banyan/plans/` and matching `*-plan.md`** ->
   use that plan verbatim. READ it.
-- **Arg is a readable path resolving under `docs/plans/` but not matching `*-plan.md`** ->
-  STOP and say `docs/plans/` is reserved for durable plan docs. Ask for a valid plan path
-  or direct task/context outside `docs/plans/`.
+- **Arg is a readable path resolving under `.banyan/plans/` but not matching `*-plan.md`** ->
+  STOP and say `.banyan/plans/` is reserved for durable plan docs. Ask for a valid plan path
+  or direct task/context outside `.banyan/plans/`.
 - **Arg is anything else** -> enter direct mode. If the arg is a readable file path
-  outside `docs/plans/`, READ it as input context. Otherwise treat the arg as direct task
+  outside `.banyan/plans/`, READ it as input context. Otherwise treat the arg as direct task
   context. The current conversation is valid input in direct mode, but only after this
   skill materializes the load-bearing details into a run-local direct work spec before
   spawning the lead.
@@ -103,7 +103,7 @@ Detect the facts the lead needs; surface anything that would move the user's tre
 
 **Locate the run.** If you are already in a run (this skill was reached from `/bn-grow` or
 a prior step that passed its run ID and run dir), reuse that run dir — do NOT scaffold a
-new one; the delivery report and progress notes belong under the same `docs/runs/<run-id>/`
+new one; the delivery report and progress notes belong under the same `.banyan/runs/<run-id>/`
 the grow ledger already tracks. Otherwise scaffold a run dir so the lead reads files, not
 prose:
 
@@ -112,7 +112,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug>
   --root <repo-root> \
   --input <delivery-spec-path-if-known> \
   --objective "<execute this delivery spec or direct work task>" \
-  --plan-ref "<docs/plans/...-plan.md OR pending direct-work spec>" \
+  --plan-ref "<.banyan/plans/...-plan.md OR pending direct-work spec>" \
   --actor trunk
 ```
 
@@ -126,14 +126,14 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug>
 
 Set the delivery spec path:
 
-- **Durable-plan mode** -> `delivery_spec_path` is the located `docs/plans/*-plan.md`;
+- **Durable-plan mode** -> `delivery_spec_path` is the located `.banyan/plans/*-plan.md`;
   `delivery_spec_kind` is `durable-plan`; the ledger `## Plan` ref is the plan path.
-- **Direct mode** -> write `docs/runs/<run-id>/briefs/direct-work-plan.md`;
+- **Direct mode** -> write `.banyan/runs/<run-id>/briefs/direct-work-plan.md`;
   `delivery_spec_kind` is `direct-work`; the ledger `## Plan` ref is
-  `none -- direct work spec docs/runs/<run-id>/briefs/direct-work-plan.md`.
+  `none -- direct work spec .banyan/runs/<run-id>/briefs/direct-work-plan.md`.
 
 The direct work spec is written by the trunk as a run artifact, not by the user and not
-under `docs/plans/`. Write it in this structure:
+under `.banyan/plans/`. Write it in this structure:
 
 ```markdown
 # Direct work plan: <task name>
@@ -188,7 +188,7 @@ lead re-reads the spec in full.
 
 In a standalone run, seed the `## Units` table from the delivery spec's Implementation
 Units -- one row per U-ID, owner `bn-delivery-lead`, status `pending`, artifact
-`docs/runs/<run-id>/progress/unit-<U>.md` (the unit-lead's progress artifact; its scoped
+`.banyan/runs/<run-id>/progress/unit-<U>.md` (the unit-lead's progress artifact; its scoped
 mini-review pair lands separately at `findings/unit-<U>-review.json` and
 `findings/unit-<U>-spec-fidelity.json`). The lead owns these rows from here on
 (single-writer); the trunk does not rewrite them after dispatch. **When reusing the grow
@@ -206,13 +206,13 @@ child; foreground, in the user's session). Fill every field.
 objective:       Implement the delivery spec end to end for run <run-id>: per-unit atomizer
                  decisions, worktree-isolated unit-leads that self-test and mini-review,
                  and a single integrator merging in dependency order. Commit per unit.
-artifact_path:   docs/runs/<run-id>/delivery-report.md
+artifact_path:   .banyan/runs/<run-id>/delivery-report.md
 output_format:   Markdown delivery report: units done/blocked, merge + suite status,
                  per-unit mini-review summary (findings/unit-*-review.json and
                  findings/unit-*-spec-fidelity.json), and the final branch/commit state.
                  Writes progress/ and ledger Units rows too.
 inputs:
-  delivery_spec_path: <docs/plans/...-plan.md OR docs/runs/<run-id>/briefs/direct-work-plan.md>
+  delivery_spec_path: <.banyan/plans/...-plan.md OR .banyan/runs/<run-id>/briefs/direct-work-plan.md>
   delivery_spec_kind: <durable-plan | direct-work>
   base_branch:     <current branch from Step 3>
   test_command:    <detected repo test command, or "none detected">
@@ -225,8 +225,8 @@ boundaries:      NEVER push or open a PR -- push/PR is the trunk-level bn-ship s
                  (permission cliff, invariant 6); REPORT the need upward, do not fail
                  silently against it. NEVER switch the user's checked-out branch without
                  surfacing it. Commit per unit on that unit's own branch. NEVER touch
-                 protected artifacts docs/brainstorms, docs/plans, docs/solutions,
-                 docs/runs (except this run's own artifacts). One writer per file set;
+                 protected artifacts .banyan/brainstorms, .banyan/plans, .banyan/solutions,
+                 .banyan/runs (except this run's own artifacts). One writer per file set;
                  parallel unit-leads work in disjoint git worktrees, merged by the
                  integrator.
 tool_guidance:   Read, Grep, Glob, Bash, Edit to read the delivery spec and implement
@@ -261,7 +261,7 @@ metadata for every blocked unit or unsafe pre-flight condition:
 
 ## Step 6: Present the result
 
-When the lead returns, READ `docs/runs/<run-id>/delivery-report.md` (the artifact, not
+When the lead returns, READ `.banyan/runs/<run-id>/delivery-report.md` (the artifact, not
 the lead's final-message prose -- invariant 3) and present to the user:
 
 - **units done / blocked** -- which U-IDs landed, which are blocked and why;
@@ -281,7 +281,7 @@ the lead's final-message prose -- invariant 3) and present to the user:
 
 Then state explicitly that **push / PR remains the user's step** -- the lead commits
 per unit but NEVER pushes or opens a PR; shipping is a separate `bn-ship` step
-(permission cliff, invariant 6). Point the user at `docs/runs/<run-id>/` for the full
+(permission cliff, invariant 6). Point the user at `.banyan/runs/<run-id>/` for the full
 record (the delivery report, per-unit reviews, progress notes, and ledger).
 
 ## Permission cliff (invariant 6)

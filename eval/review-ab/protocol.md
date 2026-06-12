@@ -96,7 +96,7 @@ claude -p "/banyan:bn-review base:main" \
   findings, and then gives EACH surviving finding to a `bn-finding-owner` child
   that INDEPENDENTLY verifies (fresh context, re-runs the failing case), fixes,
   and re-tests in place. The lead writes an applied verdict to
-  `docs/runs/<run-id>/review-verdict.md` and commits on a clean tree (never
+  `.banyan/runs/<run-id>/review-verdict.md` and commits on a clean tree (never
   pushes).
 - `--dangerously-skip-permissions` is REQUIRED so nested finding-owners can edit
   files headlessly; the sandbox is throwaway.
@@ -157,7 +157,7 @@ arm; the gate verdict uses the apply-vs-apply arms above.
 
 The seeded-bug fixture wears its nature on its sleeve: every seeded `src/*.js`
 file carries a `BUG-<n>` comment block describing the planted defect, and
-`docs/solutions/` catalogs the exact bug classes. A cautious applier notices
+`.banyan/solutions/` catalogs the exact bug classes. A cautious applier notices
 this. In particular, v1's Stage 5c (apply) ABSTAINS on trees it recognizes as
 an obvious test fixture - it declines to commit "fixes" to code that is plainly
 a deliberate exercise. That asymmetry is not a quality difference between the
@@ -172,7 +172,7 @@ the harness:
 - (a) strips every `BUG-<n>` source-comment block from `src/*.js` (the whole
   contiguous `//` comment block anchored by the `BUG-<n>` line; only comment
   lines are removed, executable code is never touched),
-- (b) removes the `docs/solutions/` directory (it documents these exact bug
+- (b) removes the `.banyan/solutions/` directory (it documents these exact bug
   classes - a giveaway),
 - (c) `git commit --amend`s the `seeded-bugs` commit so `main..seeded-bugs` no
   longer carries the tells (`main`, the clean baseline, is left untouched and
@@ -218,7 +218,7 @@ Two harness mechanics keep the captured artifacts honest and symmetric:
   `result` text from `<arm>/output.json` and writes it to `<arm>/report.md`, so
   each arm has a human-readable report artifact in the same place (if
   `output.json` has no `result`, `report.md` notes that). The banyan arm
-  ADDITIONALLY gets its structured `docs/runs/*/review-verdict.md` copied to
+  ADDITIONALLY gets its structured `.banyan/runs/*/review-verdict.md` copied to
   `<arm>/verdict.md` as before - `report.md` is in addition to, not instead of,
   `verdict.md`.
 

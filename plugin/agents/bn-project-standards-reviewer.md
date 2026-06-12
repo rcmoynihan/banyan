@@ -38,7 +38,7 @@ In either case, identify which sections apply to the file types in the diff. A s
 
 - **Writing style violations** -- second person ("you should") where the standards require imperative/objective form. Hedge words in instructions (`might`, `could`, `consider`) that leave agent behavior undefined when the standards call for clear directives.
 
-- **Protected artifact violations** -- findings, suggestions, or instructions that recommend deleting or gitignoring files in paths the standards designate as protected (e.g., `docs/brainstorms/`, `docs/plans/`, `docs/solutions/`).
+- **Protected artifact violations** -- findings, suggestions, or instructions that recommend deleting or cleaning up files in paths the standards designate as protected (e.g., `.banyan/brainstorms/`, `.banyan/plans/`, `.banyan/solutions/`).
 
 ## Confidence calibration
 
@@ -72,7 +72,7 @@ A finding without both a cited rule and a cited violation is not a finding. Drop
 ## Output contract
 
 You run inside a Banyan review subtree. Your delegation envelope provides an `artifact_path`
-(a JSON file under `docs/runs/<run-id>/findings/`). Banyan invariant 3 -- *artifacts over prose* --
+(a JSON file under `.banyan/runs/<run-id>/findings/`). Banyan invariant 3 -- *artifacts over prose* --
 means your findings live in that file, and your final message is only a verdict plus the path.
 
 1. Write your full findings as JSON conforming to `schemas/findings-schema.json` (every required

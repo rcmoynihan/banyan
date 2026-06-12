@@ -48,7 +48,7 @@ test('fenced envelope examples include doctrine', () => {
       const relativePath = path.relative(PLUGIN_ROOT, markdownFile);
       const line = contents.slice(0, match.index).split('\n').length;
       assert.match(block, /\n\s*doctrine:\s+/, `${relativePath}:${line} lacks doctrine`);
-      if (/artifact_path:\s+docs\/runs\/<run-id>\/lessons-staging\//.test(block)) {
+      if (/artifact_path:\s+\.banyan\/runs\/<run-id>\/lessons-staging\//.test(block)) {
         assert.match(
           block,
           /skills\/bn-conventions\/references\/ledger\.md/,
@@ -94,7 +94,7 @@ test('bn-grow recovers gates before surfacing residuals', () => {
 
   assert.match(grow, /## Gates recover before surfacing/);
   assert.match(grow, /failed gate is a recovery signal/);
-  assert.match(grow, /docs\/runs\/<run-id>\/residuals\.md/);
+  assert.match(grow, /\.banyan\/runs\/<run-id>\/residuals\.md/);
   assert.match(grow, /same run dir/);
   assert.doesNotMatch(grow, /STOP and surface/);
 });

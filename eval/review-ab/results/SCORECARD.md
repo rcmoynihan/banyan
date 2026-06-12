@@ -4,8 +4,8 @@
 **Protocol:** `eval/review-ab/protocol.md` · **Both arms:** `claude -p` headless, default (apply-capable) mode, `--dangerously-skip-permissions`, a fresh isolated sandbox each, the in-sandbox `.claude/` excluded from git so the pre-review tree is genuinely clean.
 
 Two runs:
-- **Run A (advertised):** the fixture with its `BUG-NN` comments + `docs/solutions/` intact. `results/u8u9-banyan-001/`, `results/u8u9-ce-002/`.
-- **Run B (de-advertised, FAIR):** `BUG-NN` comments stripped + `docs/solutions/` removed so a cautious reviewer cannot pattern-match the fixture. Clean pre-review trees, full telemetry. `results/u9-fair-002/{banyan,ce}/`.
+- **Run A (advertised):** the fixture with its `BUG-NN` comments + `.banyan/solutions/` intact. `results/u8u9-banyan-001/`, `results/u8u9-ce-002/`.
+- **Run B (de-advertised, FAIR):** `BUG-NN` comments stripped + `.banyan/solutions/` removed so a cautious reviewer cannot pattern-match the fixture. Clean pre-review trees, full telemetry. `results/u9-fair-002/{banyan,ce}/`.
 
 ## Headline (Run B, the fair run; Run A consistent)
 
@@ -26,8 +26,8 @@ Two runs:
 ## Apply behavior (the honest core of the comparison)
 
 In **both** runs, v1 (`ce-code-review`, default mode) **detected every bug but did not apply any fix** — it returned a "Not ready" report. Reasons, stated plainly:
-- **Run A:** v1's Stage 5c explicitly recognized the fixture (it read the `BUG-NN` comments + `docs/solutions/`) and declined to "destroy the fixture's purpose," offering to apply on request.
-- **Run B (de-advertised):** even with the tells stripped, v1 still abstained. Two residual confounds remained — the seeded commit message is literally `fixture: seeded bugs`, and removing `docs/solutions/` made that deletion appear in the `main..seeded-bugs` diff, which v1 flagged as suspicious — **and** v1's Stage 5c is genuinely conservative about auto-reverting a diff that "rewrites core logic." It chose to report.
+- **Run A:** v1's Stage 5c explicitly recognized the fixture (it read the `BUG-NN` comments + `.banyan/solutions/`) and declined to "destroy the fixture's purpose," offering to apply on request.
+- **Run B (de-advertised):** even with the tells stripped, v1 still abstained. Two residual confounds remained — the seeded commit message is literally `fixture: seeded bugs`, and removing `.banyan/solutions/` made that deletion appear in the `main..seeded-bugs` diff, which v1 flagged as suspicious — **and** v1's Stage 5c is genuinely conservative about auto-reverting a diff that "rewrites core logic." It chose to report.
 
 Banyan, in both runs, applied and verified all 12 fixes (suite green, safe commit). So on **this benchmark**: detection is at parity, and **Banyan reliably delivers applied-and-verified outcomes where v1 delivers a report.** A fully clean apply-vs-apply still wants a target with no fixture residue at all (real PRs) — the harness supports that via `-Target <repo> -Base <ref>`.
 
@@ -50,5 +50,5 @@ It is **qualified**, not unconditional, because:
 
 ### Recommended follow-ups (not gating)
 - Run the A/B on 3-5 real PRs (`run-ab.ps1 -Target <repo> -Base <ref>`) for a residue-free apply comparison and broader recall.
-- For a fully clean de-advertise, also normalize the seeded commit message and remove `docs/solutions/` from *both* branches so its deletion is not in the diff.
+- For a fully clean de-advertise, also normalize the seeded commit message and remove `.banyan/solutions/` from *both* branches so its deletion is not in the diff.
 - Capture per-agent OTEL spans (`agent_id`/`parent_agent_id`) to attribute the subtree token totals precisely rather than via the modelUsage aggregate.

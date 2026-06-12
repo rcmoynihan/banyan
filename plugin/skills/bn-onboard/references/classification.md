@@ -11,9 +11,9 @@ one source supports more than one durable output.
 
 | family | output |
 |---|---|
-| `solution-bug` | A bug-track v1 candidate staged under `docs/runs/<run-id>/lessons-staging/` with `status: candidate`. |
-| `solution-knowledge` | A knowledge-track v1 candidate staged under `docs/runs/<run-id>/lessons-staging/` with `status: candidate`. |
-| `brainstorm` | A requirements artifact under `docs/brainstorms/`, following `bn-brainstorm/references/brainstorm-sections.md`. |
+| `solution-bug` | A bug-track v1 candidate staged under `.banyan/runs/<run-id>/lessons-staging/` with `status: candidate`. |
+| `solution-knowledge` | A knowledge-track v1 candidate staged under `.banyan/runs/<run-id>/lessons-staging/` with `status: candidate`. |
+| `brainstorm` | A requirements artifact under `.banyan/brainstorms/`, following `bn-brainstorm/references/brainstorm-sections.md`. |
 | `instruction-source` | Additive source material for `CLAUDE.md`, `CONCEPTS.md`, or `STRATEGY.md`. It produces no derivative file by itself. |
 
 `instruction-source` is additive. It can appear beside another family, but it never
@@ -33,7 +33,7 @@ references.
 | README / CONTRIBUTING / dev setup | Top-level onboarding, local commands, contribution rules, setup steps | `["instruction-source"]` | none | Feeds `CLAUDE.md`. It never creates a derivative in its own track. |
 | Glossary | Term definitions, domain vocabulary, acronym lists | `["instruction-source"]` | none | Feeds `CONCEPTS.md`. |
 | Vision / strategy / roadmap | Product direction, priorities, sequencing rationale, goals | `["instruction-source"]` | none | Feeds `STRATEGY.md`. |
-| In-flight implementation plan | Phases, task lists, unchecked work items, partially completed execution notes | `["brainstorm"]` when requirements survive; otherwise skip | none | Skip reason is `legacy plan - re-plan via /bn-plan` when no durable requirements survive. Never write these to `docs/plans/`; transformed plans would masquerade as judged `/bn-plan` artifacts. |
+| In-flight implementation plan | Phases, task lists, unchecked work items, partially completed execution notes | `["brainstorm"]` when requirements survive; otherwise skip | none | Skip reason is `legacy plan - re-plan via /bn-plan` when no durable requirements survive. Never write these to `.banyan/plans/`; transformed plans would masquerade as judged `/bn-plan` artifacts. |
 | CHANGELOG | Release chronology, version notes, commit summaries | `[]` | none | Skip. Git is the record. |
 
 ## Skip Rules

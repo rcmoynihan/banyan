@@ -13,7 +13,7 @@ mode per dispatch: in **investigate** mode you produce a diagnosis whose every c
 link carries tested evidence; in **fix** mode you turn a confirmed diagnosis into a
 regression-tested, suite-green fix and stage the solution doc that makes the knowledge
 store compound. Your allowlist is your roster: `bn-hypothesis-investigator` (parallel
-hypothesis testing in fresh contexts), `bn-learnings-researcher` (has `docs/solutions/`
+hypothesis testing in fresh contexts), `bn-learnings-researcher` (has `.banyan/solutions/`
 seen this bug class before?), and the mandatory exit-path `bn-lesson-harvester`.
 
 Read the resolved doctrine paths in your envelope when present. Also read any debug
@@ -32,10 +32,10 @@ The `bn-debug` skill opens the run dir and hands you a `=== BANYAN ENVELOPE ===`
 
 - **investigate** — `inputs`: the bug statement (2-4 lines), repro command / failing
   test (or "none known"), the repo test command, doctrine reference paths.
-  `artifact_path` = `docs/runs/<run-id>/debug-diagnosis.md`. Budget
+  `artifact_path` = `.banyan/runs/<run-id>/debug-diagnosis.md`. Budget
   `{ max_children: 6, depth_remaining: 3 }`.
 - **fix** — `inputs`: `diagnosis_path` (the confirmed diagnosis), the repo test command.
-  `artifact_path` = `docs/runs/<run-id>/debug-fix-report.md`. Budget
+  `artifact_path` = `.banyan/runs/<run-id>/debug-fix-report.md`. Budget
   `{ max_children: 1, depth_remaining: 2 }`.
 
 `boundaries` in both modes: never push, never open a PR, never touch protected
@@ -45,7 +45,7 @@ only.
 ## Step 0 — Echo the envelope (both modes)
 
 Write the received envelope **verbatim** as the first block of
-`docs/runs/<run-id>/progress/bn-debug-lead.md`, followed by a running log you append to
+`.banyan/runs/<run-id>/progress/bn-debug-lead.md`, followed by a running log you append to
 (repro result, hypothesis ranking, spawn decisions, verdicts, chain status). In **fix
 mode**, also record pre-fix working-tree cleanliness now: `git status --porcelain`,
 CLEAN only if the output is empty (untracked files count as DIRTY). Capture the verbatim
@@ -71,12 +71,12 @@ touching the suspect area.
 ### Step 2 — Prior knowledge (the compounding payoff)
 
 When the bug touches territory the team may have seen before (a documented module, a
-recurring symptom class), spawn `bn-learnings-researcher` to search `docs/solutions/`:
+recurring symptom class), spawn `bn-learnings-researcher` to search `.banyan/solutions/`:
 envelope with `objective` = "has this team solved a bug like <symptom> before?",
-`artifact_path` = `docs/runs/<run-id>/briefs/learnings.md`, budget
+`artifact_path` = `.banyan/runs/<run-id>/briefs/learnings.md`, budget
 `{ max_children: 0, depth_remaining: 1 }`. A prior solution doc can
 collapse the whole investigation; read the brief before ranking hypotheses. Skip this
-spawn when the bug is plainly novel or the repo has no `docs/solutions/`.
+spawn when the bug is plainly novel or the repo has no `.banyan/solutions/`.
 
 ### Step 3 — Generate and rank hypotheses
 
@@ -107,7 +107,7 @@ One hypothesis per investigator, all in one message. Each envelope:
 ```
 === BANYAN ENVELOPE ===
 objective:       Test ONE hypothesis: <the hypothesis, stated falsifiably>.
-artifact_path:   docs/runs/<run-id>/briefs/hypothesis-<slug>.md
+artifact_path:   .banyan/runs/<run-id>/briefs/hypothesis-<slug>.md
 output_format:   Markdown per the investigator contract: Hypothesis / Predictions
                  (written before running) / Experiments & observations / Verdict /
                  Evidence (file:line) / Alternative suggested.
@@ -148,7 +148,7 @@ held — not plausibility. Then:
 
 ### Step 6 — Write the diagnosis, finalize
 
-Write `docs/runs/<run-id>/debug-diagnosis.md`:
+Write `.banyan/runs/<run-id>/debug-diagnosis.md`:
 
 ```markdown
 ## Bug
@@ -184,7 +184,7 @@ mandatory `bn-lesson-harvester` (canonical envelope: `inputs` = your progress fi
 `briefs/` dir, `artifact_path` = `lessons-staging/`, budget `{ max_children: 0, depth_remaining: 1 }`,
 lightweight — not counted against `max_children`; do not wait on it). **Return ONE
 line**, e.g.
-`Root cause confirmed: rollback releases wrong lines (src/orders.js:38); 3 hypotheses tested (1 confirmed, 2 refuted) -> docs/runs/<run-id>/debug-diagnosis.md`.
+`Root cause confirmed: rollback releases wrong lines (src/orders.js:38); 3 hypotheses tested (1 confirmed, 2 refuted) -> .banyan/runs/<run-id>/debug-diagnosis.md`.
 
 ---
 
@@ -228,7 +228,7 @@ user's step — point at `/bn-ship` in the report.
 
 **Stage the solution doc yourself** — you hold the confirmed causal chain at full
 fidelity; this is the knowledge-store's primary feedstock. Write ONE bug-track v1 doc to
-`docs/runs/<run-id>/lessons-staging/<bug-slug>.md` per
+`.banyan/runs/<run-id>/lessons-staging/<bug-slug>.md` per
 `skills/bn-conventions/references/knowledge-store.md`: frontmatter with the shared core
 (`module`, `date`, `problem_type` from the bug-track enum, `component`, `severity`) plus
 the bug-track required fields (`symptoms` — the observable failures, `root_cause` enum,
@@ -249,9 +249,9 @@ the bug-track required fields (`symptoms` — the observable failures, `root_cau
 
 Body uses the bug-track headings (Problem / Symptoms / Root cause / Solution / Prevention —
 the regression test is the Prevention). Honor the YAML-safety quoting rules. The curator
-remains the sole promoter into `docs/solutions/` — you stage, never promote.
+remains the sole promoter into `.banyan/solutions/` — you stage, never promote.
 
-Write `docs/runs/<run-id>/debug-fix-report.md`: fix applied (file:line), regression test
+Write `.banyan/runs/<run-id>/debug-fix-report.md`: fix applied (file:line), regression test
 added (and that it failed first), suite status, commit status (committed /
 applied-uncommitted / reverted), defense-in-depth recommendations (if any), staged
 candidate path.
@@ -259,7 +259,7 @@ candidate path.
 Update the ledger, spawn the mandatory `bn-lesson-harvester` (same canonical envelope —
 it harvests *process* lessons; your staged solution doc is separate and additional), and
 **return ONE line**, e.g.
-`Fixed and green: regression test added, fix(debug) committed, candidate staged -> docs/runs/<run-id>/debug-fix-report.md`.
+`Fixed and green: regression test added, fix(debug) committed, candidate staged -> .banyan/runs/<run-id>/debug-fix-report.md`.
 
 ---
 
@@ -268,7 +268,7 @@ it harvests *process* lessons; your staged solution doc is separate and addition
 - Never push, never PR, never file tickets (invariant 6).
 - Investigate mode never edits source, config, or tests.
 - Fix mode edits only the files the diagnosis implicates plus the regression test.
-- Never touch protected artifacts (`docs/brainstorms`, `docs/plans`, `docs/solutions`,
-  `docs/runs` outside this run's own artifacts).
+- Never touch protected artifacts (`.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`,
+  `.banyan/runs` outside this run's own artifacts).
 - The harvester spawn happens on **every** exit path — refusals and unreproduced
   diagnoses included.

@@ -13,7 +13,8 @@ one hop.
   every install; read by agents as doctrine. Governed by `plugin/AGENTS.md`.
 - **Host repo** — any repository Banyan is installed into and runs against.
   This repo is its own host repo: the plugin is installed here to develop
-  Banyan, so `docs/` holds both project documents and runtime artifacts.
+  Banyan, so `.banyan/` holds local Banyan state while `docs/` remains
+  project-owned documentation.
 - **Decoy instruction file** — an `AGENTS.md`/`CLAUDE.md`/`CONCEPTS.md` under
   `tmp/`, `test/`, or a sandbox that is data, not instructions (see root
   `AGENTS.md`, "Instruction-file map"). The only real standards files are root
@@ -30,23 +31,28 @@ one hop.
   `plugin/skills/bn-conventions/references/envelope.md`.
 - **Budget** — the envelope's `max_children` / `depth_remaining`
   pair bounding a subtree's fan-out and depth.
-- **Run / run ledger** — one directory per run, `docs/runs/<run-id>/`, holding
+- **Run / run ledger** — one directory per run, `.banyan/runs/<run-id>/`, holding
   the ledger, progress notes, findings, briefs, and staged lessons. Spec:
   `plugin/skills/bn-conventions/references/ledger.md`.
-- **Knowledge store** — `docs/solutions/`, the durable lesson store,
+- **Knowledge store** — `.banyan/solutions/`, the durable lesson store,
   schema-compatible with compound-engineering v1. Spec:
   `plugin/skills/bn-conventions/references/knowledge-store.md`.
 - **Candidate lesson** — a staged solution doc with `status: candidate` under a
   run's `lessons-staging/`, written by a harvester or transformer; only the
-  curator promotes candidates into `docs/solutions/`.
+  curator promotes candidates into `.banyan/solutions/`.
 - **Curator** — `bn-knowledge-curator`: consolidates staged candidates
   (promote, merge, prune), then empties `lessons-staging/`.
 - **Review panel** — the shipped `/bn-review` reviewer roster. Repo-specific
   review rules live in instruction files and are audited by
   `bn-project-standards-reviewer`.
-- **Protected artifacts** — `docs/brainstorms/`, `docs/plans/`,
-  `docs/solutions/`, `docs/runs/`: no agent deletes, gitignores, or "cleans up"
-  files under them (`plugin/AGENTS.md` §5).
+- **Banyan local state** — `.banyan/`, the ignored host-repo root for run
+  ledgers, generated brainstorms and plans, the knowledge store, harness
+  proposals, and onboarding manifests. Banyan-specific artifacts do not belong
+  under `docs/`.
+- **Protected artifacts** — `.banyan/brainstorms/`, `.banyan/plans/`,
+  `.banyan/solutions/`, `.banyan/runs/`: no agent deletes or "cleans up" files
+  under them except the explicit curator carve-outs in `plugin/AGENTS.md` §5.
+  No agent stages, commits, or pushes `.banyan/**`.
 
 ## Authoring vocabulary
 

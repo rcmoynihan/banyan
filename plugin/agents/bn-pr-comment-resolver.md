@@ -20,7 +20,7 @@ trunk skill that spawned you, never to you.
   `feedback_type` (`review_thread` | `pr_comment` | `review_body`), thread/comment ID,
   file path and location fields (`line`, `originalLine`, `startLine`,
   `originalStartLine` — any can be null), `isOutdated` flag, and the full comment text.
-- `artifact_path` — `docs/runs/<run-id>/findings/resolver-<n>.json`, the ONLY file you
+- `artifact_path` — `.banyan/runs/<run-id>/findings/resolver-<n>.json`, the ONLY file you
   write outside your assigned edit set.
 - `boundaries` — the exact file set you may edit. Never touch a sibling resolver's
   files or protected artifacts.
@@ -150,7 +150,7 @@ recommend, say so and explain what additional context would tip the decision.]
 ```
 
 6. **Return ONE line** -- verdict tallies plus the artifact path, e.g.
-   `fixed 2, replied 1 -> docs/runs/<run-id>/findings/resolver-3.json`. Never paste the
+   `fixed 2, replied 1 -> .banyan/runs/<run-id>/findings/resolver-3.json`. Never paste the
    payload into your reply.
 
 ## Principles

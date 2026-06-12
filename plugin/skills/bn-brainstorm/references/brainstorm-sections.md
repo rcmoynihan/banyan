@@ -26,7 +26,7 @@ Skip document creation when **both** hold:
 - The user only needs brief alignment — no exploration produced novel scope,
   framing, or decisions worth preserving in IDed shape.
 - Any durable decisions made during the dialogue can flow naturally to
-  downstream artifacts (`bn-plan`, the commit message, `docs/solutions/`)
+  downstream artifacts (`bn-plan`, the commit message, `.banyan/solutions/`)
   without a brainstorm doc as an intermediary.
 
 The trigger for creating a doc is when the dialogue surfaced enough
@@ -38,7 +38,7 @@ durable, IDed form — not just as conversational artifacts.
 this with a null check or with upstream validation?" and the agent confirms
 "upstream validation, here's why" doesn't need a brainstorm doc. The
 decision flows to `bn-plan` (or directly to commit message, or to
-`docs/solutions/` if it's a pattern worth carrying) without a brainstorm
+`.banyan/solutions/` if it's a pattern worth carrying) without a brainstorm
 artifact in the middle.
 
 Conversely, a brainstorm about a multi-actor feature with contested scope
@@ -242,11 +242,11 @@ top of the file.
 ### Required
 
 - **`date`** — creation date in ISO 8601 (`YYYY-MM-DD`), ASCII digits only.
-  Used in the filename (`docs/brainstorms/YYYY-MM-DD-<topic>-requirements.md`).
+  Used in the filename (`.banyan/brainstorms/YYYY-MM-DD-<topic>-requirements.md`).
 - **`topic`** — kebab-case slug identifying the brainstorm subject (e.g.,
   `surface-scope-earlier`, `demo-reel-local-save`). Used in the filename
   alongside `date` and as the resume-detection key when `bn-brainstorm`'s
-  Phase 0.1 scans `docs/brainstorms/` for an existing artifact to continue.
+  Phase 0.1 scans `.banyan/brainstorms/` for an existing artifact to continue.
 
 ### No status field
 

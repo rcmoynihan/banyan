@@ -53,7 +53,7 @@
       test-after.txt - post-run test command output + exit code
       report.md      - final `result` text from output.json (BOTH arms; the
                        human-readable report artifact in the same place)
-      verdict.md     - copied docs/runs/*/review-verdict.md (banyan; if present;
+      verdict.md     - copied .banyan/runs/*/review-verdict.md (banyan; if present;
                        this is the structured verdict, kept ADDITIONALLY)
       telemetry.json - {tokens..., total_cost_usd, wall_clock_sec} extracted
       ERROR.txt      - present ONLY if the arm failed (with the reason)
@@ -97,7 +97,7 @@
     FIXTURE-ONLY. After fixture-init builds the source sandbox, transform the
     seeded-bugs branch so a cautious reviewer cannot recognize it as a deliberate
     fixture WITHOUT changing the actual buggy behavior: strip every `BUG-<n>`
-    source-comment block from src/*.js, remove docs/solutions/, then amend the
+    source-comment block from src/*.js, remove .banyan/solutions/, then amend the
     seeded-bugs commit so `main..seeded-bugs` carries no tells. The bugs MUST
     remain (node --test still fails ~7/30); the harness FAILS setup if the bug
     behavior changed. This enables a FAIR apply-vs-apply comparison: v1's Stage 5c
@@ -211,7 +211,7 @@ $DeadvertiseFailCount = $null    # post-transform failing-test count (for the su
 # recognize it as a deliberate fixture, WITHOUT changing buggy behavior:
 #   (a) strip every contiguous `//` comment block anchored by a `BUG-<n>` line
 #       from src/*.js (comment lines only; executable code is never touched),
-#   (b) remove docs/solutions/ (it documents these exact bug classes),
+#   (b) remove .banyan/solutions/ (it documents these exact bug classes),
 #   (c) amend the seeded-bugs commit so main..seeded-bugs carries no tells,
 #   (d) verify the bugs are still present: `node --test` must still FAIL the
 #       same way (~7/30). If the failing count changed, a bug was accidentally
@@ -219,7 +219,7 @@ $DeadvertiseFailCount = $null    # post-transform failing-test count (for the su
 # Returns the number of failing tests observed post-transform (for the summary).
 function Invoke-Deadvertise {
     param([string]$dir, [string]$Branch)
-    Say "De-advertising fixture (stripping BUG- tells + docs/solutions) on '$Branch' ..." 'Cyan'
+    Say "De-advertising fixture (stripping BUG- tells + .banyan/solutions) on '$Branch' ..." 'Cyan'
     Git-OrThrow $dir checkout -q $Branch | Out-Null
 
     # (pre) Establish the buggy-behavior baseline BEFORE the transform so we can
@@ -255,8 +255,8 @@ function Invoke-Deadvertise {
         }
     }
 
-    # (b) remove docs/solutions/ (a giveaway: it catalogs these exact bug classes).
-    $solDir = Join-Path $dir 'docs/solutions'
+    # (b) remove .banyan/solutions/ (a giveaway: it catalogs these exact bug classes).
+    $solDir = Join-Path $dir '.banyan/solutions'
     $removedSolutions = $false
     if (Test-Path -LiteralPath $solDir) {
         Remove-Item -LiteralPath $solDir -Recurse -Force
@@ -268,7 +268,7 @@ function Invoke-Deadvertise {
     Git-OrThrow $dir add -A | Out-Null
     Git-OrThrow $dir commit --amend --no-edit -q | Out-Null
 
-    # Guard: no BUG-<n> tell may remain anywhere in src/*.js, and docs/solutions/
+    # Guard: no BUG-<n> tell may remain anywhere in src/*.js, and .banyan/solutions/
     # must be gone. Scan the working-tree files directly (Select-String) rather
     # than `git grep` so flag-like args (e.g. -E) are not mis-bound by PowerShell.
     $remaining = @()
@@ -280,7 +280,7 @@ function Invoke-Deadvertise {
         throw "de-advertise failed: BUG-<n> tells still present in src/*.js after strip:`n$hits"
     }
     if (Test-Path -LiteralPath $solDir) {
-        throw "de-advertise failed: docs/solutions/ still present after removal."
+        throw "de-advertise failed: .banyan/solutions/ still present after removal."
     }
 
     # (d) the bugs MUST still be present: same failing count as before.
@@ -288,7 +288,7 @@ function Invoke-Deadvertise {
     if ($postFail -ne $preFail) {
         throw "de-advertise CHANGED buggy behavior: node --test failing count went $preFail -> $postFail. A bug was accidentally removed (not just a comment). Aborting setup."
     }
-    Say "de-advertised: stripped $strippedTells BUG- comment block(s); docs/solutions removed=$removedSolutions; node --test still fails $postFail/$(Get-TotalTestCount $dir) (bugs intact)." 'Green'
+    Say "de-advertised: stripped $strippedTells BUG- comment block(s); .banyan/solutions removed=$removedSolutions; node --test still fails $postFail/$(Get-TotalTestCount $dir) (bugs intact)." 'Green'
     return $postFail
 }
 
@@ -355,7 +355,7 @@ try {
             $DeadvertiseApplied = $true
             # Leave _source checked out on main (matching fixture-init's contract).
             Git-OrThrow $SourceSandbox checkout -q main | Out-Null
-            Add-Summary "OK    fixture DE-ADVERTISED (BUG- tells + docs/solutions stripped; bugs intact, node --test fails $DeadvertiseFailCount)"
+            Add-Summary "OK    fixture DE-ADVERTISED (BUG- tells + .banyan/solutions stripped; bugs intact, node --test fails $DeadvertiseFailCount)"
         }
     } else {
         # ---- REAL target ----------------------------------------------------
@@ -548,7 +548,7 @@ function Run-Arm {
     # folder knows the tree was de-advertised (fair apply-vs-apply).
     if ($DeadvertiseApplied) {
         Set-Content -LiteralPath (Join-Path $armOut 'deadvertised.txt') `
-            -Value ("This run was DE-ADVERTISED (-Deadvertise).`nBUG- comment tells stripped from src/*.js and docs/solutions/ removed on '$ReviewBranch' BEFORE the arm ran.`nBuggy behavior preserved: node --test still fails $DeadvertiseFailCount on the de-advertised branch.`nRationale: v1's Stage 5c abstains on obviously-fixture trees, so de-advertising is required for a FAIR apply-vs-apply comparison. See protocol.md section 2.4.") -Encoding utf8
+            -Value ("This run was DE-ADVERTISED (-Deadvertise).`nBUG- comment tells stripped from src/*.js and .banyan/solutions/ removed on '$ReviewBranch' BEFORE the arm ran.`nBuggy behavior preserved: node --test still fails $DeadvertiseFailCount on the de-advertised branch.`nRationale: v1's Stage 5c abstains on obviously-fixture trees, so de-advertising is required for a FAIR apply-vs-apply comparison. See protocol.md section 2.4.") -Encoding utf8
     }
     function ArmErr([string]$msg) {
         Set-Content -LiteralPath (Join-Path $armOut 'ERROR.txt') -Value $msg -Encoding utf8
@@ -634,7 +634,7 @@ function Run-Arm {
     Set-Content -LiteralPath (Join-Path $armOut 'pre-status.txt') -Value ("HEAD: $checkpointSha`n`n$statusOut") -Encoding utf8
 
     # 4. Record the exact command that will run.
-    $modeNote = if ($DeadvertiseApplied) { "  # tree DE-ADVERTISED (-Deadvertise): BUG- tells + docs/solutions stripped, bugs intact" } else { '' }
+    $modeNote = if ($DeadvertiseApplied) { "  # tree DE-ADVERTISED (-Deadvertise): BUG- tells + .banyan/solutions stripped, bugs intact" } else { '' }
     $cmdLine = "cd `"$sandbox`"; claude -p `"$prompt`" --plugin-dir `"$pluginDir`" --dangerously-skip-permissions --output-format json$modeNote"
     Set-Content -LiteralPath (Join-Path $armOut 'command.txt') -Value $cmdLine -Encoding utf8
     Say "  [$Arm] command: $cmdLine" 'Gray'
@@ -734,17 +734,17 @@ function Run-Arm {
     }
 
     # 8b. ADDITIONALLY copy the banyan structured verdict
-    #     (docs/runs/*/review-verdict.md) if present. This is kept alongside
+    #     (.banyan/runs/*/review-verdict.md) if present. This is kept alongside
     #     report.md, not in place of it.
     if ($Arm -eq 'banyan') {
-        $verdicts = @(Get-ChildItem -Path (Join-Path $sandbox 'docs/runs') -Recurse -Filter 'review-verdict.md' -ErrorAction SilentlyContinue)
+        $verdicts = @(Get-ChildItem -Path (Join-Path $sandbox '.banyan/runs') -Recurse -Filter 'review-verdict.md' -ErrorAction SilentlyContinue)
         if ($verdicts.Count -gt 0) {
             $v = $verdicts | Sort-Object LastWriteTime | Select-Object -Last 1
             Copy-Item -LiteralPath $v.FullName -Destination (Join-Path $armOut 'verdict.md') -Force
             Say "  [$Arm] verdict copied: $($v.FullName)" 'Green'
         } else {
-            Set-Content -LiteralPath (Join-Path $armOut 'verdict.md') -Value '(no review-verdict.md found under docs/runs/ in the sandbox)' -Encoding utf8
-            Say "  [$Arm] no review-verdict.md found under docs/runs/" 'Yellow'
+            Set-Content -LiteralPath (Join-Path $armOut 'verdict.md') -Value '(no review-verdict.md found under .banyan/runs/ in the sandbox)' -Encoding utf8
+            Say "  [$Arm] no review-verdict.md found under .banyan/runs/" 'Yellow'
         }
     }
 
@@ -780,7 +780,7 @@ $summaryText = [System.Collections.Generic.List[string]]::new()
 $summaryText.Add("run id   : $RunId")
 $summaryText.Add("mode     : $(if ($DryRun) { 'DRY-RUN' } else { 'FULL' })")
 $summaryText.Add("target   : $(if ([string]::IsNullOrWhiteSpace($Target)) { 'fixture (main..seeded-bugs)' } else { "$Target ($Base..HEAD)" })")
-$summaryText.Add("deadvert : $(if ($DeadvertiseApplied) { "ON - BUG- tells + docs/solutions stripped; bugs intact (node --test fails $DeadvertiseFailCount). Fair apply-vs-apply." } else { 'off' })")
+$summaryText.Add("deadvert : $(if ($DeadvertiseApplied) { "ON - BUG- tells + .banyan/solutions stripped; bugs intact (node --test fails $DeadvertiseFailCount). Fair apply-vs-apply." } else { 'off' })")
 $summaryText.Add("out dir  : $OutDir")
 $summaryText.Add("")
 foreach ($s in $summary) { $summaryText.Add($s) }

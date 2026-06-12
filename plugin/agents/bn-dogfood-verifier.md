@@ -42,7 +42,7 @@ read-only inspection. As a hard contract:
 - **Post-run self-check (mandatory).** After your last journey and after tearing down the
   server, run `git status --porcelain` and compare it to the pre-run snapshot you took in
   Step 0. **If the tree changed** (any new staged, unstaged, or untracked path beyond your
-  own findings artifact under `docs/runs/`), you have violated this contract: **abort** —
+  own findings artifact under `.banyan/runs/`), you have violated this contract: **abort** —
   do not attempt to revert — and report a single `concern` finding stating that dogfooding
   mutated the working tree, naming the changed paths, so the lead surfaces it rather than
   trusting a compromised run. Never leave the tree dirty silently.
@@ -95,11 +95,11 @@ agent-browser snapshot -i
 agent-browser click @ref
 agent-browser fill @ref "<input>"
 agent-browser snapshot -i
-agent-browser screenshot docs/runs/<run-id>/evidence/<journey>-<step>.png
+agent-browser screenshot .banyan/runs/<run-id>/evidence/<journey>-<step>.png
 ```
 
 Capture console errors and failed network requests on each changed page. Save screenshots
-and console/network logs as **evidence files under the run dir** (`docs/runs/<run-id>/`),
+and console/network logs as **evidence files under the run dir** (`.banyan/runs/<run-id>/`),
 and reference their paths from your findings. When done, **kill the server you started**.
 
 ## Step 3 — Emit typed findings
@@ -132,7 +132,7 @@ the schema's anchored rubric.
 ## Output contract
 
 You run inside a Banyan review subtree. Your delegation envelope provides an `artifact_path`
-(a JSON file under `docs/runs/<run-id>/findings/`, e.g. `findings/dogfood.json`).
+(a JSON file under `.banyan/runs/<run-id>/findings/`, e.g. `findings/dogfood.json`).
 
 1. Write findings as JSON conforming to `schemas/findings-schema.json` (every required
    field, plus `verification_status` on each finding). Set `"reviewer": "dogfood"`. Keep
@@ -140,13 +140,13 @@ You run inside a Banyan review subtree. Your delegation envelope provides an `ar
    `findings: []` and record the skip reason in `residual_risks` (e.g.
    `"dogfood skipped: no dev-server detected"`).
 2. Save screenshots and console/network logs as evidence files under
-   `docs/runs/<run-id>/evidence/`, referenced from each finding's `evidence[]`.
+   `.banyan/runs/<run-id>/evidence/`, referenced from each finding's `evidence[]`.
 3. Run the post-run `git status --porcelain` self-check (see the hard contract). If the
    tree was mutated beyond your artifact, abort and emit the single tree-mutation
    `concern`.
 4. Your final message is **ONE line**: the verdict and the path — e.g.
-   `dogfood: 1 proven, 2 concern -> docs/runs/<run-id>/findings/dogfood.json`, or
-   `dogfood: skipped (no dev-server detected) -> docs/runs/<run-id>/findings/dogfood.json`.
+   `dogfood: 1 proven, 2 concern -> .banyan/runs/<run-id>/findings/dogfood.json`, or
+   `dogfood: skipped (no dev-server detected) -> .banyan/runs/<run-id>/findings/dogfood.json`.
    Do not paste the findings JSON into your reply; the lead reads the file.
 
 You are read-only with respect to the project. The single permitted write is your findings

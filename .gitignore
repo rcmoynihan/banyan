@@ -7,9 +7,8 @@ Thumbs.db
 *.local.*
 tmp/
 
-# Banyan local run state
-/docs/runs/
-/docs/**/.gitkeep
+# Banyan local state
+/.banyan/
 
 # python
 __pycache__/

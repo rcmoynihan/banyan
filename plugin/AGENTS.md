@@ -61,7 +61,7 @@ These hold for every agent, skill, and spawn in Banyan.
    structured lookup and gains nothing from more reasoning. A lead never overrides a child's
    model at spawn time; the frontmatter is authoritative, so the envelope carries no model field.
 8. **v1 persistence compatibility.** Banyan reads and writes the compound-engineering
-   `docs/solutions/` knowledge-store schema unchanged, so existing knowledge stores keep working.
+   knowledge-store schema unchanged under `.banyan/solutions/`.
    See `skills/bn-conventions/references/knowledge-store.md`.
 
 ---
@@ -149,7 +149,7 @@ the same run ID and the answer as resume context. The resumed lead reads the led
 and writes the durable state; the trunk does not patch lead-owned artifacts itself.
 
 When an autonomous grow run exits early after recovery is exhausted, the grow trunk writes the
-residual state to `docs/runs/<run-id>/residuals.md` before surfacing it. The ledger points at that
+residual state to `.banyan/runs/<run-id>/residuals.md` before surfacing it. The ledger points at that
 artifact so the run can resume from files rather than conversation memory.
 
 ---
@@ -164,9 +164,9 @@ artifact so the run can resume from files rather than conversation memory.
     `scripts/`, `assets/` subdirectories (same convention as compound-engineering).
   - `plugin/schemas/` — vendored/shared schema files (e.g. findings schema, solution frontmatter).
   - `plugin/AGENTS.md` — this file.
-- **Run artifacts** live in the *target repo*, not the plugin: `docs/runs/<run-id>/`
+- **Run artifacts** live in the *target repo*, not the plugin: `.banyan/runs/<run-id>/`
   (see `skills/bn-conventions/references/ledger.md`). They are local run state; durable
-  knowledge lives in `docs/solutions/`.
+  knowledge lives in `.banyan/solutions/`.
 
 ### Agent file frontmatter
 
@@ -203,7 +203,7 @@ argument-hint: "[optional args]"
 A **lead** is an agent that owns a subtree end-to-end and returns a verdict, not a report.
 
 - A lead receives a delegation envelope, **echoes it into its progress file** on start
-  (`docs/runs/<run-id>/progress/<lead>.md`) so violations are auditable from the ledger, then
+  (`.banyan/runs/<run-id>/progress/<lead>.md`) so violations are auditable from the ledger, then
   runs its own multi-stage orchestration internally.
 - A lead **reads its children's artifacts**; it does not trust their final-message prose for
   anything load-bearing.
@@ -227,26 +227,35 @@ to the user, holds intent, reads gate artifacts, and dispatches owning leads.
 
 ## 5. Protected artifacts
 
+`.banyan/` is Banyan local state in the target repo. It is normally ignored by git.
+Agents may write their assigned Banyan artifacts there, but no agent stages, commits,
+or pushes `.banyan/**`.
+
+`docs/` is project-owned documentation. Banyan may read, write, or modify `docs/` only
+for genuine project documentation tasks. Run ledgers, generated brainstorms and plans,
+knowledge-store entries, harness proposals, onboarding manifests, and other
+Banyan-specific artifacts live under `.banyan/`, not `docs/`.
+
 No agent may delete or "clean up" durable Banyan artifacts under these paths:
 
-- `docs/brainstorms/*`
-- `docs/plans/*.md`
-- `docs/solutions/*.md`
+- `.banyan/brainstorms/*`
+- `.banyan/plans/*.md`
+- `.banyan/solutions/*.md`
 
 A reviewer that flags one of these for removal has its finding discarded during synthesis.
-Run artifacts under `docs/runs/*` are local coordination state. Agents may write only their
+Run artifacts under `.banyan/runs/*` are local coordination state. Agents may write only their
 assigned paths in the active run, must not mutate unrelated run artifacts, and leave retention
 or archive decisions to the trunk or user.
 
 Two narrowly-bounded exceptions exist, both belonging to the `bn-knowledge-curator`:
 
 - **Clearing consumed staging.** After consolidating a run's candidates, the curator empties the
-  `docs/runs/<run-id>/lessons-staging/` candidate files it promoted or merged (the staging
+  `.banyan/runs/<run-id>/lessons-staging/` candidate files it promoted or merged (the staging
   lifecycle in `skills/bn-conventions/references/ledger.md`). That staging area is the curator's
   own transient feedstock, not durable memory, so clearing a consumed candidate is sanctioned. A
   held candidate and every other run artifact (the ledger, progress notes, briefs, findings) stay
   untouchable.
-- **Deleting a drifted solution.** The curator may delete a drifted `docs/solutions/*.md` entry,
+- **Deleting a drifted solution.** The curator may delete a drifted `.banyan/solutions/*.md` entry,
   and only when **all** of these hold: the curator is the actor; it is running **foreground**
   under `/bn-curate --refresh` (never in background or sleep-time curation); and the user has
   **explicitly confirmed that specific document** — carried into a follow-up curator pass as a
@@ -254,8 +263,8 @@ Two narrowly-bounded exceptions exist, both belonging to the `bn-knowledge-curat
   analysis. Until a document is so confirmed, a drifted entry is a `RECOMMEND-DELETE` report line
   only.
 
-No other agent ever deletes a protected artifact, and `docs/brainstorms/*` and `docs/plans/*.md`
-are never deletable by anyone.
+No other agent ever deletes a protected artifact, and `.banyan/brainstorms/*` and
+`.banyan/plans/*.md` are never deletable by anyone.
 
 ---
 
@@ -263,7 +272,7 @@ are never deletable by anyone.
 
 - Run ledger spec & layout → `skills/bn-conventions/references/ledger.md`
 - Delegation envelope spec & template → `skills/bn-conventions/references/envelope.md`
-- Knowledge-store (docs/solutions) schema, v1-compatible → `skills/bn-conventions/references/knowledge-store.md`
+- Knowledge-store (.banyan/solutions) schema, v1-compatible → `skills/bn-conventions/references/knowledge-store.md`
 - Findings schema (code review) → `schemas/findings-schema.json`
 - Vendoring provenance & local-edit log → `../vendor/MANIFEST.md` (source repo only — this
   path does not exist in an installed copy of the plugin)

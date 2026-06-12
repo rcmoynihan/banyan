@@ -55,18 +55,18 @@ fixture machinery, not app content.
 
 These live in the clean baseline so they exist on `main` and `seeded-bugs`:
 
-- `docs/solutions/<category>/<slug>.md` — v1-schema solution docs (validate
+- `.banyan/solutions/<category>/<slug>.md` — v1-schema solution docs (validate
   against the compound-engineering `schema.yaml`). One of them
   (`inventory-oversell-off-by-one`) is directly relevant to a seeded bug
   (BUG-04), so the learnings-researcher retrieval test can surface it.
-- `docs/plans/2026-06-10-001-feat-fixture-plan.md` — a tiny v1-style plan with
+- `.banyan/plans/2026-06-10-001-feat-fixture-plan.md` — a tiny v1-style plan with
   three Implementation Units, for the delivery-subtree tests.
 
 ## What uses this fixture
 
-- **Learnings researcher** — retrieves `docs/solutions/.../inventory-oversell-off-by-one.md`.
+- **Learnings researcher** — retrieves `.banyan/solutions/.../inventory-oversell-off-by-one.md`.
 - **Review subtree + A/B eval** (`eval/review-ab/`) — runs against `seeded-bugs`; recall scored vs `.fixture/BUG-INVENTORY.md`.
-- **Delivery subtree** — executes `docs/plans/2026-06-10-001-feat-fixture-plan.md`.
+- **Delivery subtree** — executes `.banyan/plans/2026-06-10-001-feat-fixture-plan.md`.
 - **Lesson harvester** — runs over a review of this fixture.
 
 (The research subtree has its own planted trail in `test/research-scenario/`.)

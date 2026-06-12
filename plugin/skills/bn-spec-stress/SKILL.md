@@ -1,7 +1,7 @@
 ---
 name: bn-spec-stress
-description: "Stress-test a requirements document or finalized requirements summary before planning. Converts hidden assumptions, missing scenarios, acceptance gaps, and risk-bearing implications into a gate artifact at docs/runs/<run-id>/briefs/spec-stress.md so /bn-plan consumes repaired or explicitly constrained scope."
-argument-hint: "[docs/brainstorms/*-requirements.md | finalized requirements summary]"
+description: "Stress-test a requirements document or finalized requirements summary before planning. Converts hidden assumptions, missing scenarios, acceptance gaps, and risk-bearing implications into a gate artifact at .banyan/runs/<run-id>/briefs/spec-stress.md so /bn-plan consumes repaired or explicitly constrained scope."
+argument-hint: "[.banyan/brainstorms/*-requirements.md | finalized requirements summary]"
 ---
 
 # bn-spec-stress
@@ -26,7 +26,7 @@ and self-recovery),
 
 Take the argument as either:
 
-- a path to `docs/brainstorms/*-requirements.md`;
+- a path to `.banyan/brainstorms/*-requirements.md`;
 - a concise finalized requirements summary; or
 - when invoked from `/bn-grow`, the requirements document or finalized summary already
   accepted by intake.
@@ -38,8 +38,8 @@ surface those blockers in standalone mode. In `/bn-grow`, return a grow handoff 
 blockers, proposed dispositions, and `resume_from_phase: intake`; the grow trunk owns the
 recovery decision.
 
-Reuse the active `docs/runs/<run-id>/` when invoked from `/bn-grow` or another Banyan flow.
-If no run is active and the input is under `docs/runs/<run-id>/`, reuse that run. Otherwise
+Reuse the active `.banyan/runs/<run-id>/` when invoked from `/bn-grow` or another Banyan flow.
+If no run is active and the input is under `.banyan/runs/<run-id>/`, reuse that run. Otherwise
 open a run:
 
 ```bash
@@ -48,7 +48,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs spec-stress
   --input <requirements-doc-path-if-any> \
   --objective "<stress-test the requirements before planning>" \
   --plan-ref "<pending plan path>" \
-  --unit "spec-stress|trunk|in-progress|docs/runs/<run-id>/briefs/spec-stress.md" \
+  --unit "spec-stress|trunk|in-progress|.banyan/runs/<run-id>/briefs/spec-stress.md" \
   --actor trunk
 ```
 
@@ -62,9 +62,9 @@ progress notes.
 
 Read any grounding already attached to the run:
 
-- `docs/runs/<run-id>/briefs/research-brief.md`;
-- `docs/runs/<run-id>/briefs/brainstorm-grounding.md`;
-- any `docs/runs/*/briefs/*.md` path referenced by the requirements document.
+- `.banyan/runs/<run-id>/briefs/research-brief.md`;
+- `.banyan/runs/<run-id>/briefs/brainstorm-grounding.md`;
+- any `.banyan/runs/*/briefs/*.md` path referenced by the requirements document.
 
 Grounding briefs inform the stress test; they do not override the requirements document.
 
@@ -110,18 +110,18 @@ Envelope:
 objective:       Walk user-observable scenarios in the requirements and emit concrete
                  missing branches, acceptance gaps, or plan inputs tied to source
                  requirements.
-artifact_path:   docs/runs/<run-id>/briefs/spec-scenario-stress.md
+artifact_path:   .banyan/runs/<run-id>/briefs/spec-scenario-stress.md
 output_format:   Candidate list with Source, Scenario, Gap, and Disposition.
 inputs:
-  requirements_doc:     <docs/brainstorms/...-requirements.md, or "none">
+  requirements_doc:     <.banyan/brainstorms/...-requirements.md, or "none">
   requirements_summary: <summary text, or "none">
-  research_brief:       <docs/runs/.../briefs/research-brief.md, or "none">
-  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
+  research_brief:       <.banyan/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <.banyan/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:            <repo root>
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only against the repo except artifact_path. Do not edit source,
-                 docs/brainstorms, docs/plans, docs/solutions, or other docs/runs files.
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or other .banyan/runs files.
 tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
 budget:
   max_children:    0
@@ -145,19 +145,19 @@ Envelope:
 === BANYAN ENVELOPE ===
 objective:       Pressure-test assumptions, dependencies, contradictions, and downstream
                  implications in the requirements.
-artifact_path:   docs/runs/<run-id>/briefs/spec-assumption-stress.md
+artifact_path:   .banyan/runs/<run-id>/briefs/spec-assumption-stress.md
 output_format:   Candidate list with Source, Assumption or Premortem Trigger, Gap, and
                  Disposition.
 inputs:
-  requirements_doc:     <docs/brainstorms/...-requirements.md, or "none">
+  requirements_doc:     <.banyan/brainstorms/...-requirements.md, or "none">
   requirements_summary: <summary text, or "none">
-  research_brief:       <docs/runs/.../briefs/research-brief.md, or "none">
-  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
+  research_brief:       <.banyan/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <.banyan/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:            <repo root>
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only against the repo except artifact_path. Do not edit source,
-                 docs/brainstorms, docs/plans, docs/solutions, or other docs/runs files.
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or other .banyan/runs files.
 tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
 budget:
   max_children:    0
@@ -183,19 +183,19 @@ Envelope:
 === BANYAN ENVELOPE ===
 objective:       Stress-test requirements-level trust, data, and misuse implications and
                  emit only planning-relevant gaps tied to source requirements.
-artifact_path:   docs/runs/<run-id>/briefs/spec-threat-stress.md
+artifact_path:   .banyan/runs/<run-id>/briefs/spec-threat-stress.md
 output_format:   Candidate list with Source, Asset/Actor/Threat Trigger, Gap, and
                  Disposition.
 inputs:
-  requirements_doc:     <docs/brainstorms/...-requirements.md, or "none">
+  requirements_doc:     <.banyan/brainstorms/...-requirements.md, or "none">
   requirements_summary: <summary text, or "none">
-  research_brief:       <docs/runs/.../briefs/research-brief.md, or "none">
-  supplemental_grounding: <docs/runs/.../briefs/brainstorm-grounding.md, or "none">
+  research_brief:       <.banyan/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <.banyan/runs/.../briefs/brainstorm-grounding.md, or "none">
   repo_root:            <repo root>
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only against the repo except artifact_path. Do not edit source,
-                 docs/brainstorms, docs/plans, docs/solutions, or other docs/runs files.
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or other .banyan/runs files.
 tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
 budget:
   max_children:    0
@@ -269,7 +269,7 @@ Write exactly one final gate artifact:
 ```
 
 When a section has no items, write `none` under that section. Update the ledger row to `done`
-with `docs/runs/<run-id>/briefs/spec-stress.md` and append a log line with blocker count,
+with `.banyan/runs/<run-id>/briefs/spec-stress.md` and append a log line with blocker count,
 plan-input count, and triggered leaf artifacts.
 
 ## Step 7 -- Gate and handoff

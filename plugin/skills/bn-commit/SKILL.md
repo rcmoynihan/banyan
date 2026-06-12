@@ -59,6 +59,10 @@ If both fail, fall back to `main`.
 If the git status from the context above shows a clean working tree (no staged, modified,
 or untracked files), report that there is nothing to commit and stop.
 
+Treat `.banyan/**` as Banyan local state, never commit content. If the status or diff
+contains `.banyan/` paths, exclude them from every commit group. If any `.banyan/` path is
+already staged, unstage it before proceeding and report that it is local Banyan state.
+
 If the current branch from the context above is empty, the repository is in detached HEAD
 state. Explain that a branch is required before committing if the user wants this work
 attached to a branch. Ask whether to create a feature branch now, via `AskUserQuestion`.
@@ -122,7 +126,8 @@ Write the commit message:
 
 For each commit group, stage and commit in a single call. Prefer staging specific files
 by name over `git add -A` or `git add .` to avoid accidentally including sensitive files
-(.env, credentials) or unrelated changes. Use a heredoc to preserve formatting:
+(.env, credentials), `.banyan/**`, or unrelated changes. Use a heredoc to preserve
+formatting:
 
 ```bash
 git add file1 file2 file3 && git commit -m "$(cat <<'EOF'
@@ -133,6 +138,10 @@ not just what changed.
 EOF
 )"
 ```
+
+After staging and before committing, inspect the staged path list. If any path starts with
+`.banyan/`, unstage it and do not commit until the staged set contains only committable
+project changes.
 
 ### Step 5: Confirm
 

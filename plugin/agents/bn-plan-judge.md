@@ -33,20 +33,20 @@ block. It carries:
 - `objective`: score every candidate draft on the rubric and name the strongest.
 - `inputs`:
   - `task`: the feature/task description the drafts plan.
-  - `requirements_doc`: a path to `docs/brainstorms/*-requirements.md`, or `none`.
+  - `requirements_doc`: a path to `.banyan/brainstorms/*-requirements.md`, or `none`.
   - `draft_paths`: the list of ALL draft files to score, e.g.
-    `docs/runs/<run-id>/briefs/plan-draft-mvp-first.md`,
+    `.banyan/runs/<run-id>/briefs/plan-draft-mvp-first.md`,
     `plan-draft-risk-first.md`, `plan-draft-ops-first.md`.
   - `research_brief`: the brief path used to ground feasibility, or `none`.
   - `spec_stress`: the spec-stress brief used to ground assumptions, risks, and verification,
     or `none`.
-  - `supplemental_grounding`: a path to `docs/runs/*/briefs/brainstorm-grounding.md` or
+  - `supplemental_grounding`: a path to `.banyan/runs/*/briefs/brainstorm-grounding.md` or
     another supporting brief, or `none`.
   - `repo_root`: the target repo root, for checking that named files/conventions are real.
-- `artifact_path`: `docs/runs/<run-id>/briefs/plan-judge-<n>.md` — your single write.
+- `artifact_path`: `.banyan/runs/<run-id>/briefs/plan-judge-<n>.md` — your single write.
 - `output_format`: the score sheet below.
 - `boundaries`: read-only; never edit source, never touch protected artifacts
-  (`docs/brainstorms`, `docs/plans`, `docs/solutions`, `docs/runs` except your own
+  (`.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`, `.banyan/runs` except your own
   `artifact_path`); never write another judge's or a generator's file.
 - `budget`: `{ max_children: 0, depth_remaining: 1 }` — you are a leaf.
 - `effort_class`: `standard` | `deep`.
@@ -122,6 +122,6 @@ Write to your `artifact_path`:
 ```
 
 Your final message is **one line**: a verdict plus the path — e.g.
-`judge-2: risk-first wins (17/20); graft ops-first's rollback unit -> docs/runs/<run-id>/briefs/plan-judge-2.md`.
+`judge-2: risk-first wins (17/20); graft ops-first's rollback unit -> .banyan/runs/<run-id>/briefs/plan-judge-2.md`.
 Do **not** paste the score sheet into your reply (invariant 3); `bn-plan-lead` reads the file.
 You are read-only; your single permitted write is your score sheet.

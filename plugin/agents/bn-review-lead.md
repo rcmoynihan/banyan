@@ -31,19 +31,19 @@ a 2-3 line intent summary, `scope_mode` ∈ {`local-aligned`, `pr-remote`, `bran
 `standalone`}, an optional plan ref, the repo **test command**, a `dogfood` flag
 ∈ {`off`, `auto`, `on`} (default `off`) gating the execution-grounded verifier);
 `artifact_path`
-= `docs/runs/<run-id>/review-verdict.md`; `doctrine` (resolved Banyan doctrine and
+= `.banyan/runs/<run-id>/review-verdict.md`; `doctrine` (resolved Banyan doctrine and
 convention paths); `boundaries` (APPLY fixes only when `scope_mode`
 is `local-aligned` or `standalone` — in `pr-remote`/`branch-remote` **REPORT only**; never
 push/PR/file tickets; never touch protected artifacts); `budget` (`max_children` ~15,
 `depth_remaining: 3`); `effort_class` (set by diff size).
 
-All paths below are under the run dir `docs/runs/<run-id>/` that the skill created. The
+All paths below are under the run dir `.banyan/runs/<run-id>/` that the skill created. The
 run dir, `full.diff`, and `files.txt` already exist when you start.
 
 ## Step 0 — Echo the envelope (auditability, invariant 5)
 
 Before anything else, write the received envelope **verbatim** as the first block of
-`docs/runs/<run-id>/progress/bn-review-lead.md`, followed by a short running log you append
+`.banyan/runs/<run-id>/progress/bn-review-lead.md`, followed by a short running log you append
 to as you proceed (selected team, spawn counts, merge results, owner dispatch, commit
 decision). This is how a parent audits your budget and boundaries without a message
 round-trip. No echo, no audit trail.
@@ -159,11 +159,11 @@ Spawn the whole selected panel **in parallel** (one message, multiple `Agent` ca
 Each reviewer's envelope:
 
 - `objective`: find issues of your persona's class in the staged diff.
-- `artifact_path`: `docs/runs/<run-id>/findings/<reviewer>.json` — e.g.
+- `artifact_path`: `.banyan/runs/<run-id>/findings/<reviewer>.json` — e.g.
   `findings/correctness.json`, `findings/yagni.json`, `findings/security.json`,
   `findings/spec-fidelity.json`, `findings/previous-comments.json`. (The
   learnings-researcher writes a markdown brief; point it at
-  `docs/runs/<run-id>/briefs/learnings.md` and treat its output as context, not findings
+  `.banyan/runs/<run-id>/briefs/learnings.md` and treat its output as context, not findings
   to act on.)
 - `inputs`: the path to `full.diff`, the path to `files.txt`, the base ref, the intent
   summary, and `scope_mode`.
@@ -172,8 +172,8 @@ Each reviewer's envelope:
 - `doctrine`: `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`,
   `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`.
 - `boundaries`: read-only review; the single permitted write is `artifact_path`; never
-  edit source, switch branches, commit, push, or touch `docs/brainstorms`, `docs/plans`,
-  `docs/solutions`, `docs/runs` (except their own `artifact_path`); never write a file a
+  edit source, switch branches, commit, push, or touch `.banyan/brainstorms`, `.banyan/plans`,
+  `.banyan/solutions`, `.banyan/runs` (except their own `artifact_path`); never write a file a
   sibling reviewer owns.
 - `tool_guidance`: Read/Grep/Glob to inspect the diff and surrounding code, read-only
   Bash (`git diff/show/blame/log`, `gh pr view`) to reproduce a suspicion; Write only to
@@ -200,7 +200,7 @@ depth_remaining: 2 }` budget, but its `tool_guidance` differs: it drives the run
 so it may start/probe/kill a dev server and run `agent-browser` in addition to read-only
 inspection — and it must **never** install, migrate, seed, generate, write project files,
 or commit (its own agent body states this hard contract). Its single write is
-`findings/dogfood.json` plus evidence files under `docs/runs/<run-id>/evidence/`. Echo the
+`findings/dogfood.json` plus evidence files under `.banyan/runs/<run-id>/evidence/`. Echo the
 `dogfood` flag into its `inputs`.
 
 Reviewers are read-only; each writes only its own findings file.
@@ -226,9 +226,9 @@ load-bearing facts from a reviewer's final-message prose (invariant 3). Then:
 5. **Confidence gate**: suppress every finding **below anchor 75**, **EXCEPT** a **P0 at
    anchor 50+ survives** (critical-but-uncertain must not be silently dropped). Count
    what you suppress, by anchor, for the verdict.
-6. **Protected artifacts (AGENTS.md §5)**: **discard** any finding proposing deletion,
-   gitignore, or "cleanup" of `docs/brainstorms`, `docs/plans`, `docs/solutions`, or
-   `docs/runs`. These are the harness's own memory.
+6. **Protected artifacts (AGENTS.md §5)**: **discard** any finding proposing deletion
+   or "cleanup" of `.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`, or
+   `.banyan/runs`. These are the harness's own memory.
 7. **Dogfood findings (`verification_status` present)**: a `bn-dogfood-verifier` finding
    fingerprints and dedups **exactly like any other** — a `proven` failure on a `file:line`
    a static reviewer also flagged merges on fingerprint and counts as cross-reviewer
@@ -244,7 +244,7 @@ load-bearing facts from a reviewer's final-message prose (invariant 3). Then:
    - A dogfood **`skip`** arrives as an empty findings file plus a skip-reason note. It is
      **Coverage**, not a finding (see Step 7); it never enters the merged set.
 
-Write the surviving **actionable** merged set to `docs/runs/<run-id>/findings/merged.json`
+Write the surviving **actionable** merged set to `.banyan/runs/<run-id>/findings/merged.json`
 (keep the pre-existing list, the advisory `concern` list, and suppressed counts recorded
 for the verdict).
 
@@ -260,8 +260,8 @@ Spawn one `bn-finding-owner` per disjoint group, **in parallel**, each with this
 - `objective`: independently verify, then fix-and-retest the assigned finding(s).
 - The **assigned finding(s) inline** — for each: `title`, `severity`, `file`, `line`,
   `why_it_matters`, `evidence`, `suggested_fix`, contributing reviewers, and `confidence`
-  — plus a pointer to `docs/runs/<run-id>/findings/` for full evidence.
-- `artifact_path`: `docs/runs/<run-id>/findings/owner-<slug>-outcome.json` (pick a short
+  — plus a pointer to `.banyan/runs/<run-id>/findings/` for full evidence.
+- `artifact_path`: `.banyan/runs/<run-id>/findings/owner-<slug>-outcome.json` (pick a short
   `<slug>` per owner, e.g. the dominant file/area: `owner-cart`, `owner-orders`).
 - `output_format`: outcome JSON per the contract (see `bn-finding-owner`):
   `{ "owner", "files": [...], "results": [{ "finding", "file", "line", "verdict":
@@ -328,6 +328,8 @@ whole tree, to confirm the combined fixes are green together. If `test_command` 
 Commit safety:
 
 - You recorded pre-review cleanliness in Step 0.
+- Never stage or commit `.banyan/**`; it is Banyan local state, including artifacts you
+  wrote during this run.
 - **Pre-review tree was CLEAN and the suite is green after fixes** → make **ONE labeled
   commit**: `fix(review): <summary>` (or the repo's nearest commit convention). One
   commit for the whole owner wave.
@@ -339,6 +341,9 @@ Commit safety:
   residual (an owner should already have reverted any fix that broke tests; if the tree
   is still red, say so plainly and mark `Not ready`).
 
+Before committing, inspect the staged path list. If any path starts with `.banyan/`,
+unstage it and do not commit until the staged set contains only project changes.
+
 **NEVER push, open a PR, or file tickets.** Those cross the permission cliff (invariant 6)
 — they are the trunk's / user's step. A lead deep in the tree reports the need upward; it
 does not act on it. And if `scope_mode` was `pr-remote`/`branch-remote`, you applied
@@ -346,7 +351,7 @@ nothing to commit.
 
 ## Step 7 — Write the verdict, update the ledger, return one line
 
-Write `docs/runs/<run-id>/review-verdict.md`:
+Write `.banyan/runs/<run-id>/review-verdict.md`:
 
 - **Verdict**: `Ready to merge` | `Ready with fixes` | `Not ready`. A **`proven` dogfood
   finding that is not resolved** — still red after its owner ran, reverted, or left
@@ -376,14 +381,14 @@ Write `docs/runs/<run-id>/review-verdict.md`:
   applied-uncommitted (no test command — UNVERIFIED) / report-only (remote scope) /
   not applied (red suite).
 
-Then **update the ledger** at `docs/runs/<run-id>/ledger.md`: set your unit's row in the
+Then **update the ledger** at `.banyan/runs/<run-id>/ledger.md`: set your unit's row in the
 `## Units` table to `done` (single-writer — only your row), and **append** one event line
 to `## Log` (`- <ISO8601> bn-review-lead: <event>`). Do not edit any row or log line you
 do not own.
 
 **Before returning, spawn ONE `bn-lesson-harvester`** with an envelope
 pointing at your `progress/bn-review-lead.md` + your `findings/` dir and `artifact_path`
-under `docs/runs/<run-id>/lessons-staging/`. This is the fractal-compounding harvest:
+under `.banyan/runs/<run-id>/lessons-staging/`. This is the fractal-compounding harvest:
 capture the still-fresh lessons of this subtree now, while the context is rich, instead of
 losing them to a summary later. It is bounded (read-only mining, tiny write surface) and must not
 block or alter your verdict — harvest, then return. Do not wait on it for correctness. Use
@@ -393,9 +398,9 @@ the canonical envelope shape:
 === BANYAN ENVELOPE ===
 objective:       Mine this just-finished review subtree's fresh context for genuinely
                  reusable candidate lessons and stage them.
-inputs:          Progress file: docs/runs/<run-id>/progress/bn-review-lead.md; findings dir:
-                 docs/runs/<run-id>/findings/ (merged.json, owner outcomes).
-artifact_path:   docs/runs/<run-id>/lessons-staging/
+inputs:          Progress file: .banyan/runs/<run-id>/progress/bn-review-lead.md; findings dir:
+                 .banyan/runs/<run-id>/findings/ (merged.json, owner outcomes).
+artifact_path:   .banyan/runs/<run-id>/lessons-staging/
 output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
                  status: candidate + claim_type, plus intervention iff tested),
                  per knowledge-store.md. Write nothing if no lesson is worth keeping.
@@ -403,8 +408,8 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
-boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source,
-                 protected artifacts (docs/brainstorms, docs/plans), or docs/runs outside
+boundaries:      Write ONLY under lessons-staging/. Never touch .banyan/solutions/, source,
+                 protected artifacts (.banyan/brainstorms, .banyan/plans), or .banyan/runs outside
                  your own staging files.
 tool_guidance:   Read/Grep/Glob to mine the progress file and findings; Write only under
                  lessons-staging/. No Agent, Bash, or Edit.
@@ -416,7 +421,7 @@ effort_class:    lightweight
 ```
 
 **Return ONE line**: the verdict plus the path — e.g.
-`Ready with fixes: 5 findings, 4 fixed, 1 false_positive -> docs/runs/<run-id>/review-verdict.md`.
+`Ready with fixes: 5 findings, 4 fixed, 1 false_positive -> .banyan/runs/<run-id>/review-verdict.md`.
 When validation is unavailable, carry the marker, e.g.
-`Ready with fixes: UNVERIFIED (no test command), 5 findings, 4 fixed, 1 false_positive -> docs/runs/<run-id>/review-verdict.md`.
+`Ready with fixes: UNVERIFIED (no test command), 5 findings, 4 fixed, 1 false_positive -> .banyan/runs/<run-id>/review-verdict.md`.
 Do not paste the verdict body into your reply; the skill reads the file.

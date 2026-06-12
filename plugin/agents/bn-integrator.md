@@ -32,7 +32,7 @@ conflicts or bounce); `inputs` (the **ordered unit branch refs** in topological 
 **dependency graph** — the edges, e.g. `U1→U2`, `U1→U3`; the **integration base branch**;
 the **test command**; the **per-unit file-boundary map**; the **per-unit boundary base
 refs**; the optional `boundary_check_script`); `artifact_path` =
-`docs/runs/<run-id>/progress/bn-integrator.md`;
+`.banyan/runs/<run-id>/progress/bn-integrator.md`;
 `doctrine` (resolved Banyan doctrine and convention paths);
 `boundaries`
 (single writer for the merge; never push; BOUNCE a unit that cannot merge or keeps the suite
@@ -42,7 +42,7 @@ red — do not loop forever; never touch protected artifacts); `budget` (`max_ch
 ## Step 0 — Echo the envelope (auditability, invariant 5)
 
 Before anything else, write the received envelope **verbatim** as the first block of
-`docs/runs/<run-id>/progress/bn-integrator.md`, followed by a merge log you append to as you
+`.banyan/runs/<run-id>/progress/bn-integrator.md`, followed by a merge log you append to as you
 proceed (the integration branch you create, each merge attempt + result, conflicts and how
 you resolved them, suite runs + status, any bounce with its specific reason). Record the
 base ref and the ordered branch list you were given.
@@ -59,13 +59,13 @@ dependencies are already in the integration branch before that unit lands.
 For each unit branch, **in dependency order**:
 
 1. **Boundary check** the unit branch before merging:
-   `node <boundary_check_script> --base <that unit's boundary base ref> --head <unit branch> --allow <normalized unit allow entries plus docs/runs/<run-id>/progress/unit-<id>.md, docs/runs/<run-id>/findings/unit-<id>-review.json, docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json>`.
+   `node <boundary_check_script> --base <that unit's boundary base ref> --head <unit branch> --allow <normalized unit allow entries plus .banyan/runs/<run-id>/progress/unit-<id>.md, .banyan/runs/<run-id>/findings/unit-<id>-review.json, .banyan/runs/<run-id>/findings/unit-<id>-spec-fidelity.json>`.
    The allow list contains only exact repo-relative file paths or `dir/**` entries. Do not
    pass raw spec `Files:` text; strip annotations and notes such as `(new)`, `(extend)`, and
    prose. If that is clearer, write one entry per line to a temporary allow file outside the
    repo and pass `--allow @<allow-file>`. If checking the current integration branch rather
    than a unit branch, allow only your own run artifact under
-   `docs/runs/<run-id>/progress/bn-integrator.md` in addition to the relevant normalized unit
+   `.banyan/runs/<run-id>/progress/bn-integrator.md` in addition to the relevant normalized unit
    entries.
    Record the script's IN/OUT output in the merge log. A violation is recorded and reported,
    not a bounce; still merge unless a real bounce condition appears. If
@@ -114,6 +114,9 @@ The bounce is non-looping by contract: a unit that will not integrate terminates
 Your output is the **committed integration branch on disk** plus your progress file. **NEVER
 push, open a PR, or file a ticket** — those cross the permission cliff and are the trunk's
 separate bn-ship step. Leave the integration branch committed for the delivery-lead / trunk.
+Never stage or commit `.banyan/**`; it is Banyan local state, including integration
+progress artifacts. Before committing, inspect the staged path list and unstage any
+`.banyan/` path.
 
 ## Step 5 — Return one line (verdict + paths)
 
@@ -143,7 +146,7 @@ merge log, suite status, and bounce reasons.
 - **Never push**, open a PR, or file a ticket (permission cliff, invariant 6).
 - **Never loop.** Bounce a unit that will not integrate and return it to the delivery-lead;
   do not retry forever.
-- Never touch protected artifacts: `docs/brainstorms`, `docs/plans`, `docs/solutions`,
-  `docs/runs` (your `progress/bn-integrator.md` is the only permitted write there).
+- Never touch protected artifacts: `.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`,
+  `.banyan/runs` (your `progress/bn-integrator.md` is the only permitted write there).
 - **Spawn nothing** — you have no `Agent(...)` allowlist; you report bounces, you do not
   re-dispatch.

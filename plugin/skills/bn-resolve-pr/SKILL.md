@@ -33,7 +33,7 @@ This skill runs at the **trunk, foreground, with the user present** (AGENTS.md i
   threads, or run any `gh` mutation.
 
 This skill spawns agents, so it opens a **run ledger** (invariants 3 and 5): coordination
-goes through `docs/runs/<run-id>/`, resolvers write outcome artifacts under `findings/`,
+goes through `.banyan/runs/<run-id>/`, resolvers write outcome artifacts under `findings/`,
 and lessons stage under `lessons-staging/`.
 
 ## Security
@@ -81,4 +81,4 @@ the target repo, so use the full plugin path):
 - Each thread replied to with quoted context
 - Threads resolved via GraphQL (except `needs-human`)
 - Empty result from get-pr-comments on verify (minus intentionally-open threads)
-- Resolver outcomes on disk under `docs/runs/<run-id>/findings/`; lessons staged
+- Resolver outcomes on disk under `.banyan/runs/<run-id>/findings/`; lessons staged

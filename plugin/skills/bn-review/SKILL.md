@@ -70,7 +70,7 @@ ask the user before proceeding -- the review runs regardless.
 
 **Locate the run.** If you are already in a run (this skill was reached from `/bn-grow` or
 a prior step that passed its run ID and run dir), reuse that run dir — do NOT scaffold a
-new one; stage the diff and write `review-verdict.md` under the same `docs/runs/<run-id>/`
+new one; stage the diff and write `review-verdict.md` under the same `.banyan/runs/<run-id>/`
 the grow ledger already tracks. Otherwise scaffold a run dir, then write the diff into it
 so the lead reads files, not prose:
 
@@ -78,15 +78,15 @@ so the lead reads files, not prose:
 node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs review-<slug> \
   --root <repo-root> \
   --objective "<review this change and return an applied verdict when scope permits>" \
-  --plan-ref "<docs/plans/...-plan.md, or none -- ad hoc run>" \
-  --unit "review|bn-review-lead|in-progress|docs/runs/<run-id>/review-verdict.md" \
+  --plan-ref "<.banyan/plans/...-plan.md, or none -- ad hoc run>" \
+  --unit "review|bn-review-lead|in-progress|.banyan/runs/<run-id>/review-verdict.md" \
   --actor trunk
 ```
 
 - `<slug>` -> kebab-case from the intent (e.g. `review-add-oauth-login`). The script emits
   JSON; capture `run_id`, `run_dir`, `ledger_path`, and `facts`.
 - `<repo-root>` -> the target repo's root (`git rev-parse --show-toplevel`).
-- Then stage the diff under `docs/runs/<run-id>/`:
+- Then stage the diff under `.banyan/runs/<run-id>/`:
   - `full.diff`  <- `git diff -U10 <base>` (use `<base>...<head>` form for a remote PR/branch).
   - `files.txt`  <- `git diff --name-only <base>` (same ref form).
 - When reusing a grow run, call the script with `--run-id <run-id>` so it returns the same
@@ -103,16 +103,16 @@ child; foreground, in the user's session). Fill every field.
 === BANYAN ENVELOPE ===
 objective:       Review the staged diff for run <run-id>, then fix-and-verify every
                  confirmed finding in place and return an applied verdict.
-artifact_path:   docs/runs/<run-id>/review-verdict.md
+artifact_path:   .banyan/runs/<run-id>/review-verdict.md
 output_format:   Markdown verdict per the review-verdict template: verdict line,
                  findings applied + commit status, residual findings, coverage.
 inputs:
   base_ref:        <base>
-  full_diff:       docs/runs/<run-id>/full.diff
-  files_txt:       docs/runs/<run-id>/files.txt
+  full_diff:       .banyan/runs/<run-id>/full.diff
+  files_txt:       .banyan/runs/<run-id>/files.txt
   intent_summary:  <the 2-3 line summary from Step 2>
   scope_mode:      <local-aligned | pr-remote | branch-remote | standalone>
-  plan_ref:        <docs/plans/...-plan.md, or "none">
+  plan_ref:        <.banyan/plans/...-plan.md, or "none">
   test_command:    <detected repo test command, or "none detected">
   dogfood:         <off | auto | on>   # default off; opt-in execution-grounded verifier
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
@@ -121,7 +121,7 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
 boundaries:      APPLY (edit + commit on a clean tree) ONLY when scope_mode is
                  local-aligned or standalone; otherwise REPORT only -- propose fixes,
                  do not edit. NEVER push or open a PR. NEVER touch protected artifacts
-                 docs/brainstorms, docs/plans, docs/solutions, or docs/runs outside this
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or .banyan/runs outside this
                  run's own artifacts. One writer per file set.
 tool_guidance:   Read, Grep, Glob, Bash to inspect the diff and run the test command;
                  Write to its own run artifacts; Agent(...) to spawn its reviewer panel
@@ -141,7 +141,7 @@ effort_class:    <lightweight | standard | deep>
 
 ## Step 5: Present the verdict
 
-When the lead returns, READ `docs/runs/<run-id>/review-verdict.md` (the artifact, not
+When the lead returns, READ `.banyan/runs/<run-id>/review-verdict.md` (the artifact, not
 the lead's final-message prose -- invariant 3) and present to the user:
 
 - the verdict line;
@@ -157,7 +157,7 @@ the lead's final-message prose -- invariant 3) and present to the user:
 
 Then state explicitly that **push remains the user's step** -- the lead commits on a
 clean tree but never pushes (permission cliff, invariant 6). Point the user at
-`docs/runs/<run-id>/` for the full record (findings, merged findings, ledger).
+`.banyan/runs/<run-id>/` for the full record (findings, merged findings, ledger).
 
 ## Permission cliff (invariant 6)
 

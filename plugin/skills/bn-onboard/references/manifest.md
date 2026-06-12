@@ -1,12 +1,12 @@
 # Onboarding Manifest
 
-`docs/onboarding-manifest.md` is the stable repository-level record for `/bn-onboard`.
+`.banyan/onboarding-manifest.md` is the stable repository-level record for `/bn-onboard`.
 It is human-reviewable in a PR and cheap to load with one read. It lives outside
-`docs/runs/<run-id>/` because reruns compare current sources against the last onboarded
+`.banyan/runs/<run-id>/` because reruns compare current sources against the last onboarded
 state.
 
 The `/bn-onboard` trunk is the single writer. Surveyors and transformers report outcomes
-under `docs/runs/<run-id>/findings/`; the trunk folds those artifacts into the manifest.
+under `.banyan/runs/<run-id>/findings/`; the trunk folds those artifacts into the manifest.
 
 ## Header
 
@@ -27,7 +27,7 @@ Use one row per source.
 ```markdown
 | source | sha256 (12-hex prefix) | classification | derivative | status |
 |---|---|---|---|---|
-| docs/adr/0001-example.md | a1b2c3d4e5f6 | solution-knowledge:tooling_decision | docs/runs/<run-id>/lessons-staging/example.md | staged |
+| docs/adr/0001-example.md | a1b2c3d4e5f6 | solution-knowledge:tooling_decision | .banyan/runs/<run-id>/lessons-staging/example.md | staged |
 ```
 
 Column rules:
@@ -46,9 +46,9 @@ Column rules:
 
 | status | meaning |
 |---|---|
-| `staged` | A solution candidate remains in `docs/runs/<run-id>/lessons-staging/`. |
-| `promoted` | The curator promoted the candidate into `docs/solutions/`; `derivative` names the promoted path. |
-| `merged` | The curator merged the candidate into an existing `docs/solutions/` doc; `derivative` names that doc. |
+| `staged` | A solution candidate remains in `.banyan/runs/<run-id>/lessons-staging/`. |
+| `promoted` | The curator promoted the candidate into `.banyan/solutions/`; `derivative` names the promoted path. |
+| `merged` | The curator merged the candidate into an existing `.banyan/solutions/` doc; `derivative` names that doc. |
 | `transformed` | A non-solution derivative was written, such as a brainstorm. |
 | `skipped: <reason>` | The source matched a skip or uncertainty rule. |
 | `deferred` | Deep-mode corpus cap deferred the source. |
@@ -57,7 +57,7 @@ Column rules:
 
 ## Re-run Algorithm
 
-1. Read `docs/onboarding-manifest.md` if it exists.
+1. Read `.banyan/onboarding-manifest.md` if it exists.
 2. Discover the current corpus with the `/bn-onboard` discovery rules.
 3. Compute the 12-hex SHA-256 prefix for each current source.
 4. For a source whose hash equals the manifest row, do no work for that source.

@@ -42,7 +42,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs debug-<slug
   --root <repo-root> \
   --objective "<bug statement and done condition>" \
   --plan-ref "none -- ad hoc run" \
-  --unit "debug|bn-debug-lead|in-progress|docs/runs/<run-id>/debug-diagnosis.md" \
+  --unit "debug|bn-debug-lead|in-progress|.banyan/runs/<run-id>/debug-diagnosis.md" \
   --actor trunk
 ```
 
@@ -61,7 +61,7 @@ Spawn `bn-debug-lead` **foreground** with this envelope verbatim (filled in):
 === BANYAN ENVELOPE ===
 objective:       Diagnose the bug to a confirmed causal chain: reproduce, rank
                  hypotheses, test them, and write ONE diagnosis artifact.
-artifact_path:   docs/runs/<run-id>/debug-diagnosis.md
+artifact_path:   .banyan/runs/<run-id>/debug-diagnosis.md
 output_format:   Markdown diagnosis per the bn-debug-lead contract: Bug / Reproduction /
                  Root cause / Causal chain / Hypotheses tested / Recommended fix /
                  Confidence / Open questions.
@@ -77,8 +77,8 @@ inputs:
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/anti-patterns.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/defense-in-depth.md
 boundaries:      Investigation is read-and-run only: never edit source, config, or
-                 tests. NEVER push. Never touch protected artifacts (docs/brainstorms,
-                 docs/plans, docs/solutions, docs/runs except this run's own artifacts).
+                 tests. NEVER push. Never touch protected artifacts (.banyan/brainstorms,
+                 .banyan/plans, .banyan/solutions, .banyan/runs except this run's own artifacts).
 tool_guidance:   Read, Grep, Glob, Bash to reproduce and inspect; Write to this run's
                  artifacts; Agent(...) for investigators, the learnings researcher, and
                  the exit-path harvester.
@@ -91,7 +91,7 @@ effort_class:    <lightweight | standard | deep>
 
 ## Step 5 — Present the diagnosis
 
-READ `docs/runs/<run-id>/debug-diagnosis.md` (the file, not the lead's prose). Present:
+READ `.banyan/runs/<run-id>/debug-diagnosis.md` (the file, not the lead's prose). Present:
 the root cause (file:line), the causal chain and its `chain:` status, the hypotheses
 tested (including what was refuted — eliminations are findings), and the recommended
 fix.
@@ -112,14 +112,14 @@ Then:
   ```
   === BANYAN ENVELOPE ===
   objective:       Apply the diagnosed fix test-first and return a fix report.
-  artifact_path:   docs/runs/<run-id>/debug-fix-report.md
+  artifact_path:   .banyan/runs/<run-id>/debug-fix-report.md
   output_format:   Markdown fix report per the bn-debug-lead contract.
   doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                    ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                    ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
   inputs:
     mode:           fix
-    diagnosis_path: docs/runs/<run-id>/debug-diagnosis.md
+    diagnosis_path: .banyan/runs/<run-id>/debug-diagnosis.md
     test_command:   <the repo test command>
     methodology:    ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/investigation-techniques.md,
                     ${CLAUDE_PLUGIN_ROOT}/skills/bn-debug/references/anti-patterns.md,

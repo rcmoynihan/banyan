@@ -20,9 +20,9 @@ your context.
 Treat the argument as one of:
 
 - a feature/task description;
-- a readable requirements document under `docs/brainstorms/`;
-- a readable research brief under `docs/runs/<run-id>/briefs/`;
-- a readable spec-stress brief under `docs/runs/<run-id>/briefs/`.
+- a readable requirements document under `.banyan/brainstorms/`;
+- a readable research brief under `.banyan/runs/<run-id>/briefs/`;
+- a readable spec-stress brief under `.banyan/runs/<run-id>/briefs/`.
 
 Do not pre-read all content into trunk context. If the path is readable, verify only enough to
 classify it and pass the path to the lead. If the user supplied `precheck:on` or `precheck:off`,
@@ -45,7 +45,7 @@ Spawn one foreground `bn-plan-lead` with this envelope:
 === BANYAN ENVELOPE ===
 objective:       Produce a durable implementation plan for the supplied task or input artifact,
                  including warranted generator/judge/checker panels and a concise report.
-artifact_path:   docs/runs/<resolved-run-id>/briefs/plan-lead-report.md
+artifact_path:   .banyan/runs/<resolved-run-id>/briefs/plan-lead-report.md
 output_format:   Markdown plan lead report with verdict, plan path, run path, effort, panel,
                  precheck, assumed requirements, and recovery metadata.
 inputs:
@@ -60,7 +60,7 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      The lead may write the active run's planning artifacts and one durable
-                 plan under docs/plans/. It must not edit source, switch branches, push,
+                 plan under .banyan/plans/. It must not edit source, switch branches, push,
                  open a PR, delete protected artifacts, or write outside its run artifacts.
                  The trunk writes no run ledger and no plan doc.
 tool_guidance:   Use the run scaffolder once; Read/Grep/Glob/Bash for grounding; Write the
@@ -83,8 +83,8 @@ When the lead returns, extract the report path from its verdict line and READ th
 not rely on the lead's prose. The report is load-bearing and must include:
 
 - `**Verdict:** ready | needs-user | blocked`;
-- `**Plan:** <docs/plans/...-plan.md, or "none">`;
-- `**Run:** docs/runs/<run-id>/`;
+- `**Plan:** <.banyan/plans/...-plan.md, or "none">`;
+- `**Run:** .banyan/runs/<run-id>/`;
 - assumed requirements with confirm-by clauses;
 - recovery metadata: `blocker_class`, `recovery_owner`, `next_safe_action`, and
   `resume_from_phase`.

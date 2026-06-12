@@ -60,7 +60,7 @@ echoed envelopes line up, and a violation is a visible diff. Copy this block:
 objective:       <one crisp goal, one sentence>
 inputs:          <optional task-specific payload: base ref, diff/files paths, intent
                  summary, scope mode, plan ref, test command, flags -- resolved paths>
-artifact_path:   docs/runs/<run-id>/<dir>/<file>
+artifact_path:   .banyan/runs/<run-id>/<dir>/<file>
 output_format:   <schema name | headings | "JSON per schemas/...">
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
@@ -82,12 +82,12 @@ passes `depth_remaining: 2` (its own 3, minus one):
 ```
 === BANYAN ENVELOPE ===
 objective:       Find correctness bugs in the staged diff for run 2026-06-10-007.
-artifact_path:   docs/runs/2026-06-10-007/findings/correctness-<id>.json
+artifact_path:   .banyan/runs/2026-06-10-007/findings/correctness-<id>.json
 output_format:   One JSON object per finding, conforming to schemas/findings-schema.json.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only review. Do NOT edit source, run migrations, touch
-                 docs/brainstorms, docs/plans, docs/solutions, or write docs/runs outside
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or write .banyan/runs outside
                  your own artifact_path. Do not write any file a sibling reviewer owns.
 tool_guidance:   Read, Grep, Glob to inspect the diff and surrounding code; Bash to
                  reproduce a suspected failure; Write only to artifact_path. Least
@@ -113,12 +113,12 @@ findings JSON -- the same envelope shape carries both artifact classes:
 === BANYAN ENVELOPE ===
 objective:       Map how the auth middleware wires into the request pipeline; note any
                  half-deprecated paths worth chasing.
-artifact_path:   docs/runs/2026-06-10-007/briefs/repo-auth-middleware.md
+artifact_path:   .banyan/runs/2026-06-10-007/briefs/repo-auth-middleware.md
 output_format:   Markdown brief: findings, sources (file:line), open questions. No raw dumps.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
-boundaries:      Read-only. Do NOT edit source, touch docs/brainstorms, docs/plans,
-                 docs/solutions, or write docs/runs outside your own artifact_path.
+boundaries:      Read-only. Do NOT edit source, touch .banyan/brainstorms, .banyan/plans,
+                 .banyan/solutions, or write .banyan/runs outside your own artifact_path.
 tool_guidance:   Read, Grep, Glob to trace the code; Write only to artifact_path.
 budget:
   max_children:    1
@@ -139,7 +139,7 @@ Every lead and every child obeys all of these. They are not enforced by the
 runtime; they are enforced by prompt discipline and audited from the ledger.
 
 (a) **Echo on start.** On start, a lead writes its received envelope verbatim as
-the first block of its progress file, `docs/runs/<run-id>/progress/<lead>.md`. This
+the first block of its progress file, `.banyan/runs/<run-id>/progress/<lead>.md`. This
 makes every later spawn checkable against the budget the lead was actually handed:
 a reviewer counting spawns in the progress log can see whether the lead exceeded
 `max_children`. No echo, no audit trail.

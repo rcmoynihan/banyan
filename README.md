@@ -8,7 +8,7 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 
 - **Subtrees with contracts, not waves.** Lead agents (`bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`) own whole domains and orchestrate their own children; the main session stays a near-empty trunk that talks to the user.
 - **Fractal compounding.** Lessons are harvested at the leaves, where context is fresh, and consolidated by a background curator — compounding as metabolism, not a command you remember to run.
-- **The ledger is the ground truth.** Coordination happens through files (`docs/runs/<run-id>/`); final messages are verdicts plus paths.
+- **The ledger is the ground truth.** Coordination happens through files (`.banyan/runs/<run-id>/`); final messages are verdicts plus paths.
 - **Delegation envelopes.** Every spawn carries an objective, an artifact path, boundaries, and a budget (children, model tier, remaining depth).
 - **The laws still hold.** Reads parallelize, writes serialize, one writer per file set, decompose on failure rather than eagerly.
 
@@ -21,7 +21,7 @@ decisions.
 ```mermaid
 flowchart TD
   trunk["Main session<br/>intent, gates, user decisions"]
-  ledger[("docs/runs/&lt;run-id&gt;<br/>ledger + artifacts")]
+  ledger[(".banyan/runs/&lt;run-id&gt;<br/>ledger + artifacts")]
 
   trunk -. reads gate artifacts .-> ledger
   trunk -->|"fuzzy intake"| brainstorm["/bn-brainstorm<br/>requirements intake"]
@@ -89,7 +89,7 @@ In a `claude` session inside the repo you want to work on:
 /bn-grow <idea or feature/task description>
 ```
 
-`/bn-grow` runs the full pipeline — optional brainstorm intake for fuzzy ideas → research → spec stress when warranted → plan (judged) → deliver → review → ship gate → curation handoff — coordinating through a run ledger at `docs/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
+`/bn-grow` runs the full pipeline — optional brainstorm intake for fuzzy ideas → research → spec stress when warranted → plan (judged) → deliver → review → ship gate → curation handoff — coordinating through a run ledger at `.banyan/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
 
 Each stage is also independently invocable:
 
@@ -106,7 +106,7 @@ Each stage is also independently invocable:
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description — the one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolvers fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
-| `/bn-curate` | Consolidate harvested lessons into `docs/solutions/` (sleep-time compute; receives the `/bn-grow` curation handoff). |
+| `/bn-curate` | Consolidate harvested lessons into `.banyan/solutions/` (sleep-time compute; receives the `/bn-grow` curation handoff). |
 | `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself — proposals only, a human applies them. |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and live depth-2 nested-spawn, allowlist, and nested user-question probes. |
@@ -140,13 +140,13 @@ stage. Failed gates trigger bounded recovery by the owning phase before anything
 Watch the run live:
 
 ```
-tail -f docs/runs/<run-id>/ledger.md
+tail -f .banyan/runs/<run-id>/ledger.md
 ```
 
 The pipeline ends at a **ship gate**: the work is committed locally, reviewed, and green,
 but pushing or opening a PR is a step you take yourself — `/bn-ship` when you're ready.
 Lesson curation is handed off afterward without blocking the ship gate. A run halted
-mid-pipeline writes `docs/runs/<run-id>/residuals.md` and resumes from its ledger once the
+mid-pipeline writes `.banyan/runs/<run-id>/residuals.md` and resumes from its ledger once the
 blocker is cleared.
 
 ### Brainstorm first
@@ -157,7 +157,7 @@ blocker is cleared.
 
 For standalone ideas that aren't yet feature descriptions. A collaborative dialogue — one
 question per turn, scope-tiered rigor probes, 2-3 concrete approaches with a recommendation
-— ending in a requirements document under `docs/brainstorms/` strong enough that planning
+— ending in a requirements document under `.banyan/brainstorms/` strong enough that planning
 doesn't have to invent product behavior. The handoff menu flows into `/bn-spec-stress`,
 `/bn-plan`, or `/bn-work` direct mode for lightweight, well-defined changes; for grounding questions
 a short scan can't answer, it can dispatch the research subtree and fold the brief in.
@@ -166,13 +166,13 @@ a short scan can't answer, it can dispatch the research subtree and fold the bri
 ### Stress requirements before planning
 
 ```
-/bn-spec-stress docs/brainstorms/2026-06-12-example-requirements.md
+/bn-spec-stress .banyan/brainstorms/2026-06-12-example-requirements.md
 ```
 
 Use this after a requirements doc exists and before `/bn-plan` when the scope is standard or
 deep, the brainstorm surfaced assumptions, or the feature touches multi-step behavior, roles,
 data, permissions, external tools, or abuse surfaces. The output lands at
-`docs/runs/<run-id>/briefs/spec-stress.md`: unresolved `Resolve Before Planning` items
+`.banyan/runs/<run-id>/briefs/spec-stress.md`: unresolved `Resolve Before Planning` items
 require disposition before planning; `/bn-grow` attempts that disposition automatically,
 while standalone use surfaces the blocker. `Plan Inputs` and `Accepted Risks` feed `/bn-plan`.
 
@@ -256,7 +256,7 @@ pattern instead of churning.
 
 ```
 /bn-plan migrate the session store from memory to redis
-# read (and edit) the plan doc it writes under docs/plans/ ...
+# read (and edit) the plan doc it writes under .banyan/plans/ ...
 /bn-work
 ```
 
@@ -265,7 +265,7 @@ execution. `/bn-plan` drafts competing approaches under different priors (mvp-fi
 risk-first / ops-first), scores them with an independent judge panel, and synthesizes the
 winner into a plan doc with stable unit IDs; pass it a requirements-doc path,
 research-brief path, or spec-stress brief path instead of a description to ground it in prior work. Blank `/bn-work`
-executes the latest durable plan, and `/bn-work docs/plans/...-plan.md` executes that plan
+executes the latest durable plan, and `/bn-work .banyan/plans/...-plan.md` executes that plan
 explicitly.
 
 For lightweight work where the executable plan already exists in the conversation, pass a
@@ -277,24 +277,24 @@ direct instruction:
 
 Direct mode gates for clear scope, file boundaries, simple dependencies, obvious
 verification, and low risk. When it passes, `/bn-work` writes
-`docs/runs/<run-id>/briefs/direct-work-plan.md` itself and then runs the same delivery
+`.banyan/runs/<run-id>/briefs/direct-work-plan.md` itself and then runs the same delivery
 subtree: atomic units inline, composite units in isolated worktrees with their own
 test-fix loop and mini-review, and a single integrator merging in dependency order.
 
 ### Keep the harness compounding
 
 ```
-/bn-curate    # consolidate staged lessons into docs/solutions/
+/bn-curate    # consolidate staged lessons into .banyan/solutions/
 /bn-tune      # once ~5 runs have accumulated: propose improvements to Banyan itself
 ```
 
 Every lead stages candidate lessons before it returns; curation promotes the keepers into
-the `docs/solutions/` knowledge store, where future runs retrieve them. `/bn-grow` ends
+the `.banyan/solutions/` knowledge store, where future runs retrieve them. `/bn-grow` ends
 with a non-blocking curation handoff: it starts `/bn-curate <run-id>` only when a real
 background mechanism is available, otherwise it gives you that follow-up command. Run
 `/bn-curate` manually after standalone `/bn-review`, `/bn-work`, `/bn-debug`, or
 `/bn-resolve-pr` runs. `/bn-tune` mines accumulated run ledgers and transcripts for
-recurring harness failures and writes evidence-cited proposals to `docs/harness-proposals/`;
+recurring harness failures and writes evidence-cited proposals to `.banyan/harness-proposals/`;
 it never edits the plugin itself — you review and apply.
 
 ## Evaluation
@@ -305,7 +305,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 
 ```
 plugin/        the Claude Code plugin (45 agents, 17 skills, schemas, AGENTS.md contract)
-docs/          founding brainstorm, decision records, plans, harness changelog & proposals
+docs/          founding brainstorm, decision records, plans, harness changelog
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation
 test/          seeded-bug fixture repo and a planted two-hop research scenario

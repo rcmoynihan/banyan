@@ -11,7 +11,9 @@ const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT_PATH = path.join(SCRIPT_DIR, 'new-run.mjs');
 
 function createRepo(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'banyan-new-run-'));
+  const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'banyan-new-run-')));
+  const git = spawnSync('git', ['init', '-q'], { cwd: root, encoding: 'utf8' });
+  assert.equal(git.status, 0, git.stderr);
   t.after(() => {
     fs.rmSync(root, { recursive: true, force: true });
   });
@@ -44,11 +46,11 @@ test('scaffolds a fresh run with seeded facts and unit rows', (t) => {
       '--objective',
       'Plan the widget feature.',
       '--plan-ref',
-      'docs/plans/2026-06-12-001-feat-widget-plan.md',
+      '.banyan/plans/2026-06-12-001-feat-widget-plan.md',
       '--fact',
       'Input: docs/brief.md',
       '--unit',
-      'plan|bn-plan-lead|in-progress|docs/plans/2026-06-12-001-feat-widget-plan.md',
+      'plan|bn-plan-lead|in-progress|.banyan/plans/2026-06-12-001-feat-widget-plan.md',
     ],
     root,
   );
@@ -61,9 +63,11 @@ test('scaffolds a fresh run with seeded facts and unit rows', (t) => {
 
   const ledger = fs.readFileSync(result.ledger_path, 'utf8');
   assert.match(ledger, /Plan the widget feature\./);
-  assert.match(ledger, /Plan ref: docs\/plans\/2026-06-12-001-feat-widget-plan\.md/);
+  assert.match(ledger, /Plan ref: \.banyan\/plans\/2026-06-12-001-feat-widget-plan\.md/);
   assert.match(ledger, /- Test command: npm test \(source: package\.json scripts\.test\)/);
-  assert.match(ledger, /\| plan\s+\| bn-plan-lead\s+\| in-progress\s+\| docs\/plans\/2026-06-12-001-feat-widget-plan\.md \|/);
+  assert.match(ledger, /\| plan\s+\| bn-plan-lead\s+\| in-progress\s+\| \.banyan\/plans\/2026-06-12-001-feat-widget-plan\.md \|/);
+  assert.equal(path.relative(root, result.run_dir), '.banyan/runs/2026-06-12-001-plan-add-widget');
+  assert.match(fs.readFileSync(path.join(root, '.git/info/exclude'), 'utf8'), /^\/\.banyan\/$/m);
 });
 
 test('prefers documented test commands over package scripts', (t) => {
@@ -101,13 +105,13 @@ test('ignores non-test mypy examples and detects node tests without package json
   assert.equal(result.facts.test_source, 'test files');
 });
 
-test('adopts a live run from an input path under docs/runs', (t) => {
+test('adopts a live run from an input path under .banyan/runs', (t) => {
   const root = createRepo(t);
   const first = runNewRun(['grow-widget', '--date', '2026-06-12'], root);
   writeFile(root, `${path.relative(root, first.run_dir)}/briefs/research-brief.md`, '# Brief\n');
 
   const adopted = runNewRun(
-    ['plan-widget', '--date', '2026-06-12', '--input', 'docs/runs/2026-06-12-001-grow-widget/briefs/research-brief.md'],
+    ['plan-widget', '--date', '2026-06-12', '--input', '.banyan/runs/2026-06-12-001-grow-widget/briefs/research-brief.md'],
     root,
   );
 
@@ -116,17 +120,31 @@ test('adopts a live run from an input path under docs/runs', (t) => {
   assert.equal(adopted.run_id, first.run_id);
 });
 
+test('does not adopt stale runs under docs/runs', (t) => {
+  const root = createRepo(t);
+  writeFile(root, 'docs/runs/2026-06-12-001-old-widget/ledger.md', '# Old run\n');
+
+  const result = runNewRun(
+    ['plan-widget', '--date', '2026-06-12', '--input', 'docs/runs/2026-06-12-001-old-widget/briefs/research-brief.md'],
+    root,
+  );
+
+  assert.equal(result.created, true);
+  assert.equal(result.reason, 'no-live-run');
+  assert.equal(result.run_id, '2026-06-12-001-plan-widget');
+});
+
 test('adopts the single live run mentioned by a durable artifact', (t) => {
   const root = createRepo(t);
   const first = runNewRun(['plan-widget', '--date', '2026-06-12'], root);
   writeFile(
     root,
-    'docs/plans/2026-06-12-001-feat-widget-plan.md',
-    `# Plan\n\nSource: docs/runs/${first.run_id}/briefs/research-brief.md\n`,
+    '.banyan/plans/2026-06-12-001-feat-widget-plan.md',
+    `# Plan\n\nSource: .banyan/runs/${first.run_id}/briefs/research-brief.md\n`,
   );
 
   const adopted = runNewRun(
-    ['work-widget', '--date', '2026-06-12', '--input', 'docs/plans/2026-06-12-001-feat-widget-plan.md'],
+    ['work-widget', '--date', '2026-06-12', '--input', '.banyan/plans/2026-06-12-001-feat-widget-plan.md'],
     root,
   );
 
@@ -141,17 +159,17 @@ test('scaffolds a fresh run when a durable artifact mentions multiple live runs'
   const second = runNewRun(['second-widget', '--date', '2026-06-12'], root);
   writeFile(
     root,
-    'docs/plans/2026-06-12-001-feat-widget-plan.md',
+    '.banyan/plans/2026-06-12-001-feat-widget-plan.md',
     [
       '# Plan',
-      `Source: docs/runs/${first.run_id}/briefs/research-brief.md`,
-      `Source: docs/runs/${second.run_id}/briefs/spec-stress.md`,
+      `Source: .banyan/runs/${first.run_id}/briefs/research-brief.md`,
+      `Source: .banyan/runs/${second.run_id}/briefs/spec-stress.md`,
       '',
     ].join('\n'),
   );
 
   const result = runNewRun(
-    ['work-widget', '--date', '2026-06-12', '--input', 'docs/plans/2026-06-12-001-feat-widget-plan.md'],
+    ['work-widget', '--date', '2026-06-12', '--input', '.banyan/plans/2026-06-12-001-feat-widget-plan.md'],
     root,
   );
 

@@ -1,6 +1,6 @@
-# Run ledger: docs/runs/<run-id>/ (Banyan's stigmergic substrate)
+# Run ledger: .banyan/runs/<run-id>/ (Banyan's stigmergic substrate)
 
-Every Banyan run writes to one directory under `docs/runs/` in the *target repo*
+Every Banyan run writes to one directory under `.banyan/runs/` in the *target repo*
 (not the plugin). That directory is the run's shared memory: coordination happens
 through files, not through child->parent message prose. A child's final message is
 a verdict plus paths; the load-bearing facts live in the ledger and its artifacts
@@ -26,7 +26,7 @@ dirs for the date; see "Opening a run" below.
 ## The layout
 
 ```
-docs/runs/<run-id>/
+.banyan/runs/<run-id>/
   ledger.md            # task ledger: objective, plan ref, facts, unit-status table, append-only log
   residuals.md         # grow trunk-owned unresolved state after exhausted recovery
   progress/<agent>.md  # per-subtree progress notes (one writer per file)
@@ -101,16 +101,16 @@ facts from a child's final-message prose (invariant 3).
 
 ## Lifecycle and retention
 
-- **`docs/runs/` is local run state.** It is the run's audit trail and the basis for
+- **`.banyan/runs/` is local run state.** It is the run's audit trail and the basis for
   resumability while the working tree is active: a halted run can be resumed from its
   ledger, and a user can watch a run live by tailing `ledger.md`. Repositories normally
   gitignore raw run directories.
 - **Durable knowledge is promoted.** Lessons worth keeping are curated into
-  `docs/solutions/`; plans, decisions, fixtures, eval goldens, and examples live in their
+  `.banyan/solutions/`; plans, decisions, fixtures, eval goldens, and examples live in their
   explicit project locations instead of raw run directories.
 - **`lessons-staging/` is curator feedstock.** It holds candidates between harvest and
   promotion. The knowledge curator reads each candidate, promotes the keepers into
-  `docs/solutions/` (stripping `status: candidate`), and empties the staging dir.
+  `.banyan/solutions/` (stripping `status: candidate`), and empties the staging dir.
 
 ## ledger.md template
 
@@ -125,8 +125,8 @@ A fresh `ledger.md` looks like this (the scaffolder seeds it; fill the placehold
 
 ## Plan
 
-Plan ref: docs/plans/2026-06-10-001-feat-add-oauth-login-plan.md
-(or "none -- direct work spec docs/runs/<run-id>/briefs/direct-work-plan.md" for
+Plan ref: .banyan/plans/2026-06-10-001-feat-add-oauth-login-plan.md
+(or "none -- direct work spec .banyan/runs/<run-id>/briefs/direct-work-plan.md" for
 `/bn-work` direct mode, or "none -- ad hoc run" for non-delivery runs)
 
 ## Facts / Context
@@ -196,7 +196,7 @@ Use this structure:
 ```
 
 When writing `residuals.md`, the grow trunk also appends one `## Log` line and adds or updates one
-`## Open questions` bullet that points at `docs/runs/<run-id>/residuals.md`. On resume, the trunk
+`## Open questions` bullet that points at `.banyan/runs/<run-id>/residuals.md`. On resume, the trunk
 reads `ledger.md`, `residuals.md`, and the evidence artifacts before choosing the resume phase. When
 the residual is resolved, mark `**Status:** resolved`, append the resolution to `## Resume notes`,
 remove or rewrite the matching `## Open questions` bullet, and continue the run.
@@ -232,8 +232,8 @@ permission-cliff decisions.
    into `lessons-staging/` (fractal compounding). The lead never edits another
    lead's progress file or another unit's status row.
 7. **Later, the curator** consumes `lessons-staging/`, promotes keepers to
-   `docs/solutions/`, and empties staging. The rest of the run dir is committed and
-   kept as the permanent record.
+   `.banyan/solutions/`, and empties staging. The rest of the run dir stays local run
+   state unless the user explicitly exports specific artifacts elsewhere.
 
 The whole point: the next agent -- a resumed trunk, a parent reading a child, a user
 tailing the file -- reconstructs run state from these files alone, never from a

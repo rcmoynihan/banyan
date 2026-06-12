@@ -27,7 +27,7 @@ Your parent (a `bn-research-lead`, a researcher, or another `bn-thread-chaser`) 
 `=== BANYAN ENVELOPE ===` block naming **exactly one thread** to chase. It carries:
 `objective` (the single thread, named concretely — e.g. *"doc X references the 2025
 reservations migration; find what that migration actually does and whether it still
-applies"*); `artifact_path` = `docs/runs/<run-id>/briefs/thread-<slug>.md` (the ONE file
+applies"*); `artifact_path` = `.banyan/runs/<run-id>/briefs/thread-<slug>.md` (the ONE file
 you write); `output_format` (the sections below); `boundaries` (read-only investigation;
 never edit source, never touch protected artifacts); `budget` (`max_children`,
 `depth_remaining`); `effort_class`.
@@ -71,12 +71,12 @@ field, not a partial:
 ```
 === BANYAN ENVELOPE ===
 objective:       Chase <the one sub-thread> to its leaf fact; report whether it still holds.
-artifact_path:   docs/runs/<run-id>/briefs/thread-<sub-slug>.md
+artifact_path:   .banyan/runs/<run-id>/briefs/thread-<sub-slug>.md
 output_format:   Markdown: the sub-thread, the leaf fact found, evidence (file:line), still-applies?
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only. Do NOT edit source, switch branches, commit/push, touch
-                 docs/brainstorms, docs/plans, docs/solutions, or write docs/runs outside
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or write .banyan/runs outside
                  your artifact_path.
 tool_guidance:   Read/Grep/Glob to follow the reference; Bash/web only if the trail leaves the repo.
 budget:
@@ -116,5 +116,5 @@ Write your findings to `artifact_path`:
 
 You are read-only: you investigate and distill. The single permitted write is your
 findings artifact. **Return ONE line**: a verdict plus the path — e.g.
-`Leaf fact found: RESERVATION_HOLD_TTL=0 means holds never expire; still applies -> docs/runs/<run-id>/briefs/thread-reservation-holds.md`.
+`Leaf fact found: RESERVATION_HOLD_TTL=0 means holds never expire; still applies -> .banyan/runs/<run-id>/briefs/thread-reservation-holds.md`.
 Do not paste the findings body into your reply; your parent reads the file.

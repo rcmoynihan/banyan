@@ -33,7 +33,7 @@ The `bn-delivery-lead` hands you a `=== BANYAN ENVELOPE ===` block carrying: `ob
 unit's **file boundary** — the exact files this unit owns; **already-merged dependency
 branch refs**; the **test command**; `unit_base_ref`; the optional
 `boundary_check_script`); `artifact_path`
-= `docs/runs/<run-id>/progress/unit-<id>.md`; `boundaries` (work ONLY in your assigned
+= `.banyan/runs/<run-id>/progress/unit-<id>.md`; `boundaries` (work ONLY in your assigned
 worktree, ONLY on this unit's files; never merge; never push; never touch protected
 artifacts or another unit's files); `budget` (`max_children: 3` — enough for the scoped
 mini-review pair **and**, only on genuine failure, one recursive split;
@@ -43,7 +43,7 @@ inside a worktree on your own branch.
 ## Step 0 — Echo the envelope (auditability, invariant 5)
 
 Before anything else, write the received envelope **verbatim** as the first block of
-`docs/runs/<run-id>/progress/unit-<id>.md`, followed by a short running log you append to as
+`.banyan/runs/<run-id>/progress/unit-<id>.md`, followed by a short running log you append to as
 you proceed (worktree + branch you are on, files touched, test-fix iterations, mini-review
 result, commit). Confirm in the log that you are **in your assigned worktree** (e.g.
 `git rev-parse --show-toplevel`, `git rev-parse --abbrev-ref HEAD`) — that is the audit
@@ -81,7 +81,7 @@ runs at its own pinned model. The correctness envelope:
 ```
 === BANYAN ENVELOPE ===
 objective:       Find correctness bugs in this unit's diff only (unit U<id>).
-artifact_path:   docs/runs/<run-id>/findings/unit-<id>-review.json
+artifact_path:   .banyan/runs/<run-id>/findings/unit-<id>-review.json
 output_format:   One JSON object per finding, conforming to schemas/findings-schema.json
                  (why_it_matters and evidence required).
 inputs:          Scope = this unit's own diff only (e.g.
@@ -91,7 +91,7 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only review. The single permitted write is artifact_path. Do NOT edit
                  source, switch branches, commit, push, touch protected artifacts
-                 (docs/brainstorms, docs/plans, docs/solutions), or write docs/runs outside
+                 (.banyan/brainstorms, .banyan/plans, .banyan/solutions), or write .banyan/runs outside
                  your own artifact_path. Review ONLY this unit's diff — not the wider repo.
 tool_guidance:   Read/Grep/Glob and read-only Bash (git diff/show/log) to inspect the unit's
                  diff and surrounding code; Write only to artifact_path.
@@ -107,7 +107,7 @@ The spec-fidelity envelope:
 ```
 === BANYAN ENVELOPE ===
 objective:       Find divergence between this unit's diff and its spec (unit U<id>).
-artifact_path:   docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json
+artifact_path:   .banyan/runs/<run-id>/findings/unit-<id>-spec-fidelity.json
 output_format:   One JSON object per finding, conforming to schemas/findings-schema.json
                  (why_it_matters and evidence required).
 inputs:          The unit's spec: delivery spec path <delivery spec path>, kind
@@ -120,7 +120,7 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only review. The single permitted write is artifact_path. Do NOT edit
                  source, switch branches, commit, push, touch protected artifacts
-                 (docs/brainstorms, docs/plans, docs/solutions), or write docs/runs outside
+                 (.banyan/brainstorms, .banyan/plans, .banyan/solutions), or write .banyan/runs outside
                  your own artifact_path. Review ONLY this unit's diff — not the wider repo.
 tool_guidance:   Read/Grep/Glob and read-only Bash (git diff/show/log) to inspect the unit's
                  diff and surrounding code; Write only to artifact_path.
@@ -163,7 +163,7 @@ When the unit is green, or degraded validation is recorded, and its P0/P1 mini-r
 findings are addressed, run the boundary check before committing:
 
 ```
-node <boundary_check_script> --base <unit_base_ref> --head HEAD --allow <normalized unit allow entries plus docs/runs/<run-id>/progress/unit-<id>.md, docs/runs/<run-id>/findings/unit-<id>-review.json, docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json>
+node <boundary_check_script> --base <unit_base_ref> --head HEAD --allow <normalized unit allow entries plus .banyan/runs/<run-id>/progress/unit-<id>.md, .banyan/runs/<run-id>/findings/unit-<id>-review.json, .banyan/runs/<run-id>/findings/unit-<id>-spec-fidelity.json>
 ```
 
 The allow list must contain only `check-boundary.mjs` entries: exact repo-relative file
@@ -178,9 +178,10 @@ proceed; do not block on the instrument.
 
 Then **commit the unit on its own branch** with a Conventional-Commits message (e.g.
 `feat(wishlist): add wishlist store and core operations` for U`<id>`). Commit **only your
-unit's files**. Do **not** merge into any other branch — **the integrator merges**. Do
-**not** push or open a PR (permission cliff, invariant 6 — that is the trunk's bn-ship step).
-Record the branch ref and commit sha in your progress log.
+unit's files** and never stage `.banyan/**`. Before committing, inspect the staged path
+list and unstage any `.banyan/` path. Do **not** merge into any other branch — **the
+integrator merges**. Do **not** push or open a PR (permission cliff, invariant 6 — that is
+the trunk's bn-ship step). Record the branch ref and commit sha in your progress log.
 
 ## Step 6 — Return one line (verdict + branch ref + mini-review paths)
 
@@ -196,7 +197,7 @@ or:
 
 or, on escalation:
 
-`unit-3 blocked: test/wishlist.test.js "value skips removed SKUs" fails — fix needs src/inventory.js (outside my file boundary) -> docs/runs/<run-id>/progress/unit-3.md`
+`unit-3 blocked: test/wishlist.test.js "value skips removed SKUs" fails — fix needs src/inventory.js (outside my file boundary) -> .banyan/runs/<run-id>/progress/unit-3.md`
 
 The delivery-lead reads your `progress/unit-<id>.md`, `findings/unit-<id>-review.json`, and
 `findings/unit-<id>-spec-fidelity.json` files for anything load-bearing.
@@ -208,8 +209,8 @@ The delivery-lead reads your `progress/unit-<id>.md`, `findings/unit-<id>-review
   (invariant 2, one writer per file set).
 - **Never merge** — the `bn-integrator` is the sole merge writer. **Never push**, open a PR,
   or file a ticket (permission cliff, invariant 6).
-- Never touch protected artifacts: `docs/brainstorms`, `docs/plans`, `docs/solutions`,
-  `docs/runs` (your `progress/unit-<id>.md`, and the reviewer's
+- Never touch protected artifacts: `.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`,
+  `.banyan/runs` (your `progress/unit-<id>.md`, and the reviewer's
   `findings/unit-<id>-review.json` and `findings/unit-<id>-spec-fidelity.json`, are the
   only permitted writes there).
 - Never leave the unit declared `done` on a red suite: get it green, or return `blocked`

@@ -46,7 +46,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description. The one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolver agents fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
-| `/bn-curate` | Consolidate harvested lessons into `docs/solutions/`. |
+| `/bn-curate` | Consolidate harvested lessons into `.banyan/solutions/`. |
 | `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself (human-applied only). |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and live depth-2 nested-spawn, allowlist, and nested user-question probes. |
@@ -83,9 +83,9 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
   triggers are present.
 - **Compounding loop** — `bn-lesson-harvester` (the bounded leaf every lead spawns
   before returning) and `bn-knowledge-curator` (consolidates staged lessons into
-  `docs/solutions/`).
+  `.banyan/solutions/`).
 - **`bn-harness-engineer`** — mines run ledgers and transcripts for recurring harness
-  failures and writes proposals to `docs/harness-proposals/`; never self-applies.
+  failures and writes proposals to `.banyan/harness-proposals/`; never self-applies.
 - **Doctor probes** — `bn-probe` + `bn-probe-leaf` (the probe pair `/bn-doctor` uses
   to verify live depth-2 nesting, allowlist enforcement, and nested user-question availability;
   health-check only).

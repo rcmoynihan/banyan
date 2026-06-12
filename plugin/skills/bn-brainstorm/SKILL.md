@@ -22,7 +22,7 @@ the assumption explicit in **Assumptions**, **Dependencies**, **Plan Inputs**, o
 Planning** as appropriate, and return blocker dispositions to `/bn-grow` so the grow trunk can run
 its recovery ladder.
 
-The requirements doc lands in `docs/brainstorms/` — a **protected artifact family** (AGENTS.md §5): no Banyan agent may delete, gitignore, or "clean up" anything under it. This skill creates and updates docs there; it never removes them.
+The requirements doc lands in `.banyan/brainstorms/` — a **protected artifact family** (AGENTS.md §5): no Banyan agent may delete or "clean up" anything under it. This skill creates and updates docs there; it never removes them.
 
 **IMPORTANT: All file references in generated documents must use repo-relative paths (e.g., `src/models/user.rb`), never absolute paths. Absolute paths break portability across machines, worktrees, and teammates.**
 
@@ -69,7 +69,7 @@ The requirements doc is always **markdown** (`.md`). Read `references/markdown-r
 
 #### 0.1 Resume Existing Work When Appropriate
 
-If the user references an existing brainstorm topic or document, or there is an obvious recent matching `*-requirements.md` file in `docs/brainstorms/`:
+If the user references an existing brainstorm topic or document, or there is an obvious recent matching `*-requirements.md` file in `.banyan/brainstorms/`:
 - Read the document
 - Confirm with the user before resuming: "Found an existing requirements doc for [topic]. Should I continue from this, or start fresh?"
 - If resuming, summarize the current state briefly, continue from its existing decisions and outstanding questions, and update the existing document instead of creating a duplicate
@@ -138,9 +138,9 @@ If nothing obvious appears after a short scan, say so and continue. Two rules go
 **Research grounding** (opt-in, Standard and Deep only) — never auto-dispatch. When the user asks for deeper grounding, or the dialogue hits a question a short scan cannot answer (how does this codebase actually do X? has the team solved this before? what's the industry standard?), offer to dispatch `bn-research-lead`. If accepted:
 
 1. Use the caller's run ledger if this brainstorm is running as `/bn-grow` intake. Otherwise open the run ledger **now** (lazily — only this branch needs one):
-   `node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs brainstorm-<slug> --root <repo-root> --objective "<ground the brainstorm question>" --plan-ref "none -- brainstorm grounding" --unit "research|bn-research-lead|in-progress|docs/runs/<run-id>/briefs/brainstorm-grounding.md" --actor trunk`
+   `node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs brainstorm-<slug> --root <repo-root> --objective "<ground the brainstorm question>" --plan-ref "none -- brainstorm grounding" --unit "research|bn-research-lead|in-progress|.banyan/runs/<run-id>/briefs/brainstorm-grounding.md" --actor trunk`
    Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts`.
-2. Spawn `bn-research-lead` **foreground** with a standard envelope: `objective` = the grounding question, `artifact_path` = `docs/runs/<run-id>/briefs/brainstorm-grounding.md`, boundaries read-only, budget `{ max_children: 6, depth_remaining: 3 }`, `effort_class` by question breadth.
+2. Spawn `bn-research-lead` **foreground** with a standard envelope: `objective` = the grounding question, `artifact_path` = `.banyan/runs/<run-id>/briefs/brainstorm-grounding.md`, boundaries read-only, budget `{ max_children: 6, depth_remaining: 3 }`, `effort_class` by question breadth.
 3. READ the brief file (not the lead's prose) and fold its findings into the dialogue.
 4. Note the brief's path in the requirements doc so `/bn-plan` can reuse it instead of re-researching.
 
@@ -250,7 +250,7 @@ Fires for **all tiers** including Lightweight. Skip Phase 2.5 entirely on the Ph
 
 ### Phase 3: Capture the Requirements
 
-Write or update a requirements document only when the conversation produced durable decisions worth preserving — see `references/brainstorm-sections.md` "Decide whether a doc is warranted at all" for the criteria and the bug-fix stress test. Skip document creation when the user only needs brief alignment and the decisions can flow downstream (`/bn-plan`, commit message, `docs/solutions/`) without a brainstorm artifact in the middle.
+Write or update a requirements document only when the conversation produced durable decisions worth preserving — see `references/brainstorm-sections.md` "Decide whether a doc is warranted at all" for the criteria and the bug-fix stress test. Skip document creation when the user only needs brief alignment and the decisions can flow downstream (`/bn-plan`, commit message, `.banyan/solutions/`) without a brainstorm artifact in the middle.
 
 When a doc is warranted, compose it using:
 
@@ -259,7 +259,7 @@ When a doc is warranted, compose it using:
 
 **Write tight.** A section being material is not license to pad it. Hold every kept section to the prose-economy discipline in `references/brainstorm-sections.md`: one idea per sentence, a requirement is intent plus at most one qualifier, defer forks to Outstanding Questions rather than specifying both arms, resolve superseded text in place rather than stacking strata. Before declaring the doc written, run the named test there — could a reader find a contradiction in each section in one pass?
 
-Write to `docs/brainstorms/YYYY-MM-DD-<topic>-requirements.md`. Confirm with the absolute path so the reference is clickable. If a research brief was produced in Phase 1.1, reference its path in the doc.
+Write to `.banyan/brainstorms/YYYY-MM-DD-<topic>-requirements.md`. Confirm with the absolute path so the reference is clickable. If a research brief was produced in Phase 1.1, reference its path in the doc.
 
 #### Vocabulary Capture — after the requirements doc (only if CONCEPTS.md already exists)
 

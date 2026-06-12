@@ -7,7 +7,7 @@ fixture repo (`test/fixture-repo/`) via the review subtree (`bn-review-lead`).
 
 Every PASS criterion is **observable from the run ledger** -- no instrumentation
 beyond what a Banyan run already writes. A lead echoes its envelope into
-`docs/runs/<run-id>/progress/<lead>.md` on start and logs each spawn there, so spawn
+`.banyan/runs/<run-id>/progress/<lead>.md` on start and logs each spawn there, so spawn
 counts, model tiers, and depth values are all readable after the fact from
 `progress/` and the run's `findings/` and `briefs/` output dirs.
 
@@ -47,7 +47,7 @@ violations are auditable.
 
 - **Setup:** Any run that dispatches a lead with a fully-populated envelope.
 - **Action:** Dispatch the lead; let it run to its first spawn (or to completion).
-- **PASS:** The first block of `docs/runs/<run-id>/progress/<lead>.md` is the echoed
+- **PASS:** The first block of `.banyan/runs/<run-id>/progress/<lead>.md` is the echoed
   envelope, and its field values (`objective`, `artifact_path`, `boundaries`,
   `budget.max_children`, `budget.depth_remaining`,
   `effort_class`) match the envelope the lead was handed. The echoed `max_children`

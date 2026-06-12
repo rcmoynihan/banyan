@@ -47,7 +47,7 @@ Then check, RED only on structural failure:
 ## Check 3 — Live nested-spawn probe (skipped under `--static`)
 
 1. Create the probe directory **inside the current repo** (so the nested leaf's Write is
-   not auto-denied by the permission cliff), outside `docs/runs/` (a health check is not
+   not auto-denied by the permission cliff), outside `.banyan/runs/` (a health check is not
    a run, and the directory must be deletable):
 
    ```
@@ -69,7 +69,7 @@ Then check, RED only on structural failure:
    inputs:
      token:     <token>
      probe_dir: <probe-dir>
-   boundaries:      Read and write ONLY inside <probe-dir>. Never touch docs/runs,
+   boundaries:      Read and write ONLY inside <probe-dir>. Never touch .banyan/runs,
                     source, or any protected artifact.
    tool_guidance:   Read, Write; Agent(bn-probe-leaf) for the nesting probe.
    budget:

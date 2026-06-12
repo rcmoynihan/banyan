@@ -10,17 +10,17 @@ provenance: >
 
 # Banyan memory system brainstorm
 
-Banyan's durable memory should stay file-first, auditable, and easy to inspect in
-git. The new memory system is not a replacement for `docs/runs/` or
-`docs/solutions/`; it is a typed retrieval and curation layer over those
+Banyan's durable memory should stay file-first, auditable, and easy to inspect on
+disk. The new memory system is not a replacement for `.banyan/runs/` or
+`.banyan/solutions/`; it is a typed retrieval and curation layer over those
 artifacts.
 
 The complete proposal:
 
-- `docs/runs/<run-id>/` remains **episodic memory**: what happened in a run,
+- `.banyan/runs/<run-id>/` remains **episodic memory**: what happened in a run,
   which claims were tested, which commands ran, what artifacts were produced,
   and which candidate lessons were staged.
-- `docs/solutions/` remains **semantic memory**: durable, curated knowledge
+- `.banyan/solutions/` remains **semantic memory**: durable, curated knowledge
   about project conventions, architecture patterns, recurring bugs, tool
   behavior, and verified fixes.
 - `docs/procedures/` becomes **procedural memory**: reusable playbooks,
@@ -40,7 +40,7 @@ The complete proposal:
 Everything else is optional. Mem0, Zep, Graphiti, Letta, Qdrant, Weaviate,
 Neo4j, GraphRAG, and similar systems are useful reference points or future
 adapters, but they are not the default Banyan memory architecture. The default
-is a local generated index over human-readable, git-tracked markdown.
+is a local generated index over human-readable markdown.
 
 ## The Design Bar
 
@@ -62,7 +62,7 @@ procedure, a code reference, and a causal diagnosis are not interchangeable.
 They have different freshness rules, promotion rules, and retrieval value.
 
 Fourth, durable memory must resist poisoning. A false causal explanation in
-`docs/solutions/` is worse than a missed optimization because it can bias every
+`.banyan/solutions/` is worse than a missed optimization because it can bias every
 future run. Banyan should remember aggressively only when provenance is strong,
 and otherwise preserve weaker observations as lower-confidence context.
 
@@ -72,8 +72,8 @@ The system has two layers: canonical artifacts and a generated memory index.
 
 Canonical artifacts are plain files:
 
-- `docs/runs/<run-id>/` stores episodic evidence from each run.
-- `docs/solutions/` stores curated semantic knowledge.
+- `.banyan/runs/<run-id>/` stores episodic evidence from each run.
+- `.banyan/solutions/` stores curated semantic knowledge.
 - `docs/procedures/` stores executable operating knowledge.
 
 The generated index lives outside the canonical docs:
@@ -200,7 +200,7 @@ Episodic memory records events and evidence from a specific run. It answers:
 - Which hypotheses were considered?
 - Which candidate lessons were staged?
 
-The source remains `docs/runs/<run-id>/`. The index extracts compact event
+The source remains `.banyan/runs/<run-id>/`. The index extracts compact event
 cards from progress files, findings, fact cards, staged lessons, and command
 outputs. Episodic memory is useful for resuming interrupted work, avoiding
 duplicate investigation inside a run, and giving the curator evidence for
@@ -220,7 +220,7 @@ Semantic memory is curated project knowledge. It answers:
 - Which causal claims are backed by tested interventions?
 - Which assumptions are known to be unsafe?
 
-The source remains `docs/solutions/`. These records should carry the strongest
+The source remains `.banyan/solutions/`. These records should carry the strongest
 provenance and the highest retrieval weight when verified.
 
 Semantic memory should retain the current causal gate. `claim_type: tested`
@@ -298,8 +298,8 @@ promoter.
 
 It should perform these jobs:
 
-- Promote staged lessons from `docs/runs/<run-id>/lessons-staging/` into
-  `docs/solutions/` when evidence is strong enough.
+- Promote staged lessons from `.banyan/runs/<run-id>/lessons-staging/` into
+  `.banyan/solutions/` when evidence is strong enough.
 - Extract reusable procedures into `docs/procedures/` when a repeated sequence
   is useful as an operating pattern.
 - Merge duplicates and near-duplicates.
@@ -388,7 +388,7 @@ cross-application recall.
 
 Banyan's memory has different requirements. It is repository-specific,
 evidence-heavy, and needs durable citations to files, commands, and tested
-interventions. The source of truth should be reviewable in git. A Mem0-backed
+interventions. The source of truth should be reviewable as files. A Mem0-backed
 system could be an adapter, but it should not be the canonical store.
 
 Good use:
@@ -555,7 +555,7 @@ or unfamiliar failure classes.
 
 Tree summaries can help large memory corpora by creating higher-level summary
 nodes over clusters of records. For Banyan, this becomes useful when
-`docs/runs/` and `docs/solutions/` grow large enough that direct retrieval is
+`.banyan/runs/` and `.banyan/solutions/` grow large enough that direct retrieval is
 noisy. It is not needed for the initial local index.
 
 ### GraphRAG
@@ -841,8 +841,8 @@ used correctly.
 The proposal includes:
 
 - markdown as canonical source of truth
-- `docs/runs/` episodic memory
-- `docs/solutions/` semantic memory
+- `.banyan/runs/` episodic memory
+- `.banyan/solutions/` semantic memory
 - `docs/procedures/` procedural memory
 - generated SQLite memory index
 - FTS5 lexical search
@@ -887,7 +887,7 @@ The smallest coherent build is still the full architecture in miniature:
 
 - Create the `docs/procedures/` convention.
 - Implement the SQLite schema.
-- Index `docs/solutions/`, `docs/runs/`, and `docs/procedures/`.
+- Index `.banyan/solutions/`, `.banyan/runs/`, and `docs/procedures/`.
 - Add FTS5 retrieval.
 - Add `sqlite-vec` retrieval.
 - Return cited memory cards with typed metadata.

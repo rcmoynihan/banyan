@@ -32,19 +32,19 @@ carries: `objective` (implement the delivery spec end to end); `inputs` (the
 **delivery spec path**, the **delivery spec kind** (`durable-plan` or `direct-work`), the
 **base branch**, the repo **test command**, and the optional **boundary check script**);
 `artifact_path`
-= `docs/runs/<run-id>/delivery-report.md` (the report the skill reads and presents);
+= `.banyan/runs/<run-id>/delivery-report.md` (the report the skill reads and presents);
 `doctrine` (resolved Banyan doctrine and convention paths); `boundaries` (NEVER push or open
 a PR — push is a trunk-level bn-ship step, the permission
-cliff; never touch protected artifacts `docs/brainstorms`, `docs/plans`, `docs/solutions`,
-`docs/runs` except your own artifacts; commit each unit on the unit's own branch);
+cliff; never touch protected artifacts `.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`,
+`.banyan/runs` except your own artifacts; commit each unit on the unit's own branch);
 `budget` (`max_children` ~6, `depth_remaining: 3`); `effort_class`.
 
-All paths below are under the run dir `docs/runs/<run-id>/` that the skill created.
+All paths below are under the run dir `.banyan/runs/<run-id>/` that the skill created.
 
 ## Step 0 — Echo the envelope (auditability, invariant 5)
 
 Before anything else, write the received envelope **verbatim** as the first block of
-`docs/runs/<run-id>/progress/bn-delivery-lead.md`, followed by a short running log you
+`.banyan/runs/<run-id>/progress/bn-delivery-lead.md`, followed by a short running log you
 append to as you proceed (the dependency graph, each atomizer decision and why, unit
 dispatch + worktree refs, parallel waves, integration result, any bounces and
 re-dispatches). This is how a parent audits your budget and boundaries without a message
@@ -89,8 +89,8 @@ For **each** unit, decide ATOMIC vs COMPOSITE by reading the unit's spec — not
   `missing`, the path is absent, or the script exits 2, record that and proceed. On OUT
   files, trim/move the work or accept with a one-line rationale in
   `progress/bn-delivery-lead.md`. Then commit the unit on that branch with a conventional
-  message. Do inline units in **dependency order**, one at a time — never two inline units'
-  writes interleaved.
+  message, excluding `.banyan/**` from the staged set. Do inline units in **dependency
+  order**, one at a time — never two inline units' writes interleaved.
 - **COMPOSITE** — sizeable, or independently testable, or genuinely needs its own context.
   **Spawn a `bn-unit-lead` in `isolation: worktree`** so it writes in a disjoint tree on its
   own branch. Independent composite units' leads run **in PARALLEL** (one message, multiple
@@ -142,24 +142,24 @@ inputs:          The unit's spec from the delivery spec (path: <delivery spec pa
                  <the repo test command>; unit_base_ref: <the ref this unit worktree was
                  created from after dependencies>; boundary_check_script: <absolute path from
                  the envelope, or "missing">.
-artifact_path:   docs/runs/<run-id>/progress/unit-<id>.md
+artifact_path:   .banyan/runs/<run-id>/progress/unit-<id>.md
 output_format:   Progress note (echoed envelope + running log) at artifact_path; the unit's
-                 mini-reviews at docs/runs/<run-id>/findings/unit-<id>-review.json and
-                 docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json; the unit committed
+                 mini-reviews at .banyan/runs/<run-id>/findings/unit-<id>-review.json and
+                 .banyan/runs/<run-id>/findings/unit-<id>-spec-fidelity.json; the unit committed
                  on its own branch. Return: verdict + branch ref + mini-review paths.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      Work ONLY in your assigned worktree, ONLY on this unit's files
                  (<normalized unit allow entries>). Never merge — the integrator merges. Never push or open a
-                 PR. Never touch protected artifacts (docs/brainstorms, docs/plans,
-                 docs/solutions, docs/runs except your own artifacts) or another unit's files.
+                 PR. Never touch protected artifacts (.banyan/brainstorms, .banyan/plans,
+                 .banyan/solutions, .banyan/runs except your own artifacts) or another unit's files.
 tool_guidance:   Read/Grep/Glob/Bash/Edit/Write inside your worktree; run the test command
                  there; before committing, run `node <boundary_check_script> --base
                  <unit_base_ref> --head HEAD --allow <normalized unit allow entries plus
-                 docs/runs/<run-id>/progress/unit-<id>.md,
-                 docs/runs/<run-id>/findings/unit-<id>-review.json, and
-                 docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json>` when the script
+                 .banyan/runs/<run-id>/progress/unit-<id>.md,
+                 .banyan/runs/<run-id>/findings/unit-<id>-review.json, and
+                 .banyan/runs/<run-id>/findings/unit-<id>-spec-fidelity.json>` when the script
                  is available and not `missing`; use `--allow @<allow-file>` with a
                  temporary allow file outside the repo when clearer. Boundary checks are
                  advisory: on OUT files, trim/move
@@ -200,7 +200,7 @@ inputs:          Ordered unit branch refs (topological): <ordered list of branch
                  dir/** entries>; per-unit boundary base refs:
                  <U-id -> unit_base_ref>; boundary_check_script: <absolute path from the
                  envelope, or "missing">.
-artifact_path:   docs/runs/<run-id>/progress/bn-integrator.md
+artifact_path:   .banyan/runs/<run-id>/progress/bn-integrator.md
 output_format:   Progress note (echoed envelope + merge log) at artifact_path. Return: which
                  units merged, full-suite status or UNVERIFIED marker, boundary violations,
                  and any bounces with specific reasons.
@@ -273,7 +273,7 @@ trunk to ship.
 
 ## Step 7 — Write the delivery report, update the ledger, return one line
 
-Write `docs/runs/<run-id>/delivery-report.md` (the `bn-work` skill reads and presents THIS
+Write `.banyan/runs/<run-id>/delivery-report.md` (the `bn-work` skill reads and presents THIS
 file, so it must stand alone):
 
 ```markdown
@@ -311,7 +311,7 @@ file, so it must stand alone):
   resume_from_phase: deliver | plan; or "none">
 ```
 
-Then **update the ledger** at `docs/runs/<run-id>/ledger.md`: write the **`## Units`
+Then **update the ledger** at `.banyan/runs/<run-id>/ledger.md`: write the **`## Units`
 table** — **one row per delivery unit** (`unit | owner (lead) | status | artifact`) with status
 ∈ `done | blocked`, the owner (`bn-delivery-lead` for inline units, `bn-unit-lead` for
 composite), and the artifact (the branch ref / `progress/unit-<id>.md`). You own these rows
@@ -320,7 +320,7 @@ composite), and the artifact (the branch ref / `progress/unit-<id>.md`). You own
 
 **Before returning, spawn ONE `bn-lesson-harvester`** with an envelope
 pointing at your `progress/bn-delivery-lead.md` + your `findings/` and `briefs/` dirs and
-`artifact_path` under `docs/runs/<run-id>/lessons-staging/`. This is the fractal-compounding
+`artifact_path` under `.banyan/runs/<run-id>/lessons-staging/`. This is the fractal-compounding
 harvest: capture the still-fresh lessons of this subtree now, while the context is rich,
 instead of losing them to a summary later. It is bounded (read-only mining, tiny write surface) and
 must not block or alter your verdict — harvest, then return. Do not wait on it for
@@ -330,10 +330,10 @@ correctness. Use the canonical envelope shape:
 === BANYAN ENVELOPE ===
 objective:       Mine this just-finished delivery subtree's fresh context for genuinely
                  reusable candidate lessons and stage them.
-inputs:          Progress file: docs/runs/<run-id>/progress/bn-delivery-lead.md; subtree
-                 artifacts: docs/runs/<run-id>/findings/ (unit mini-reviews) and
+inputs:          Progress file: .banyan/runs/<run-id>/progress/bn-delivery-lead.md; subtree
+                 artifacts: .banyan/runs/<run-id>/findings/ (unit mini-reviews) and
                  progress/unit-*.md / bn-integrator.md (atomizer decisions, bounces, merges).
-artifact_path:   docs/runs/<run-id>/lessons-staging/
+artifact_path:   .banyan/runs/<run-id>/lessons-staging/
 output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
                  status: candidate + claim_type, plus intervention iff tested),
                  per knowledge-store.md. Write nothing if no lesson is worth keeping.
@@ -341,8 +341,8 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
-boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source,
-                 protected artifacts (docs/brainstorms, docs/plans), or docs/runs outside
+boundaries:      Write ONLY under lessons-staging/. Never touch .banyan/solutions/, source,
+                 protected artifacts (.banyan/brainstorms, .banyan/plans), or .banyan/runs outside
                  your own staging files.
 tool_guidance:   Read/Grep/Glob to mine the progress files and findings; Write only under
                  lessons-staging/. No Agent, Bash, or Edit.
@@ -354,9 +354,9 @@ effort_class:    lightweight
 ```
 
 **Return ONE line**: a verdict plus the path — e.g.
-`Delivery done: 3 units (2 inline, 1 composite), suite green, 0 blocked -> docs/runs/<run-id>/delivery-report.md`.
+`Delivery done: 3 units (2 inline, 1 composite), suite green, 0 blocked -> .banyan/runs/<run-id>/delivery-report.md`.
 If the repo has no test command, carry the marker upward, e.g.
-`Delivery done: 3 units (2 inline, 1 composite), UNVERIFIED (no test command), 0 blocked -> docs/runs/<run-id>/delivery-report.md`.
+`Delivery done: 3 units (2 inline, 1 composite), UNVERIFIED (no test command), 0 blocked -> .banyan/runs/<run-id>/delivery-report.md`.
 Do not paste the report body into your reply; the skill reads the file.
 
 ## Single-writer law (invariant 2) — the law you enforce

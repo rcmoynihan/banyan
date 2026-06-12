@@ -93,7 +93,7 @@ Your territory is the *space between* these reviewers -- problems that emerge fr
 ## Output contract
 
 You run inside a Banyan review subtree. Your delegation envelope provides an `artifact_path`
-(a JSON file under `docs/runs/<run-id>/findings/`). Banyan invariant 3 -- *artifacts over prose* --
+(a JSON file under `.banyan/runs/<run-id>/findings/`). Banyan invariant 3 -- *artifacts over prose* --
 means your findings live in that file, and your final message is only a verdict plus the path.
 
 1. Write your full findings as JSON conforming to `schemas/findings-schema.json` (every required

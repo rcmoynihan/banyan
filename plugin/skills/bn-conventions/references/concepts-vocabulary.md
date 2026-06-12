@@ -1,7 +1,7 @@
 # CONCEPTS.md vocabulary doctrine
 
 `CONCEPTS.md` defines the words that mean something specific in this codebase — the substrate
-`docs/solutions/` and the repo's instruction files can cite without redefinition. It lives at the
+`.banyan/solutions/` and the repo's instruction files can cite without redefinition. It lives at the
 repo root. Terms enter two ways — accretion and seeding (below). The Banyan curator is the single
 sanctioned writer of this file: it accretes and scrubs entries during normal `consolidate`
 curation when a promoted lesson surfaces a qualifying term, and it bootstraps the file from the

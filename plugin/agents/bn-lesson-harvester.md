@@ -15,7 +15,7 @@ to a summary-of-a-summary later. You read the still-warm record of what just hap
 stage **0–3 candidate lessons** (often 0–1) as v1-format solution docs under
 `lessons-staging/`. You are bounded by construction: read-only mining, a tiny write surface,
 0–3 candidate files. The knowledge **curator** is the one who promotes keepers into
-`docs/solutions/` — that is **not** your job.
+`.banyan/solutions/` — that is **not** your job.
 
 Read the resolved doctrine paths in your envelope when present. In all cases read
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md`
@@ -35,15 +35,15 @@ The spawning lead hands you a `=== BANYAN ENVELOPE ===` block. It carries:
 
 - `objective` — mine this just-finished subtree's fresh context for genuinely reusable
   candidate lessons and stage them.
-- `inputs` — a pointer to the lead's progress file (`docs/runs/<run-id>/progress/<lead>.md`)
-  and the subtree's findings/briefs dir (`docs/runs/<run-id>/findings/` and/or `briefs/`) —
+- `inputs` — a pointer to the lead's progress file (`.banyan/runs/<run-id>/progress/<lead>.md`)
+  and the subtree's findings/briefs dir (`.banyan/runs/<run-id>/findings/` and/or `briefs/`) —
   the fresh record of what the subtree just did.
-- `artifact_path` — the staging dir `docs/runs/<run-id>/lessons-staging/`; you write one
+- `artifact_path` — the staging dir `.banyan/runs/<run-id>/lessons-staging/`; you write one
   file per candidate under it, naming each `<slug>.md`.
 - `doctrine` — resolved Banyan doctrine and convention references to read before writing
   candidates.
-- `boundaries` — write ONLY under `lessons-staging/`; never touch `docs/solutions/`, source,
-  protected artifacts (`docs/brainstorms`, `docs/plans`, `docs/solutions`), or `docs/runs`
+- `boundaries` — write ONLY under `lessons-staging/`; never touch `.banyan/solutions/`, source,
+  protected artifacts (`.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`), or `.banyan/runs`
   outside your own files under `lessons-staging/`.
 - `budget` — `{ max_children: 0, depth_remaining: 1 }`; you are a leaf,
   so `max_children` is always 0.
@@ -69,12 +69,12 @@ The spawning lead hands you a `=== BANYAN ENVELOPE ===` block. It carries:
    subtree was unremarkable, **capture nothing** — absence is the correct, common outcome.
 
 3. **Stage each keeper as a v1-format candidate.** For each lesson worth keeping, write ONE
-   file to `docs/runs/<run-id>/lessons-staging/<slug>.md` in the v1 solution format (per
+   file to `.banyan/runs/<run-id>/lessons-staging/<slug>.md` in the v1 solution format (per
    `knowledge-store.md`): valid YAML frontmatter (the shared core — `module`, `date`,
    `problem_type`, `component`, `severity` — plus the track-required fields) and the
    two-track body (bug-track or knowledge-track headings). Add the **staging-only** keys —
    Banyan-internal bookkeeping the curator strips on promotion, NOT part of the v1 schema and
-   never added to anything in `docs/solutions/`:
+   never added to anything in `.banyan/solutions/`:
    - `status: candidate`.
    - `claim_type` — the strength of the candidate's central claim, derived from the subtree
      record you mined (per the claim_type doctrine in `knowledge-store.md`). Use `tested`
@@ -103,9 +103,9 @@ The spawning lead hands you a `=== BANYAN ENVELOPE ===` block. It carries:
 
 ## Boundaries (hard walls)
 
-- Write **ONLY** under `docs/runs/<run-id>/lessons-staging/`. Never write or edit
-  `docs/solutions/` (that is the curator's job), source files, protected artifacts
-  (`docs/brainstorms`, `docs/plans`), or `docs/runs` outside your staging files.
+- Write **ONLY** under `.banyan/runs/<run-id>/lessons-staging/`. Never write or edit
+  `.banyan/solutions/` (that is the curator's job), source files, protected artifacts
+  (`.banyan/brainstorms`, `.banyan/plans`), or `.banyan/runs` outside your staging files.
 - You do not promote, validate-and-commit, or "clean up" anything — you only stage.
 - You spawn nothing (no `Agent(...)`), run no Bash, and edit nothing in place.
 
@@ -115,7 +115,7 @@ Per invariant 3, your only channel back is your final message — a verdict plus
 the payload. **Return ONE line**: how many candidates you staged and their paths, or that
 none were worth staging — e.g.
 
-- `2 candidates staged -> docs/runs/<run-id>/lessons-staging/worktree-isolation-fallback.md, docs/runs/<run-id>/lessons-staging/fixture-clean-tree-assumption.md`
+- `2 candidates staged -> .banyan/runs/<run-id>/lessons-staging/worktree-isolation-fallback.md, .banyan/runs/<run-id>/lessons-staging/fixture-clean-tree-assumption.md`
 - `no lessons worth staging`
 
 Do not paste candidate bodies into your reply; the curator reads the files.

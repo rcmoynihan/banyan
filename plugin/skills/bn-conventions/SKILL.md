@@ -1,6 +1,6 @@
 ---
 name: bn-conventions
-description: "Banyan's run-ledger, delegation-envelope, and knowledge-store conventions; consult to open a new run, inspect or resume a run ledger, write a progress note or artifact, or look up the docs/solutions schema. The entry point a trunk or lead reads for how Banyan coordinates."
+description: "Banyan's run-ledger, delegation-envelope, and knowledge-store conventions; consult to open a new run, inspect or resume a run ledger, write a progress note or artifact, or look up the .banyan/solutions schema. The entry point a trunk or lead reads for how Banyan coordinates."
 ---
 
 # bn-conventions
@@ -16,7 +16,7 @@ how-to for opening a run.
 
 Read the one you need; do not read them all by reflex.
 
-- **`references/ledger.md`** -- the run-ledger spec: the `docs/runs/<run-id>/`
+- **`references/ledger.md`** -- the run-ledger spec: the `.banyan/runs/<run-id>/`
   layout, run-ID format, per-file writer rules (invariant 2), lifecycle/retention,
   the `ledger.md` template, and the grow-owned `residuals.md` template. Read this to
   **open, resume, inspect, or write to a run** -- before creating a run dir, editing
@@ -29,7 +29,7 @@ Read the one you need; do not read them all by reflex.
   Its companion **`references/envelope-test-plan.md`** is the budget-behavior test
   plan (max_children cap, depth-floor inline, envelope echo, effort scaling),
   exercised against the fixture through the review subtree.
-- **`references/knowledge-store.md`** -- the `docs/solutions/` schema (v1-compatible):
+- **`references/knowledge-store.md`** -- the `.banyan/solutions/` schema (v1-compatible):
   frontmatter contract, the two tracks (bug / knowledge), category taxonomy, and YAML
   safety rules. Read this to **write or curate a solution doc**, or a candidate lesson
   in `lessons-staging/`.
@@ -56,12 +56,12 @@ node scripts/new-run.mjs <slug> [--root <repo-root>] [--date YYYY-MM-DD] [--run-
 
 - `<slug>` -- kebab-case task name (e.g. `add-oauth-login`).
 - `--root` -- target repo root (default: current working dir). The run dir is created
-  under `<root>/docs/runs/`.
+  under `<root>/.banyan/runs/`.
 - `--date` -- ISO date for the run ID (default: today). Accept it for deterministic
   scaffolding; tests pass an explicit date.
-- `--run-id` -- adopt an existing live run under `<root>/docs/runs/`.
-- `--input` -- path to an input artifact. Inputs under `docs/runs/<run-id>/` adopt that
-  run; durable artifacts that mention exactly one live `docs/runs/<run-id>/` origin adopt it.
+- `--run-id` -- adopt an existing live run under `<root>/.banyan/runs/`.
+- `--input` -- path to an input artifact. Inputs under `.banyan/runs/<run-id>/` adopt that
+  run; durable artifacts that mention exactly one live `.banyan/runs/<run-id>/` origin adopt it.
   Ambiguous inputs scaffold a fresh run.
 - `--objective`, `--plan-ref`, `--fact`, and `--unit` seed a fresh ledger. Repeat `--fact`
   and `--unit` as needed.
@@ -76,8 +76,8 @@ the full layout, detects repo facts, seeds `ledger.md`, and emits JSON:
   "created": true,
   "reason": "no-live-run",
   "run_id": "2026-06-10-001-add-oauth-login",
-  "run_dir": "/repo/docs/runs/2026-06-10-001-add-oauth-login",
-  "ledger_path": "/repo/docs/runs/2026-06-10-001-add-oauth-login/ledger.md",
+  "run_dir": "/repo/.banyan/runs/2026-06-10-001-add-oauth-login",
+  "ledger_path": "/repo/.banyan/runs/2026-06-10-001-add-oauth-login/ledger.md",
   "facts": {
     "repo_root": "/repo",
     "test_command": "npm test",
@@ -92,18 +92,18 @@ its path from wherever you are, e.g. `node <plugin>/skills/bn-conventions/script
 ### Manual fallback (no Node)
 
 1. Pick the run ID: `<date>-<NNN>-<slug>`, where `<NNN>` is the next zero-padded
-   sequence for `<date>` -- list `docs/runs/` and add 1 to the highest existing `NNN`
+   sequence for `<date>` -- list `.banyan/runs/` and add 1 to the highest existing `NNN`
    for that date (start at `001`).
 2. Create the layout:
 
    ```
-   mkdir -p docs/runs/<run-id>/progress
-   mkdir -p docs/runs/<run-id>/findings
-   mkdir -p docs/runs/<run-id>/briefs
-   mkdir -p docs/runs/<run-id>/lessons-staging
+   mkdir -p .banyan/runs/<run-id>/progress
+   mkdir -p .banyan/runs/<run-id>/findings
+   mkdir -p .banyan/runs/<run-id>/briefs
+   mkdir -p .banyan/runs/<run-id>/lessons-staging
    ```
 
-3. Create `docs/runs/<run-id>/ledger.md` from the template in `references/ledger.md`
+3. Create `.banyan/runs/<run-id>/ledger.md` from the template in `references/ledger.md`
    (`# Run <id>`, `## Objective`, `## Plan`, `## Facts / Context`, `## Units` table,
    `## Log`, `## Open questions`). Fill the objective and plan ref; append the opening
    log line.
@@ -125,8 +125,8 @@ unit tests live beside it (`check-boundary.test.mjs`, run via `node --test`).
 
 ## Reminders
 
-- `docs/runs/` is local run state and is normally gitignored. Durable knowledge belongs in
-  `docs/solutions/`; fixture or eval runs belong in explicit fixture/eval paths.
+- `.banyan/runs/` is local run state and is normally gitignored. Durable knowledge belongs in
+  `.banyan/solutions/`; fixture or eval runs belong in explicit fixture/eval paths.
 - One writer per file set (invariant 2): own your progress file and your unit's status
   row; append to the log without rewriting others' lines; never co-write a `findings/`
   or `briefs/` file.

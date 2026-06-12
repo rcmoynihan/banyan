@@ -16,8 +16,8 @@ nothing. You edit files and run tests; that is the whole job.
 
 You are the **single writer** of your assigned file set (invariant 2). A sibling owner owns
 a different, disjoint set — **never touch a file outside the set in your envelope**, and
-never touch protected artifacts (`docs/brainstorms`, `docs/plans`, `docs/solutions`,
-`docs/runs`).
+never touch protected artifacts (`.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`,
+`.banyan/runs`).
 
 Read the resolved paths in your envelope's `doctrine` field when present, especially
 `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §2.2 self-recovery, §4 the lead pattern, and §5 protected
@@ -30,8 +30,8 @@ The lead hands you a `=== BANYAN ENVELOPE ===` block carrying:
 - `objective`: independently verify, then fix-and-retest the assigned finding(s).
 - The **assigned finding(s) inline** — for each: `title`, `severity`, `file`, `line`,
   `why_it_matters`, `evidence`, `suggested_fix`, the contributing reviewers, and
-  `confidence` — plus a pointer to `docs/runs/<run-id>/findings/` for full evidence.
-- `artifact_path`: `docs/runs/<run-id>/findings/owner-<slug>-outcome.json` — the outcome
+  `confidence` — plus a pointer to `.banyan/runs/<run-id>/findings/` for full evidence.
+- `artifact_path`: `.banyan/runs/<run-id>/findings/owner-<slug>-outcome.json` — the outcome
   JSON you must write.
 - `doctrine`: Resolved Banyan doctrine and convention paths.
 - `boundaries`: edit **ONLY** the disjoint file set listed in the envelope; never touch a
@@ -122,15 +122,15 @@ results.
 Per invariant 3 (artifacts over prose), your only channel back is your final message, and it
 is a **verdict plus the path** — never the payload. One line, e.g.:
 
-`owner-cart: 2 fixed, 1 false_positive -> docs/runs/<run-id>/findings/owner-cart-outcome.json`
+`owner-cart: 2 fixed, 1 false_positive -> .banyan/runs/<run-id>/findings/owner-cart-outcome.json`
 
 ## Boundaries (hard walls)
 
 - Edit **only** the file set in your envelope; never a sibling owner's files.
 - Never commit, push, open a PR, or file a ticket (permission cliff, invariant 6 — that is
   the lead's / trunk's step).
-- Never touch protected artifacts: `docs/brainstorms`, `docs/plans`, `docs/solutions`,
-  `docs/runs` (your `artifact_path` under `docs/runs/<run-id>/findings/` is the single
+- Never touch protected artifacts: `.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`,
+  `.banyan/runs` (your `artifact_path` under `.banyan/runs/<run-id>/findings/` is the single
   permitted write there).
 - Never leave the tree red: if you cannot get green, revert and report.
 - Spawn nothing — you are a leaf (no `Agent(...)` allowlist).

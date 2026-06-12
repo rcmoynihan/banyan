@@ -14,7 +14,7 @@ Grow intake return shape:
 ```markdown
 ## Grow intake handoff
 
-- **Requirements:** <docs/brainstorms/...-requirements.md | summary: ...>
+- **Requirements:** <.banyan/brainstorms/...-requirements.md | summary: ...>
 - **Safe assumptions recorded:** <bullets or "none">
 - **Blockers:**
   - <title, or "none">
@@ -63,8 +63,8 @@ finalized brainstorm decisions. Do not print the closing summary first.
 
 **Build it now** — Immediately invoke `/bn-work` in the current session using the
 finalized brainstorm output as direct task context. If a compact requirements document
-exists, pass its path; `/bn-work` treats non-`docs/plans/` paths as direct-mode context
-and writes `docs/runs/<run-id>/briefs/direct-work-plan.md` itself. Do not print the
+exists, pass its path; `/bn-work` treats non-`.banyan/plans/` paths as direct-mode context
+and writes `.banyan/runs/<run-id>/briefs/direct-work-plan.md` itself. Do not print the
 closing summary first.
 
 **Keep refining** — Return to dialogue (Phase 1.3) or approaches (Phase 2) as the user's

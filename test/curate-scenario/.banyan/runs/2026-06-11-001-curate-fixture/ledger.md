@@ -11,7 +11,7 @@ Plan ref: none -- fixture run
 
 ## Facts / Context
 
-- Existing solution: docs/solutions/correctness/inventory-oversell-off-by-one.md
+- Existing solution: .banyan/solutions/correctness/inventory-oversell-off-by-one.md
 - Staged candidates live under lessons-staging/.
 
 ## Units

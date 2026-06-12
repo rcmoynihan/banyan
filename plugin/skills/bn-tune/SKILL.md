@@ -15,7 +15,7 @@ the diff drafting) lives inside the agent, not here. Keep this procedure small.
 The agent reads Banyan's own run ledgers (and subagent transcripts where present), finds
 RECURRING harness failures -- a reviewer that over-fires, a lead that keeps hitting its budget
 squeeze, envelope/boundary violations, dead-ends harvested in run after run -- and writes
-PR-style, evidence-cited proposals to `docs/harness-proposals/`. It **NEVER self-applies**:
+PR-style, evidence-cited proposals to `.banyan/harness-proposals/`. It **NEVER self-applies**:
 **applying is the human's call.** Nothing here is auto-applied.
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
@@ -27,7 +27,7 @@ artifacts-over-prose, invariant 5 budgets, invariant 6 permission cliff). Skip a
 
 Resolve which runs the agent will mine, and how many there are.
 
-- **No arg** -> the whole corpus: every `docs/runs/<run-id>/` with a `ledger.md`.
+- **No arg** -> the whole corpus: every `.banyan/runs/<run-id>/` with a `ledger.md`.
 - **A run-id range or count arg** -> narrow to that subset (a count picks the N most recent
   runs; a range picks the runs in it).
 
@@ -41,7 +41,7 @@ data to separate a real recurring failure from a one-off.
   how little it found) or to wait until more grow-runs accumulate. Do not pretend a thin
   corpus yields strong proposals.
 - **No runs at all** -> STOP. There is nothing to mine. Say where you looked
-  (`docs/runs/*/ledger.md`) and that the corpus is empty; suggest running `/bn-grow` a few
+  (`.banyan/runs/*/ledger.md`) and that the corpus is empty; suggest running `/bn-grow` a few
   times first so ledger data accumulates.
 
 Do not read or judge the runs here -- that is the agent's job. This step only counts the
@@ -49,7 +49,7 @@ corpus and sets the under-5 warning.
 
 ## Step 2: Ensure the proposals directory exists
 
-The agent writes one proposal file per pattern under `docs/harness-proposals/`. Make sure that
+The agent writes one proposal file per pattern under `.banyan/harness-proposals/`. Make sure that
 directory exists. The agent writes the proposals; this skill just guarantees the target dir is
 there.
 
@@ -65,25 +65,24 @@ objective:       Mine the accumulated Banyan run corpus for RECURRING harness-fa
                  patterns (reviewer over-fires, budget squeezes, envelope/boundary
                  violations, loop/escalation patterns, repeated dead-ends) and write one
                  evidence-cited, PR-style proposal per pattern. Never apply anything.
-corpus_scope:    <all runs under docs/runs/ | the run-id range or count from Step 1>
-artifact_path:   docs/harness-proposals/  (one <date>-<slug>.md per pattern) and an
-                 optional "Proposed" append to docs/harness-changelog.md
+corpus_scope:    <all runs under .banyan/runs/ | the run-id range or count from Step 1>
+artifact_path:   .banyan/harness-proposals/  (one <date>-<slug>.md per pattern, plus
+                 optional INDEX.md entries)
 output_format:   One PR-style proposal per pattern: the pattern, the EVIDENCE (>=2 cited
                  occurrences -- run-ids + file:line), the exact plugin/ file targeted, a
                  unified-diff or precise before/after, and the expected effect.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      NEVER edit plugin/ (no Edit tool by design -- you PROPOSE, a human
-                 applies). WRITE SCOPE is ONLY docs/harness-proposals/ and a "Proposed"
-                 entry in docs/harness-changelog.md. Everything else is REPORT-ONLY. You
-                 READ docs/runs/ as the corpus and READ plugin/ to target proposals, but
+                 applies). WRITE SCOPE is ONLY .banyan/harness-proposals/. Everything else is REPORT-ONLY. You
+                 READ .banyan/runs/ as the corpus and READ plugin/ to target proposals, but
                  write neither. Protected artifacts (AGENTS.md section 5) stay read-only.
                  Drop any candidate pattern with < 2 cited occurrences.
 tool_guidance:   Read, Grep, Glob to mine ledgers, progress files (echoed envelopes vs
                  actual behavior), findings (false_positive signals), and subagent
                  transcripts where present; Bash to enumerate runs and locate transcript
                  files under ~/.claude/projects/.../subagents/; Write only to
-                 docs/harness-proposals/ and the changelog. No Edit. No Agent spawns.
+                 .banyan/harness-proposals/. No Edit. No Agent spawns.
 budget:
   max_children:    0
   depth_remaining: 0
@@ -99,7 +98,7 @@ effort_class:    deep
 ## Step 4: Present the proposals (human applies)
 
 When the agent returns, READ the proposal files it wrote (the files under
-`docs/harness-proposals/`, not the agent's final-message prose -- invariant 3) and present to
+`.banyan/harness-proposals/`, not the agent's final-message prose -- invariant 3) and present to
 the user:
 
 - how many patterns were found, how many actionable PROPOSALS were written + their paths, and
@@ -111,8 +110,7 @@ the user:
 
 If the agent found NO actionable patterns (common on a thin corpus -- see the under-5 warning),
 say so plainly: zero proposals is an honest outcome, not a failure, when the data floor is not
-yet met. Point the user at `docs/harness-proposals/` for any proposals and at
-`docs/harness-changelog.md` for the proposed/applied record.
+yet met. Point the user at `.banyan/harness-proposals/` for any proposals.
 
 ## Permission cliff (invariant 6)
 

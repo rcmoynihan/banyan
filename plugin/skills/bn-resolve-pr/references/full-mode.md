@@ -15,7 +15,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs resolve-pr-
   --root <repo-root> \
   --objective "Resolve review feedback on PR #<PR_NUMBER>." \
   --plan-ref "none -- ad hoc run" \
-  --unit "resolve-pr|trunk|in-progress|docs/runs/<run-id>/findings/" \
+  --unit "resolve-pr|trunk|in-progress|.banyan/runs/<run-id>/findings/" \
   --actor trunk
 ```
 
@@ -123,7 +123,7 @@ Spawn one `bn-pr-comment-resolver` per group, **foreground**, with this envelope
 === BANYAN ENVELOPE ===
 objective:       Evaluate and resolve the assigned PR feedback item(s): fix what holds,
                  divert what doesn't, per your rubric.
-artifact_path:   docs/runs/<run-id>/findings/resolver-<n>.json
+artifact_path:   .banyan/runs/<run-id>/findings/resolver-<n>.json
 output_format:   JSON: { "resolver": "resolver-<n>", "results": [ { "verdict",
                  "feedback_id", "feedback_type", "reply_text", "files_changed",
                  "reason", "decision_context"? } ] } -- one entry per assigned item.
@@ -140,8 +140,8 @@ boundaries:      Edit ONLY this file set: <exact files, or "the files this comme
                  implicates -- identify and state them in your artifact">. Never touch a
                  sibling resolver's files. Never commit, push, reply, resolve threads, or
                  run any gh mutation. Run targeted tests only -- the trunk runs the full
-                 suite once. Never touch protected artifacts (docs/brainstorms,
-                 docs/plans, docs/solutions, docs/runs except your own artifact_path).
+                 suite once. Never touch protected artifacts (.banyan/brainstorms,
+                 .banyan/plans, .banyan/solutions, .banyan/runs except your own artifact_path).
 tool_guidance:   Read/Grep/Glob to inspect; Edit to fix; Bash for targeted tests and
                  read-only git; Write only to artifact_path.
 budget:
@@ -162,7 +162,7 @@ effort_class:    standard
   actively make the code worse; reply cites the specific harm
 - `needs-human` -- cannot determine the right action; needs user decision
 
-Each resolver returns ONE line (`fixed 2, replied 1 -> docs/runs/<run-id>/findings/resolver-3.json`).
+Each resolver returns ONE line (`fixed 2, replied 1 -> .banyan/runs/<run-id>/findings/resolver-3.json`).
 **Read the artifact files, not the prose** (invariant 3), to drive every later step.
 
 ## 5. Validate Combined State
@@ -189,8 +189,11 @@ noted) in `ledger.md`'s log and for the step 9 summary.
 
 ## 6. Commit and Push
 
-1. Stage only files reported in resolver outcome artifacts and commit with a message
-   referencing the PR:
+1. Build the stage list from resolver outcome artifacts. Exclude `.banyan/**`; those are
+   Banyan local run artifacts, not PR changes.
+2. Stage only the remaining reported files and inspect the staged path list. If any staged
+   path starts with `.banyan/`, unstage it and do not commit until the staged set contains
+   only project changes. Commit with a message referencing the PR:
 
 ```bash
 git add [files from resolver outcomes]
@@ -199,7 +202,7 @@ git commit -m "Address PR review feedback (#PR_NUMBER)
 - [list changes from resolver outcomes]"
 ```
 
-2. Push to remote:
+3. Push to remote:
 ```bash
 git push
 ```
@@ -310,8 +313,8 @@ fires the finalization spawn itself — background, do not wait on it):
 === BANYAN ENVELOPE ===
 objective:       Mine this just-finished resolve-pr run's record for genuinely reusable
                  candidate lessons and stage them.
-inputs:          Ledger: docs/runs/<run-id>/ledger.md; outcomes dir: docs/runs/<run-id>/findings/
-artifact_path:   docs/runs/<run-id>/lessons-staging/
+inputs:          Ledger: .banyan/runs/<run-id>/ledger.md; outcomes dir: .banyan/runs/<run-id>/findings/
+artifact_path:   .banyan/runs/<run-id>/lessons-staging/
 output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
                  status: candidate + claim_type, plus intervention iff tested),
                  per knowledge-store.md. Write nothing if no lesson is worth keeping.
@@ -319,7 +322,7 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
-boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source,
+boundaries:      Write ONLY under lessons-staging/. Never touch .banyan/solutions/, source,
                  or protected artifacts.
 tool_guidance:   Read/Grep/Glob to mine; Write only to lessons-staging/. No Agent, Bash,
                  or Edit.
@@ -348,7 +351,7 @@ Declined (count): [what was declined and the harm cited]
 
 Validation: [one line -- e.g., "node --test passed (893/893)" or "passed with
 pre-existing failure in X noted"; omit when no code changes were committed]
-Run artifacts: docs/runs/<run-id>/
+Run artifacts: .banyan/runs/<run-id>/
 ```
 
 If any resolver returned `needs-human`, append a decisions section. These are rare but

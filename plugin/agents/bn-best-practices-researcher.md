@@ -115,7 +115,7 @@ Your research should be thorough but focused on practical application. The goal 
 ## Output contract
 
 You run inside a Banyan research subtree. Your delegation envelope provides an `artifact_path`
-(a markdown file under `docs/runs/<run-id>/briefs/`). Banyan invariant 3 -- *artifacts over prose*
+(a markdown file under `.banyan/runs/<run-id>/briefs/`). Banyan invariant 3 -- *artifacts over prose*
 -- means your distilled brief lives in that file; your final message is a verdict plus the path.
 
 1. Write your distilled brief (using the output structure defined above) to your `artifact_path`

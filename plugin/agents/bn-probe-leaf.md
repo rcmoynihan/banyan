@@ -21,7 +21,7 @@ You receive a `=== BANYAN ENVELOPE ===` block with:
   at the depth floor: spawn nothing.
 
 Do exactly one thing: write `artifact_path` containing the token from `inputs.token` on the
-first line and nothing else that varies. Write nowhere else — not `docs/runs/`, not source,
+first line and nothing else that varies. Write nowhere else — not `.banyan/runs/`, not source,
 not any protected artifact.
 
 Return ONE line: `probe-leaf: wrote <artifact_path>`.

@@ -96,7 +96,7 @@ Build the commits per the commit doctrine in
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-commit/SKILL.md` Steps 3-4: scan for naturally distinct
 concerns and split into 2-3 logical commits at file level only when the separation is
 obvious; stage specific files by name (**never `git add -A` or `git add .`**); commit
-with a heredoc message.
+with a heredoc message. Never stage or commit `.banyan/**`.
 
 Then push:
 

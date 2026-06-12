@@ -18,7 +18,7 @@ HEAD:<upstream-path> | diff - <local-path>`.
 
 - Upstream: `plugins/compound-engineering/skills/ce-compound/references/schema.yaml`
 - Mode: `verbatim` (copied byte-for-byte; no edits).
-- This is the v1 frontmatter contract for `docs/solutions/`. Not edited -- not
+- This is the v1 frontmatter contract for `.banyan/solutions/`. Not edited -- not
   even a provenance header inside the YAML, per the U5 instruction to keep it
   byte-identical. Provenance is recorded here instead.
 - Byte-match vs pinned SHA: CLEAN (no diff).
@@ -71,7 +71,7 @@ script is independent of it by design.
 - Verbatim byte-match: `solution-frontmatter.yaml` and `findings-schema.json`
   both diff-clean against the pinned SHA.
 - Fixture solutions: `python scripts/validate-frontmatter.py
-  test/fixture-repo/docs/solutions` passes all three seeded docs (exit 0).
+  test/fixture-repo/.banyan/solutions` passes all three seeded docs (exit 0).
 - Round-trip positive: a throwaway valid doc in `tmp/` passed (exit 0).
 - Round-trip negative: a throwaway doc with an unquoted ` #` in a top-level
   scalar failed (exit 1); a doc missing the `---` frontmatter delimiter failed

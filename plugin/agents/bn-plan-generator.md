@@ -27,18 +27,18 @@ block. It carries:
 - `objective`: draft a full plan for the task, biased by your prior.
 - `inputs`:
   - `task`: the feature/task description to plan.
-  - `requirements_doc`: a path to `docs/brainstorms/*-requirements.md`, or `none`.
+  - `requirements_doc`: a path to `.banyan/brainstorms/*-requirements.md`, or `none`.
   - `prior`: exactly one of `mvp-first` | `risk-first` | `ops-first` (see below).
-  - `research_brief`: a path to `docs/runs/<run-id>/briefs/research-brief.md`, or `none`.
-  - `spec_stress`: a path to `docs/runs/<run-id>/briefs/spec-stress.md`, or `none`.
-  - `supplemental_grounding`: a path to `docs/runs/*/briefs/brainstorm-grounding.md` or
+  - `research_brief`: a path to `.banyan/runs/<run-id>/briefs/research-brief.md`, or `none`.
+  - `spec_stress`: a path to `.banyan/runs/<run-id>/briefs/spec-stress.md`, or `none`.
+  - `supplemental_grounding`: a path to `.banyan/runs/*/briefs/brainstorm-grounding.md` or
     another supporting brief, or `none`.
   - `repo_root`: the target repo root, for grounding file paths against real code.
-- `artifact_path`: `docs/runs/<run-id>/briefs/plan-draft-<prior>.md` — your single write.
+- `artifact_path`: `.banyan/runs/<run-id>/briefs/plan-draft-<prior>.md` — your single write.
 - `output_format`: a v1-compatible plan (structure below).
 - `boundaries`: read-only against the repo except your one artifact; never edit source,
-  never touch protected artifacts (`docs/brainstorms`, `docs/plans`, `docs/solutions`,
-  `docs/runs` except your own `artifact_path`); never write a sibling's draft file.
+  never touch protected artifacts (`.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`,
+  `.banyan/runs` except your own `artifact_path`); never write a sibling's draft file.
 - `budget`: `{ max_children: 0, depth_remaining: 1 }` — you are a leaf.
 - `effort_class`: `standard` | `deep` (the lead's read; informs draft depth, not spawning).
 
@@ -82,7 +82,7 @@ State your prior in one line at the top of the draft, then **live it** in the or
 ## Step 3 — Write the draft (v1-compatible structure)
 
 Write to your `artifact_path` a full plan in the v1 structure (match
-`docs/plans/*-plan.md`):
+`.banyan/plans/*-plan.md`):
 
 ```markdown
 # <Plan title> — draft (<prior>)
@@ -148,7 +148,7 @@ Rules for the draft:
 ## Step 4 — Return a verdict plus the path
 
 Your final message is **one line**: a verdict plus your artifact path — e.g.
-`plan-draft (risk-first): 6 units, risk-spike first -> docs/runs/<run-id>/briefs/plan-draft-risk-first.md`.
+`plan-draft (risk-first): 6 units, risk-spike first -> .banyan/runs/<run-id>/briefs/plan-draft-risk-first.md`.
 Do **not** paste the plan into your reply (invariant 3); the judges and `bn-plan-lead` read the
 file. You are read-only against the project; your single permitted write is your draft
 artifact.

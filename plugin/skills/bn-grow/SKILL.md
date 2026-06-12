@@ -25,11 +25,11 @@ reimplement them here.
 ONE run ledger spans the whole grow. Every phase reuses the same run dir, so the ledger
 tells the full story end to end -- optional requirements intake, research brief, spec-stress
 brief when present, plan ref, delivery report, review verdict, and the log of gate decisions
-all live under one `docs/runs/<run-id>/`.
+all live under one `.banyan/runs/<run-id>/`.
 
 This skill is hands-off by default. Do not ask the user or exit at the first failed gate.
 A failed gate is a recovery signal for the phase that owns it. Use the stage recovery
-caps in **Gates recover before surfacing**; write `docs/runs/<run-id>/residuals.md` only
+caps in **Gates recover before surfacing**; write `.banyan/runs/<run-id>/residuals.md` only
 when bounded recovery is exhausted or the blocker requires user authority. Honor prompt-local
 autonomy steering from the user without inventing formal modes.
 
@@ -57,18 +57,18 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs grow-<slug>
   --root <repo-root> \
   --objective "<2-3 line objective and done condition>" \
   --plan-ref "<pending plan path>" \
-  --unit "research|bn-research-lead|pending|docs/runs/<run-id>/briefs/research-brief.md" \
-  --unit "spec-stress|trunk|pending|docs/runs/<run-id>/briefs/spec-stress.md" \
-  --unit "plan|trunk|pending|docs/plans/<pending-plan-path>" \
-  --unit "deliver|bn-delivery-lead|pending|docs/runs/<run-id>/delivery-report.md" \
-  --unit "review|bn-review-lead|pending|docs/runs/<run-id>/review-verdict.md"
+  --unit "research|bn-research-lead|pending|.banyan/runs/<run-id>/briefs/research-brief.md" \
+  --unit "spec-stress|trunk|pending|.banyan/runs/<run-id>/briefs/spec-stress.md" \
+  --unit "plan|trunk|pending|.banyan/plans/<pending-plan-path>" \
+  --unit "deliver|bn-delivery-lead|pending|.banyan/runs/<run-id>/delivery-report.md" \
+  --unit "review|bn-review-lead|pending|.banyan/runs/<run-id>/review-verdict.md"
 ```
 
 - `<slug>` -> kebab-case from the feature (e.g. `grow-add-oauth-login`). The script emits
   JSON; capture `run_id`, `run_dir`, `ledger_path`, and `facts`.
 - `<repo-root>` -> the target repo root (`git rev-parse --show-toplevel`).
 - If fuzzy intake is in scope, include an additional
-  `--unit "intake|trunk|pending|docs/brainstorms/<pending-requirements>.md"` row. The script
+  `--unit "intake|trunk|pending|.banyan/brainstorms/<pending-requirements>.md"` row. The script
   seeds `## Objective`, `## Plan`, `## Facts / Context`, and the phase rows.
 
 This single run dir is reused by every phase below -- pass its run ID and run dir to
@@ -81,10 +81,10 @@ If the input is a fuzzy idea, invoke the `/bn-brainstorm` flow in **grow intake 
 
 - Use the user's raw idea as the feature description.
 - Reuse THIS run dir for any optional research grounding the brainstorm needs; its
-  grounding brief path is `docs/runs/<run-id>/briefs/brainstorm-grounding.md`.
+  grounding brief path is `.banyan/runs/<run-id>/briefs/brainstorm-grounding.md`.
 - Run through the requirements artifact step, then return control here without offering
   `/bn-brainstorm`'s standalone handoff menu.
-- Accept either a requirements document path under `docs/brainstorms/` or a concise
+- Accept either a requirements document path under `.banyan/brainstorms/` or a concise
   finalized requirements summary when the brainstorm correctly decides no document is
   warranted.
 
@@ -103,18 +103,18 @@ objective as the finalized requirements summary.
 
 Spawn `bn-research-lead` with the finalized requirements document or summary framed as a
 research question and an envelope naming `artifact_path:
-docs/runs/<run-id>/briefs/research-brief.md` plus `doctrine:
+.banyan/runs/<run-id>/briefs/research-brief.md` plus `doctrine:
 ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md` (see
 `bn-research-lead` for the envelope it expects; set `effort_class` by question breadth).
 If fuzzy intake produced
-`docs/runs/<run-id>/briefs/brainstorm-grounding.md`, include that path in `inputs` so the
+`.banyan/runs/<run-id>/briefs/brainstorm-grounding.md`, include that path in `inputs` so the
 research lead can reuse it instead of repeating the same grounding. The lead owns the
 research subtree -- it dispatches the warranted researchers, chases threads, and
 synthesizes ONE brief.
 
-**GATE:** `docs/runs/<run-id>/briefs/research-brief.md` exists. READ that file (not the
+**GATE:** `.banyan/runs/<run-id>/briefs/research-brief.md` exists. READ that file (not the
 lead's final-message prose). If the brief is missing or malformed, re-enter
 `bn-research-lead` once with the same run dir, the missing artifact path, and the concrete
 artifact failure. If the brief stands but flags unresolved open questions that would change
@@ -139,7 +139,7 @@ the plan.
 
 When running spec stress, invoke `/bn-spec-stress` with the requirements document path, or with
 the finalized requirements summary if no document exists. Reuse THIS run dir. The output path is
-`docs/runs/<run-id>/briefs/spec-stress.md`.
+`.banyan/runs/<run-id>/briefs/spec-stress.md`.
 
 **GATE:** if skipped, record the skip and reason in the ledger. If run, `spec-stress.md`
 exists and the trunk READS it (the file, not the skill's final-message prose). If
@@ -155,24 +155,24 @@ and exit.
 Spawn `bn-plan-lead` with the requirements document path when fuzzy intake produced one.
 Otherwise pass the finalized requirements summary (the clear-task objective or the no-doc
 brainstorm summary). Reuse THIS run dir so `bn-plan-lead` also reads
-`docs/runs/<run-id>/briefs/research-brief.md`, `docs/runs/<run-id>/briefs/spec-stress.md`,
+`.banyan/runs/<run-id>/briefs/research-brief.md`, `.banyan/runs/<run-id>/briefs/spec-stress.md`,
 and any referenced brainstorm grounding brief. The plan lead classifies effort; runs its
 generator + judge panel for standard/deep (skips it for lightweight); dispatches the checker
 when warranted; writes the plan doc as the single writer; records planning detail in
-`progress/bn-plan-lead.md`; writes `docs/runs/<run-id>/briefs/plan-lead-report.md`; and
+`progress/bn-plan-lead.md`; writes `.banyan/runs/<run-id>/briefs/plan-lead-report.md`; and
 harvests lessons before returning.
 
 ```
 === BANYAN ENVELOPE ===
 objective:       Produce a durable implementation plan for the grow run's finalized scope.
-artifact_path:   docs/runs/<run-id>/briefs/plan-lead-report.md
+artifact_path:   .banyan/runs/<run-id>/briefs/plan-lead-report.md
 output_format:   Markdown plan lead report with verdict, plan path, run path, effort, panel,
                  precheck, assumed requirements, and recovery metadata.
 inputs:
   task:            <finalized requirements summary or one-line label for requirements_doc>
   primary_input:   <requirements doc path, or "none">
   active_run_id:   <run-id>
-  active_run_dir:  docs/runs/<run-id>/
+  active_run_dir:  .banyan/runs/<run-id>/
   invocation:      grow
   repo_root:       <repo root>
   precheck:        auto
@@ -180,7 +180,7 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      The lead may write this run's planning artifacts and one durable plan under
-                 docs/plans/. It must not edit source, switch branches, push, open a PR,
+                 .banyan/plans/. It must not edit source, switch branches, push, open a PR,
                  delete protected artifacts, or write outside this run's artifacts.
 tool_guidance:   Use the run scaffolder once with --run-id; Read/Grep/Glob/Bash for grounding;
                  Write the plan, progress, ledger plan ref, and report; Agent(...) only for
@@ -192,8 +192,8 @@ effort_class:    auto
 === END ENVELOPE ===
 ```
 
-**GATE:** a plan doc exists at `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md` and the
-ledger's `## Plan` ref points at it. READ `docs/runs/<run-id>/briefs/plan-lead-report.md`,
+**GATE:** a plan doc exists at `.banyan/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md` and the
+ledger's `## Plan` ref points at it. READ `.banyan/runs/<run-id>/briefs/plan-lead-report.md`,
 then READ the plan's `## Implementation Units` and `## Sequencing`. If no plan file was
 produced, or the report surfaces an infeasible claim that has a clear repo-grounded fix,
 re-enter `bn-plan-lead` once with the same run dir and the research/spec-stress artifacts
@@ -215,7 +215,7 @@ dispatches `bn-delivery-lead`, which makes per-unit atomizer decisions, fans com
 units out to worktree-isolated unit-leads that self-test and mini-review, and merges in
 dependency order via a single integrator. It commits per unit; it NEVER pushes.
 
-**GATE:** `docs/runs/<run-id>/delivery-report.md` exists, code actually changed, and the
+**GATE:** `.banyan/runs/<run-id>/delivery-report.md` exists, code actually changed, and the
 report says the units are done or names blocked units explicitly. READ the report (the
 file, not the lead's prose). If units are blocked, inspect the report's recovery section.
 When the blocker is recoverable by delivery ownership (boundary under-scope, shared-file
@@ -231,7 +231,7 @@ Phase 5), reusing THIS run dir. `/bn-review` dispatches `bn-review-lead`, which 
 the reviewer panel, dedupes findings, and fixes-and-verifies them in place, returning an
 applied verdict. It commits on a clean tree; it NEVER pushes.
 
-**GATE:** `docs/runs/<run-id>/review-verdict.md` exists and the test suite is green, OR the
+**GATE:** `.banyan/runs/<run-id>/review-verdict.md` exists and the test suite is green, OR the
 verdict explicitly carries `UNVERIFIED (no test command)`. READ the verdict (the file, not
 the lead's prose). If the verdict is missing, the suite is red, or material findings remain
 unaddressed with a clear fix/routing path, re-enter `/bn-review` once with the same run dir
@@ -252,7 +252,7 @@ and the result is not suite-green. Do not push here under any circumstances.
 
 ## Phase 8 -- Curate handoff (non-blocking)
 
-Prepare curation for this run's `docs/runs/<run-id>/lessons-staging/` candidates. The
+Prepare curation for this run's `.banyan/runs/<run-id>/lessons-staging/` candidates. The
 `bn-lesson-harvester` already fired at each subtree boundary throughout the grow, so
 staging is already populated; curation is sleep-time consolidation, not a grow gate.
 
@@ -274,7 +274,7 @@ when present -> research brief -> spec-stress gate when present -> plan -> deliv
 verdict), any recovery attempts that materially changed the path, the ship gate (the verdict's
 commit status, NOT pushed -- ship is yours), and the curation handoff state
 (background started, or run `/bn-curate <run-id>`). Point at the ledger path
-`docs/runs/<run-id>/ledger.md` -- it tells the full story; the brief, plan, delivery
+`.banyan/runs/<run-id>/ledger.md` -- it tells the full story; the brief, plan, delivery
 report, and verdict all live under that run dir.
 
 **Trunk-stays-small target.** For a medium feature, the trunk should have spent a SMALL
@@ -304,5 +304,5 @@ If a gate is not met, recover before surfacing:
 5. **Exit only for unrecoverable state:** permission cliffs, no-safe-default product/business
    decisions, missing external authority, unsafe dirty-tree conflicts, or exhausted recovery.
 
-When exiting before the ship gate, write `docs/runs/<run-id>/residuals.md` using the ledger
+When exiting before the ship gate, write `.banyan/runs/<run-id>/residuals.md` using the ledger
 template, point `ledger.md` at it, and then surface the residual path plus the next safe action.

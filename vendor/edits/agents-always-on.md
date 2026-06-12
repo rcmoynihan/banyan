@@ -29,7 +29,7 @@ Common changes applied to all 6 (per BANYAN AGENT PORT SPEC):
 - Confidence-rubric pointer: "subagent template" -> `schemas/findings-schema.json` (`_meta.confidence_anchors`).
 - Stripped v1 "## Output format" JSON-stub block (which returned findings as inline prose JSON);
   replaced with canonical REVIEWER output contract (`reviewer: "correctness"`, artifact at
-  `docs/runs/<run-id>/findings/`, standalone fallback `./bn-findings-correctness.json`).
+  `.banyan/runs/<run-id>/findings/`, standalone fallback `./bn-findings-correctness.json`).
 - No other v1 orchestration coupling present to strip (no ce-code-review / Stage N / /tmp paths).
 
 ## bn-testing-reviewer (<- ce-testing-reviewer)
@@ -85,7 +85,7 @@ Common changes applied to all 6 (per BANYAN AGENT PORT SPEC):
 - Replaced the upstream markdown "## Output Format" section (the `## Agent-Native Architecture
   Review` template with Capability Map / Critical / Warnings / Observations / Score / PASS|NEEDS WORK)
   with the canonical REVIEWER output contract (`reviewer: "agent-native"`, JSON to
-  `docs/runs/<run-id>/findings/`, standalone fallback `./bn-findings-agent-native.json`).
+  `.banyan/runs/<run-id>/findings/`, standalone fallback `./bn-findings-agent-native.json`).
 - No other v1 orchestration coupling present to strip.
 
 ## bn-learnings-researcher (<- ce-learnings-researcher)
@@ -101,10 +101,10 @@ Common changes applied to all 6 (per BANYAN AGENT PORT SPEC):
   /ce-code-review, /ce-optimize, /ce-ideate, Standalone invocation ... Output is consumed as prose")
   — orchestration coupling to v1 skills; the Banyan output contract replaces the return mechanics.
 - De-v1'd the "no relevant learnings found" note: removed the `/ce-compound` skill reference,
-  replaced with Banyan-neutral guidance ("worth capturing as a new `docs/solutions/` entry after
+  replaced with Banyan-neutral guidance ("worth capturing as a new `.banyan/solutions/` entry after
   it lands").
 - Appended the canonical RESEARCHER output contract block (`learnings` persona, markdown brief to
-  `docs/runs/<run-id>/briefs/`, standalone fallback `./bn-brief-learnings.md`). The RESEARCHER
+  `.banyan/runs/<run-id>/briefs/`, standalone fallback `./bn-brief-learnings.md`). The RESEARCHER
   block's "using the output structure defined above" resolves to the preserved "## Output Format"
   brief structure.
 

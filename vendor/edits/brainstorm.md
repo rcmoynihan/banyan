@@ -13,7 +13,7 @@ the handoffs to Banyan skills. `references/html-rendering.md` is **not vendored*
 - **Frontmatter:** `name` -> `bn-brainstorm`; `argument-hint` drops the `[output:html]`
   token; description quoted.
 - **Banyan framing added:** trunk-level dialogue skill; pure-dialogue runs spawn nothing
-  and open no ledger; `docs/brainstorms/` named as a protected artifact family
+  and open no ledger; `.banyan/brainstorms/` named as a protected artifact family
   (AGENTS.md §5).
 - **Phase 0.0 collapsed:** output is always markdown. The `output:` token parsing, the
   `.compound-engineering/config.local.yaml` pre-read, the unknown-value note, the

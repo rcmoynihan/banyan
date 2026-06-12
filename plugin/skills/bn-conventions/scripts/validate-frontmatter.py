@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate docs/solutions frontmatter for parser-safety issues.
+"""Validate .banyan/solutions frontmatter for parser-safety issues.
 
 Usage:
     python3 validate-frontmatter.py <doc-path-or-dir>
@@ -26,9 +26,9 @@ QUOTED_OR_STRUCTURED_PREFIXES = ('"', "'", "[", "{", "|", ">")
 
 # Banyan-internal bookkeeping that lives only on candidate lessons under a run
 # ledger's lessons-staging/ dir. The curator strips each one on promotion so the
-# committed knowledge store stays byte-for-byte v1-compatible (AGENTS.md
+# curated knowledge store stays byte-for-byte v1-compatible (AGENTS.md
 # invariant 8). The clean-store guard rejects any of these as a top-level key on
-# a doc inside docs/solutions/, so a staging-only key can never leak in.
+# a doc inside .banyan/solutions/, so a staging-only key can never leak in.
 STAGING_ONLY_KEYS = ("status", "claim_type", "intervention")
 SOLUTIONS_DIR_NAME = "solutions"
 
@@ -43,25 +43,25 @@ def usage_fail(message: str) -> NoReturn:
     sys.exit(EXIT_USAGE_ERROR)
 
 
-def is_committed_solution(doc_path: Path) -> bool:
-    """Report whether a doc lives in the committed knowledge store.
+def is_curated_solution(doc_path: Path) -> bool:
+    """Report whether a doc lives in the curated knowledge store.
 
     A staged candidate lives under a run ledger's lessons-staging/ dir and may
-    carry staging-only keys; a committed doc lives in the docs/solutions/ tree and
+    carry staging-only keys; a curated doc lives in the .banyan/solutions/ tree and
     may not. The clean-store guard only applies to the latter.
 
-    The committed store is identified by an adjacent ``docs``/``solutions`` pair, so
+    The curated store is identified by an adjacent ``.banyan``/``solutions`` pair, so
     an unrelated path such as ``app/solutions/foo.md`` is not treated as the store.
 
     Args:
         doc_path: Markdown file being validated.
 
     Returns:
-        True when the path is inside docs/solutions/ and not a lessons-staging/ candidate.
+        True when the path is inside .banyan/solutions/ and not a lessons-staging/ candidate.
     """
     parts = doc_path.resolve().parts
     in_store = any(
-        parts[i] == "docs" and parts[i + 1] == SOLUTIONS_DIR_NAME
+        parts[i] == ".banyan" and parts[i + 1] == SOLUTIONS_DIR_NAME
         for i in range(len(parts) - 1)
     )
     return in_store and "lessons-staging" not in parts
@@ -78,7 +78,7 @@ def validate_file(doc_path: Path) -> int:
     """
     text = doc_path.read_text(encoding="utf-8")
     issues: list[str] = []
-    guard_committed = is_committed_solution(doc_path)
+    guard_curated = is_curated_solution(doc_path)
 
     lines = text.split("\n")
     if not lines or lines[0].rstrip() != FRONTMATTER_DELIMITER:
@@ -110,11 +110,11 @@ def validate_file(doc_path: Path) -> int:
             continue
 
         key, _separator, value = line.partition(":")
-        if guard_committed and key.strip() in STAGING_ONLY_KEYS:
+        if guard_curated and key.strip() in STAGING_ONLY_KEYS:
             issues.append(
                 f"line {lineno}: '{key.strip()}' is a staging-only key and must "
-                "not appear on a docs/solutions/ doc -- the curator strips it on "
-                "promotion to keep the committed store byte-for-byte v1 "
+                "not appear on a .banyan/solutions/ doc -- the curator strips it on "
+                "promotion to keep the curated store byte-for-byte v1 "
                 "(AGENTS.md invariant 8)."
             )
         stripped_value = value.strip()

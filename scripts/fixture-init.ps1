@@ -6,7 +6,7 @@
 
 .DESCRIPTION
     The fixture lives at test/fixture-repo/. It holds:
-      - a CLEAN baseline (src/, test/, docs/) that passes `node --test`, and
+      - a CLEAN baseline (src/, test/, .banyan/) that passes `node --test`, and
       - .fixture/seeded/<relpath> whole-file replacements that introduce the
         deliberate bugs catalogued in .fixture/BUG-INVENTORY.md.
 

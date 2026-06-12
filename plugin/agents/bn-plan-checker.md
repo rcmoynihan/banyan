@@ -35,19 +35,19 @@ block. It carries:
 - `objective`: ground the winning draft's claims against the real repo and emit a typed gap list.
 - `inputs`:
   - `task`: the feature/task description the draft plans.
-  - `requirements_doc`: a path to `docs/brainstorms/*-requirements.md`, or `none`.
+  - `requirements_doc`: a path to `.banyan/brainstorms/*-requirements.md`, or `none`.
   - `winning_draft_path`: the single draft the lead chose — your subject. READ it in full.
   - `graft_list`: the runner-up ideas the lead plans to graft, or `none` — check these too.
-  - `research_brief`: a path to `docs/runs/<run-id>/briefs/research-brief.md`, or `none`.
-  - `spec_stress`: a path to `docs/runs/<run-id>/briefs/spec-stress.md`, or `none`.
+  - `research_brief`: a path to `.banyan/runs/<run-id>/briefs/research-brief.md`, or `none`.
+  - `spec_stress`: a path to `.banyan/runs/<run-id>/briefs/spec-stress.md`, or `none`.
   - `supplemental_grounding`: a path to a brainstorm-grounding or supporting brief, or `none`.
   - `repo_root`: the target repo root — all your lookups run against this.
   - `test_command`: the detected test command, or `none detected`.
-- `artifact_path`: `docs/runs/<run-id>/briefs/plan-check.md` — your single write.
+- `artifact_path`: `.banyan/runs/<run-id>/briefs/plan-check.md` — your single write.
 - `output_format`: the plan-check brief below.
 - `boundaries`: read-only against the repo except your one artifact; never edit source,
-  switch branches, or touch protected artifacts (`docs/brainstorms`, `docs/plans`,
-  `docs/solutions`, `docs/runs` except your own `artifact_path`); never write a draft, a
+  switch branches, or touch protected artifacts (`.banyan/brainstorms`, `.banyan/plans`,
+  `.banyan/solutions`, `.banyan/runs` except your own `artifact_path`); never write a draft, a
   score sheet, or the plan.
 - `budget`: `{ max_children: 0, depth_remaining: 1 }` — you are a leaf.
 - `effort_class`: `standard` | `deep`.
@@ -142,7 +142,7 @@ cheap "parent re-runs the proof" the harness prizes. If there are no findings an
 unverifiable, write an empty `## Findings` section and say so.
 
 Your final message is **one line**: a verdict plus the path — e.g.
-`plan-check: 1 already-exists, 1 untraced-path, 0 infeasible; 1 unverifiable -> docs/runs/<run-id>/briefs/plan-check.md`.
+`plan-check: 1 already-exists, 1 untraced-path, 0 infeasible; 1 unverifiable -> .banyan/runs/<run-id>/briefs/plan-check.md`.
 Do **not** paste the brief into your reply (invariant 3); `bn-plan-lead` reads the file. You are
 read-only against the project; your single permitted write is your plan-check brief, and your
 `Bash` use is non-mutating inspection only (`git grep`, `git ls-files`, `ls`, manifest reads)

@@ -50,7 +50,7 @@ refuting it with evidence) does the trail lead to the rollback in `src/orders.js
 3. **The true hypothesis is confirmed**: "createOrder's rollback releases the wrong
    line(s)" — **confirmed**, citing `src/orders.js` at the `release` call in the catch
    block.
-4. **The diagnosis** (`docs/runs/<run-id>/debug-diagnosis.md`) carries the two-link
+4. **The diagnosis** (`.banyan/runs/<run-id>/debug-diagnosis.md`) carries the two-link
    chain with evidence per link — failed order → wrong rollback (failed line released,
    reserved lines kept) → leaked reservation + conjured stock → the assertion deltas
    (apple 5→2 held, pear 1→1 only by accident of the arithmetic) — and

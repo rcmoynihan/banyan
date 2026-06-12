@@ -54,7 +54,7 @@ using the answer contract.
 Escalate to the research subtree when any of these hold:
 
 - The question spans multiple subsystems or a large unfamiliar area.
-- The answer needs institutional learnings from `docs/solutions/`.
+- The answer needs institutional learnings from `.banyan/solutions/`.
 - The answer depends on official docs, version-specific framework behavior, or current
   external information.
 - The first scan finds contradictory evidence.
@@ -73,7 +73,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs ask-<slug> 
   --root <repo-root> \
   --objective "<answer the user's codebase question with sourced evidence>" \
   --plan-ref "none -- codebase question" \
-  --unit "ask|bn-research-lead|in-progress|docs/runs/<run-id>/briefs/ask-answer.md" \
+  --unit "ask|bn-research-lead|in-progress|.banyan/runs/<run-id>/briefs/ask-answer.md" \
   --actor trunk
 ```
 
@@ -86,7 +86,7 @@ Spawn `bn-research-lead` foreground with this envelope:
 === BANYAN ENVELOPE ===
 objective:       Answer the user's codebase question with sourced findings, confidence,
                  and explicit unknowns: <question>.
-artifact_path:   docs/runs/<run-id>/briefs/ask-answer.md
+artifact_path:   .banyan/runs/<run-id>/briefs/ask-answer.md
 output_format:   Markdown brief: Direct answer / Evidence / Confidence / Unknowns /
                  Sources. Keep it distilled; no raw dumps.
 inputs:
@@ -97,8 +97,8 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
 boundaries:      Read-only research. Do NOT edit source, switch branches, commit/push,
-                 open issues, or touch docs/brainstorms, docs/plans, docs/solutions,
-                 docs/runs except this run's own artifacts.
+                 open issues, or touch .banyan/brainstorms, .banyan/plans, .banyan/solutions,
+                 .banyan/runs except this run's own artifacts.
 tool_guidance:   Read/Grep/Glob/Bash for repo investigation; use framework docs or web
                  only when the question needs external evidence. Agent(...) for the
                  warranted researchers and thread chaser per bn-research-lead.
@@ -118,7 +118,7 @@ Classify effort by breadth:
 - **deep** - broad orientation, multi-subsystem behavior, contradiction resolution, or
   repo evidence plus official docs plus web context.
 
-Read `docs/runs/<run-id>/briefs/ask-answer.md` when the lead returns. Do not rely on the
+Read `.banyan/runs/<run-id>/briefs/ask-answer.md` when the lead returns. Do not rely on the
 lead's final-message prose for load-bearing facts.
 
 ## Step 4 - Answer the User

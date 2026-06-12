@@ -6,7 +6,9 @@ import path from 'node:path';
 import process from 'node:process';
 
 const RUN_ID_RE = /^\d{4}-\d{2}-\d{2}-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const RUN_PATH_RE = /docs[/\\]runs[/\\](\d{4}-\d{2}-\d{2}-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*)/g;
+const BANYAN_DIR_NAME = '.banyan';
+const RUNS_DIR_NAME = 'runs';
+const RUN_PATH_RE = /\.banyan[/\\]runs[/\\](\d{4}-\d{2}-\d{2}-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*)/g;
 const SUBDIRS = ['progress', 'findings', 'briefs', 'lessons-staging'];
 const DOCUMENTED_COMMANDS = [
   'poetry run pytest',
@@ -146,7 +148,7 @@ function resolveRepoRoot(root) {
 }
 
 function runDirFor(root, runId) {
-  return path.join(root, 'docs', 'runs', runId);
+  return path.join(root, BANYAN_DIR_NAME, RUNS_DIR_NAME, runId);
 }
 
 function runExists(root, runId) {
@@ -157,7 +159,7 @@ function resolveRun(root, opts) {
   if (opts.runId !== null) {
     const runId = validateRunId(opts.runId);
     if (!runExists(root, runId)) {
-      fail(`--run-id does not name a live run under ${path.join(root, 'docs', 'runs')}: ${runId}`);
+      fail(`--run-id does not name a live run under ${path.join(root, BANYAN_DIR_NAME, RUNS_DIR_NAME)}: ${runId}`);
     }
     return { kind: 'adopted', reason: 'explicit-run-id', runId };
   }
@@ -191,7 +193,7 @@ function runIdFromPath(root, input) {
   const absolute = path.resolve(root, input);
   const relative = path.relative(root, absolute);
   const parts = relative.split(path.sep);
-  if (parts.length >= 3 && parts[0] === 'docs' && parts[1] === 'runs') {
+  if (parts.length >= 3 && parts[0] === BANYAN_DIR_NAME && parts[1] === RUNS_DIR_NAME) {
     return RUN_ID_RE.test(parts[2]) ? parts[2] : null;
   }
   return null;
@@ -392,7 +394,7 @@ function hasFileWithExtension(dir, extensions) {
 
 function scaffoldRun(root, opts, date, facts, reason) {
   const slug = validateSlug(opts.slug);
-  const runsDir = path.join(root, 'docs', 'runs');
+  const runsDir = path.join(root, BANYAN_DIR_NAME, RUNS_DIR_NAME);
   const { existing, nextSeq } = scanRuns(runsDir, date, slug);
   const runId = opts.force && existing ? existing : `${date}-${nextSeq}-${slug}`;
   const runDir = runDirFor(root, runId);
@@ -431,7 +433,7 @@ function ledgerTemplate(runId, date, opts, facts) {
   const planRef =
     renderRunId(
       opts.planRef ??
-        '<docs/plans/...-plan.md, "none -- direct work spec docs/runs/<run-id>/briefs/direct-work-plan.md", or "none -- ad hoc run">',
+        '<.banyan/plans/...-plan.md, "none -- direct work spec .banyan/runs/<run-id>/briefs/direct-work-plan.md", or "none -- ad hoc run">',
       runId,
     );
   const factLines = [
@@ -484,6 +486,26 @@ function renderRunId(value, runId) {
   return value.replaceAll('<run-id>', runId);
 }
 
+function ensureBanyanExcluded(root) {
+  let excludePath;
+  try {
+    excludePath = execFileSync('git', ['-C', root, 'rev-parse', '--git-path', 'info/exclude'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return;
+  }
+  const absoluteExclude = path.isAbsolute(excludePath) ? excludePath : path.join(root, excludePath);
+  fs.mkdirSync(path.dirname(absoluteExclude), { recursive: true });
+  const existing = fs.existsSync(absoluteExclude) ? fs.readFileSync(absoluteExclude, 'utf8') : '';
+  if (/^\/?\.banyan\/$/m.test(existing)) {
+    return;
+  }
+  const prefix = existing.endsWith('\n') || existing.length === 0 ? '' : '\n';
+  fs.appendFileSync(absoluteExclude, `${prefix}# Banyan local state\n/.banyan/\n`);
+}
+
 function pad(value, width) {
   return value.padEnd(width, ' ');
 }
@@ -491,6 +513,7 @@ function pad(value, width) {
 function main() {
   const opts = parseArgs(process.argv.slice(2));
   const root = resolveRepoRoot(opts.root);
+  ensureBanyanExcluded(root);
   const date = validateDate(opts.date ?? todayISO());
   const facts = detectRepoFacts(root);
   const resolution = resolveRun(root, opts);

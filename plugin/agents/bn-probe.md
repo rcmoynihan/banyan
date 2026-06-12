@@ -1,6 +1,6 @@
 ---
 name: bn-probe
-description: "Depth-2 nesting probe for /bn-doctor. Spawns bn-probe-leaf to write a token artifact, attempts one off-allowlist spawn to test allowlist enforcement, reports nested user-question availability, and writes a probe report. Health-check only; never touches docs/runs."
+description: "Depth-2 nesting probe for /bn-doctor. Spawns bn-probe-leaf to write a token artifact, attempts one off-allowlist spawn to test allowlist enforcement, reports nested user-question availability, and writes a probe report. Health-check only; never touches .banyan/runs."
 model: sonnet
 tools: Read, Write, Agent(bn-probe-leaf)
 color: gray
@@ -13,7 +13,7 @@ You are `bn-probe`, the middle of the `/bn-doctor` nesting probe. The trunk spaw
 whether the host enforces your `Agent(...)` allowlist, and whether nested agents have a
 reliable user-question path — is exactly what you exist to report. You are a health check,
 not a worker: you read and write only inside the probe
-directory named in your envelope, never `docs/runs/`, never source, never any protected
+directory named in your envelope, never `.banyan/runs/`, never source, never any protected
 artifact.
 
 You receive a `=== BANYAN ENVELOPE ===` block with:
@@ -35,7 +35,7 @@ artifact_path:   <probe_dir>/probe-leaf.txt
 output_format:   The token on the first line.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
-boundaries:      Write ONLY artifact_path. Never touch docs/runs, source, or any
+boundaries:      Write ONLY artifact_path. Never touch .banyan/runs, source, or any
                  protected artifact.
 tool_guidance:   Write only.
 budget:

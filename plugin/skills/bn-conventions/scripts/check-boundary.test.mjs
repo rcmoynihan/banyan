@@ -40,7 +40,7 @@ function createRepo() {
   git(root, ['checkout', '-qb', 'feature']);
   writeFile(root, 'src/a.js', 'export const a = 2;\n');
   writeFile(root, 'src/wishlist.js', 'export const wishlist = [];\n');
-  writeFile(root, 'docs/runs/r1/progress/u1.md', 'progress\n');
+  writeFile(root, '.banyan/runs/r1/progress/u1.md', 'progress\n');
   writeFile(root, 'src/outside.js', 'export const outside = true;\n');
   writeFile(root, 'src-other/x.js', 'export const x = 2;\n');
   git(root, ['add', '.']);
@@ -107,14 +107,14 @@ test('returns zero when all changed files are in boundary', (t) => {
       '--head',
       fixture.head,
       '--allow',
-      'src/**,docs/runs/**,src-other/x.js',
+      'src/**,.banyan/runs/**,src-other/x.js',
     ],
     fixture.root,
   );
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /^IN   src\/a\.js$/m);
-  assert.match(result.stdout, /^IN   docs\/runs\/r1\/progress\/u1\.md$/m);
+  assert.match(result.stdout, /^IN   \.banyan\/runs\/r1\/progress\/u1\.md$/m);
   assert.match(result.stdout, /^boundary: 5 in, 0 out$/m);
 });
 
@@ -125,7 +125,7 @@ test('returns one and reports out-of-boundary files', (t) => {
       '--base',
       fixture.base,
       '--allow',
-      'src/a.js,src/wishlist.js,docs/runs/**,src-other/x.js',
+      'src/a.js,src/wishlist.js,.banyan/runs/**,src-other/x.js',
     ],
     fixture.root,
   );
@@ -138,7 +138,7 @@ test('returns one and reports out-of-boundary files', (t) => {
 test('matches dir globs without matching sibling prefixes', (t) => {
   const fixture = useRepo(t);
   const result = runBoundary(
-    ['--base', fixture.base, '--allow', 'src/**,docs/runs/**'],
+    ['--base', fixture.base, '--allow', 'src/**,.banyan/runs/**'],
     fixture.root,
   );
 
@@ -161,7 +161,7 @@ test('includes working tree, index, and untracked files when head is current HEA
       '--head',
       'HEAD',
       '--allow',
-      'src/**,docs/runs/**,src-other/x.js',
+      'src/**,.banyan/runs/**,src-other/x.js',
     ],
     fixture.root,
   );
@@ -201,7 +201,7 @@ test('loads allow entries from a file with comments and blank lines', (t) => {
       '',
       'src/a.js',
       'src/wishlist.js',
-      'docs/runs/**',
+      '.banyan/runs/**',
       'src/outside.js',
       'src-other/x.js',
       '',
@@ -244,7 +244,7 @@ test('runs git from --cwd when invoked elsewhere', (t) => {
       '--cwd',
       fixture.root,
       '--allow',
-      'src/**,docs/runs/**,src-other/x.js',
+      'src/**,.banyan/runs/**,src-other/x.js',
     ],
     elsewhere,
   );

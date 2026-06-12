@@ -39,21 +39,21 @@ Consequences:
 ## This repo is its own host repo
 
 Banyan is installed into this repository to develop Banyan. The repo is therefore
-simultaneously the plugin's source and an ordinary Banyan host repo, and the two roles
-share `docs/`:
+simultaneously the plugin's source and an ordinary Banyan host repo. Keep the roles
+separate:
 
 - **Project documents (authoring):** `docs/brainstorms/` (founding brainstorm),
   `docs/decisions/`, `docs/plans/` (the core implementation plan),
-  `docs/harness-proposals/`, `docs/harness-changelog.md`.
-- **Runtime artifacts (written/read by the installed plugin):** `docs/runs/<run-id>/`
-  (local per-run ledgers), `docs/solutions/` (the knowledge store).
-- **Both at once:** `/bn-brainstorm` and `/bn-plan` write new documents into
-  `docs/brainstorms/` and `docs/plans/` beside the founding project documents. That is by
-  design — the founding docs and run-produced docs follow the same conventions.
+  `docs/harness-changelog.md`.
+- **Banyan local state:** `.banyan/runs/<run-id>/` (local per-run ledgers),
+  `.banyan/solutions/` (the knowledge store), `.banyan/brainstorms/`,
+  `.banyan/plans/`, `.banyan/harness-proposals/`, and
+  `.banyan/onboarding-manifest.md`.
 
-The protected-artifact rules of `plugin/AGENTS.md` §5 apply here as in any host repo. Raw
-run directories under `docs/runs/` are local run state; curated knowledge belongs in
-`docs/solutions/`.
+`docs/` is project-owned. Banyan may read, write, and edit project documentation there
+when a genuine task calls for it, but Banyan-specific artifacts do not belong under
+`docs/`. The protected-artifact rules of `plugin/AGENTS.md` §5 apply here as in any host
+repo, and `.banyan/**` is local state that must not be staged, committed, or pushed.
 
 ## Instruction-file map: real vs data
 
@@ -111,7 +111,7 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
   agent/skill counts (currently 45 agents, 17 skills); adding or removing a component
   means updating both.
 - **Frontmatter and naming rules for `plugin/` components live in `plugin/AGENTS.md` §3**,
-  and `scripts/validate-frontmatter.py` checks `docs/solutions/` frontmatter. Read
+  and `scripts/validate-frontmatter.py` checks `.banyan/solutions/` frontmatter. Read
   `plugin/AGENTS.md` before adding any agent or skill.
 - **Pushing is explicit and foreground.** One-off `git push` commands are allowed when
   the user asks for them. `/bn-ship` remains the full Banyan shipping workflow for

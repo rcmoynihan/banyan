@@ -28,14 +28,14 @@ Every mechanism below lives or dies on the same fault line. Claims split into tw
 - **Machine-checkable** — a `repro_command` the parent actually re-runs, a counterexample test that is red on the old code and green on the fix, mutation kills, lint, suite counts. These carry real proof-carrying-code force (Necula's asymmetry: the consumer's job collapses from proving to checking). Re-running a repro costs seconds and a few hundred tokens. Meta's TestGen-LLM / Assured-LLMSE line is the production existence proof: every artifact clears measurable filters (builds, passes, improves coverage) before a human sees it.
 - **Self-reported** — "files inspected", "remaining uncertainty", "why the parent may trust this", causal explanations. These are the prose the format was meant to replace. Under verification pressure models confabulate them ("tests run: yes" is the cheapest token sequence a model can emit), and the reward-hacking literature documents models special-casing tests and gaming checkers when gated on them.
 
-A second, subtler limit: **verification validates fixes, never explanations.** A causally-wrong bundle with a green repro passes every gate a run can afford. The blast radius matters because the lesson-harvester → curator pipeline can promote a false cause into `docs/solutions/` — the knowledge store is the durable-poison vector.
+A second, subtler limit: **verification validates fixes, never explanations.** A causally-wrong bundle with a green repro passes every gate a run can afford. The blast radius matters because the lesson-harvester → curator pipeline can promote a false cause into `.banyan/solutions/` — the knowledge store is the durable-poison vector.
 
 The shared convention that follows, and the highest-leverage single change:
 
 - Every claim carries `claim_type: tested | inspected | assumed`.
 - `tested` requires citing the **intervention** that isolates the mechanism (e.g., "counterexample goes green with only the claimed mechanism disabled"), not just a passing suite.
 - Parents re-run the `repro_command` before accepting any bundle, counterexample, or card. This is the one verification cheap enough to mandate at every acceptance boundary.
-- The curator promotes causal claims to `docs/solutions/` only when `claim_type: tested`. Wrong-but-green survives in-run; it must not survive into the knowledge store.
+- The curator promotes causal claims to `.banyan/solutions/` only when `claim_type: tested`. Wrong-but-green survives in-run; it must not survive into the knowledge store.
 
 ## The mechanisms, assessed
 
@@ -107,7 +107,7 @@ The non-obvious design constraint, from simulation: **pull fails silently at dep
 
 **Form worth building:**
 
-- `docs/runs/<run-id>/facts/<slug>.md`, one card per file (one-writer clean), with a pointer line in the ledger's `## Facts / Context`. Card fields: `claim`, `provenance` (file:line and, ideally, a citing test), `must_hold` (the obligation on downstream work), `binds_to` (path globs), `status: verified | unverified`, `consumers`.
+- `.banyan/runs/<run-id>/facts/<slug>.md`, one card per file (one-writer clean), with a pointer line in the ledger's `## Facts / Context`. Card fields: `claim`, `provenance` (file:line and, ideally, a citing test), `must_hold` (the obligation on downstream work), `binds_to` (path globs), `status: verified | unverified`, `consumers`.
 - The lead that synthesizes a subtree's output writes the cards; the delivery-lead **routes by `binds_to`** — cards matching a unit's file boundary are pushed verbatim into that unit's envelope (capped top-K, with a pointer to `facts/` for the rest). Pull remains the backstop for the trunk and review lead.
 - `bn-review-lead` checks each `must_hold` card whose `binds_to` intersects the diff: confirm a test pins it or dispatch a finding.
 - Poisoning containment: `verified` requires provenance citing a test or intervention; consumers of `unverified` cards spot-check the cited lines (one Read, ~300 tokens) and treat the card as a question, not a premise; the curator promotes only `verified` cards. A wrong card is worse than no card — it propagates one subtree's misreading laterally with the authority of distilled knowledge, and a false-negative card ("IDs are never reused") gets laundered through three subtrees with a confident audit trail.

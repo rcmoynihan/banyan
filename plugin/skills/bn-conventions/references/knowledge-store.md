@@ -1,10 +1,10 @@
-# Knowledge store: docs/solutions/ (v1-compatible)
+# Knowledge store: .banyan/solutions/ (v1-compatible)
 
-Banyan's durable memory lives in `docs/solutions/` in the *target repo* (not the
+Banyan's durable memory lives in `.banyan/solutions/` in the *target repo* (not the
 plugin). Each entry is one markdown file: YAML frontmatter that classifies the
 solution, then a prose body. This format is inherited verbatim from the
-compound-engineering v1 plugin so existing knowledge stores keep working
-(AGENTS.md invariant 8). Read this before writing a solution doc.
+compound-engineering v1 plugin (AGENTS.md invariant 8). Read this before
+writing a solution doc.
 
 The canonical, machine-readable contract is `plugin/schemas/solution-frontmatter.yaml`
 (a byte-for-byte copy of upstream's `schema.yaml`). This doc summarizes it for an
@@ -132,31 +132,31 @@ Example -- parses cleanly:
 
 ## Directory / category taxonomy
 
-Files are grouped into category subdirectories under `docs/solutions/`. The v1
+Files are grouped into category subdirectories under `.banyan/solutions/`. The v1
 category mapping derives the directory from `problem_type`:
 
-    build_error          -> docs/solutions/build-errors/
-    test_failure         -> docs/solutions/test-failures/
-    runtime_error        -> docs/solutions/runtime-errors/
-    performance_issue    -> docs/solutions/performance-issues/
-    database_issue       -> docs/solutions/database-issues/
-    security_issue       -> docs/solutions/security-issues/
-    ui_bug               -> docs/solutions/ui-bugs/
-    integration_issue    -> docs/solutions/integration-issues/
-    logic_error          -> docs/solutions/logic-errors/
-    developer_experience -> docs/solutions/developer-experience/
-    workflow_issue       -> docs/solutions/workflow-issues/
-    best_practice        -> docs/solutions/best-practices/
-    documentation_gap    -> docs/solutions/documentation-gaps/
-    architecture_pattern -> docs/solutions/architecture-patterns/
-    design_pattern       -> docs/solutions/design-patterns/
-    tooling_decision     -> docs/solutions/tooling-decisions/
-    convention           -> docs/solutions/conventions/
+    build_error          -> .banyan/solutions/build-errors/
+    test_failure         -> .banyan/solutions/test-failures/
+    runtime_error        -> .banyan/solutions/runtime-errors/
+    performance_issue    -> .banyan/solutions/performance-issues/
+    database_issue       -> .banyan/solutions/database-issues/
+    security_issue       -> .banyan/solutions/security-issues/
+    ui_bug               -> .banyan/solutions/ui-bugs/
+    integration_issue    -> .banyan/solutions/integration-issues/
+    logic_error          -> .banyan/solutions/logic-errors/
+    developer_experience -> .banyan/solutions/developer-experience/
+    workflow_issue       -> .banyan/solutions/workflow-issues/
+    best_practice        -> .banyan/solutions/best-practices/
+    documentation_gap    -> .banyan/solutions/documentation-gaps/
+    architecture_pattern -> .banyan/solutions/architecture-patterns/
+    design_pattern       -> .banyan/solutions/design-patterns/
+    tooling_decision     -> .banyan/solutions/tooling-decisions/
+    convention           -> .banyan/solutions/conventions/
 
 A target repo may instead group by a domain-meaningful category name (the Banyan
 fixture uses `correctness/`, `reliability/`, `security/`). Both layouts are
 valid: v1 compatibility is a property of the *frontmatter contract*, not the
-directory name. Match the target repo's existing `docs/solutions/` convention;
+directory name. Match the target repo's existing `.banyan/solutions/` convention;
 use the problem_type mapping above only when seeding a fresh store. The
 frontmatter `problem_type` -- not the path -- is the source of truth.
 
@@ -192,25 +192,25 @@ broken. Omit process exhaust (no "captured at phase X", no "next steps").
 - Banyan reads and writes this frontmatter contract unchanged. The schema file
   is a verbatim copy of upstream's `schema.yaml`; the validator is upstream's,
   with only a directory-walk plumbing edit (it can be pointed at a single file
-  or at `docs/solutions/` as a whole). The per-field validation rules are
+  or at `.banyan/solutions/` as a whole). The per-field validation rules are
   untouched.
 - Harvested candidate lessons use this same body/frontmatter format but live in
-  the run ledger's `lessons-staging/`, never in `docs/solutions/`. They carry
+  the run ledger's `lessons-staging/`, never in `.banyan/solutions/`. They carry
   **staging-only** keys that are **not** part of the v1 schema — Banyan-internal
   bookkeeping the curator **strips on promotion**. A doc only lands in
-  `docs/solutions/` after the curator removes every staging-only key and the doc
-  passes `validate-frontmatter.py`, so the committed knowledge store stays
+  `.banyan/solutions/` after the curator removes every staging-only key and the doc
+  passes `validate-frontmatter.py`, so the curated knowledge store stays
   byte-for-byte v1-compatible. The staging-only keys are `status: candidate`,
   `claim_type`, and `intervention` (the claim_type doctrine is below); the
-  validator's clean-store guard rejects any of them on a `docs/solutions/` doc,
-  so a staging key can never leak into the committed store.
-- `docs/solutions/*.md` is a protected artifact (AGENTS.md section 5): no agent
-  may delete, gitignore, or "clean up" these files, and a reviewer finding
+  validator's clean-store guard rejects any of them on a `.banyan/solutions/` doc,
+  so a staging key can never leak into the curated store.
+- `.banyan/solutions/*.md` is a protected artifact (AGENTS.md section 5): no agent
+  may delete or "clean up" these files, and a reviewer finding
   proposing removal is discarded during synthesis. The one exception is the
   `bn-knowledge-curator` deleting a drifted entry under `/bn-curate --refresh`,
   foreground, after explicit per-doc user confirmation; AGENTS.md section 5 is
   authoritative for that carve-out, and background curation never deletes.
-- Search `docs/solutions/` before writing a new solution so memory compounds
+- Search `.banyan/solutions/` before writing a new solution so memory compounds
   rather than fragmenting into near-duplicates.
 - Validate any doc you write:
   `python ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-frontmatter.py <path>`
@@ -222,7 +222,7 @@ A candidate's central claim is either *causal* — a bug-track `root_cause`, or 
 knowledge-track rule that asserts *why* something must be done — or it is not (a
 discovered convention, a path, a tooling decision that records *what* without a
 why-it-breaks mechanism). The causal candidates are the durable-poison vector: a
-wrong "why" promoted into `docs/solutions/` misleads every future reader. Every
+wrong "why" promoted into `.banyan/solutions/` misleads every future reader. Every
 candidate therefore carries one staging-only `claim_type` describing the strength
 of its central claim:
 
@@ -245,7 +245,7 @@ Rules every producer and the curator share:
   finding-owner acceptance boundary that actually re-ran the artifact — the
   curator only checks, by Read, that the citation exists; it does not re-execute.
 - **The curator's promotion gate** (in `bn-knowledge-curator.md`): a *causal*
-  candidate promotes to `docs/solutions/` **only** when `claim_type: tested` with
+  candidate promotes to `.banyan/solutions/` **only** when `claim_type: tested` with
   a present `intervention:`. A causal candidate that is `inspected`/`assumed`, or
   `tested` with no `intervention:` (downgraded to `inspected`), is **held in
   staging** and reported — not promoted as an established cause, never lost.
@@ -253,7 +253,7 @@ Rules every producer and the curator share:
   whether a claim is causal, treat it as causal and hold.
 - `claim_type` and `intervention` are **stripped on promotion** exactly as
   `status: candidate` is, and the validator's clean-store guard blocks them from a
-  committed doc — the committed store stays byte-for-byte v1.
+  curated doc — the curated store stays byte-for-byte v1.
 
 `claim_type` (`tested | inspected | assumed`) is for **lessons / solution
 candidates only**. Review and dogfood findings use a separate field,
@@ -262,9 +262,9 @@ distinct and must not be conflated.
 
 ## Marking staleness and supersession (body prose, never frontmatter)
 
-When a `docs/solutions/` doc drifts from the current codebase or is superseded by
+When a `.banyan/solutions/` doc drifts from the current codebase or is superseded by
 a newer doc, record that **in the doc body**, never as a new frontmatter key.
-Adding a `status:`, `stale:`, or `superseded_by:` key to a committed doc would
+Adding a `status:`, `stale:`, or `superseded_by:` key to a curated doc would
 break the v1 frontmatter contract (invariant 8) the same way `status: candidate`
 would — and the clean-store guard rejects `status:` outright. Body prose is
 v1-neutral and is still visible to any reader and to `bn-learnings-researcher`.
@@ -272,7 +272,7 @@ v1-neutral and is still visible to any reader and to `bn-learnings-researcher`.
 Append a short `## Status` note near the end of the body:
 
     ## Status
-    Superseded by `docs/solutions/<category>/<successor>.md` on YYYY-MM-DD — <one-line reason>.
+    Superseded by `.banyan/solutions/<category>/<successor>.md` on YYYY-MM-DD — <one-line reason>.
 
 or, for a doc whose referenced code/paths have drifted but that has no successor
 yet:

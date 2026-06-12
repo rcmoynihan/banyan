@@ -17,7 +17,7 @@ Source documents:
 5. **Budgets are explicit.** Every spawn carries a delegation envelope (objective, artifact path, format, boundaries, child/model/depth budget).
 6. **Permission cliff.** Background nested agents auto-deny permission prompts. Pushes, migrations, deletions, and anything prompt-worthy stay at trunk level or run foreground.
 7. **Model tiering.** Strong model at trunk and leads; Sonnet-class mid-tree; Haiku-class for harvesters and scouts. Declared per-agent via `model:` frontmatter.
-8. **v1 compatibility at the persistence layer.** Banyan reads and writes the compound-engineering `docs/solutions/` schema unchanged, so existing knowledge stores keep working.
+8. **v1 compatibility at the persistence layer.** Banyan reads and writes the compound-engineering knowledge-store schema unchanged under `.banyan/solutions/`.
 
 ---
 
@@ -33,7 +33,7 @@ Source documents:
 ### U2: Dev/test harness
 - **Goal:** Fast iteration loop and a fixture repo for end-to-end tests.
 - **Files:** `test/fixture-repo/` (small app with a deliberate bug inventory and a real test suite), `scripts/dev-install.ps1` (symlink/copy plugin into a sandbox project), `scripts/smoke.ps1`.
-- **Approach:** The fixture repo is the standing test bed for every later unit: seeded bugs for review, seeded `docs/solutions/` entries for retrieval tests, seeded plan docs for delivery tests.
+- **Approach:** The fixture repo is the standing test bed for every later unit: seeded bugs for review, seeded `.banyan/solutions/` entries for retrieval tests, seeded plan docs for delivery tests.
 - **Verification:** `scripts/smoke.ps1` installs the plugin into the fixture and runs the stub skill headlessly (`claude -p`).
 
 ## Phase 1 — Vendor v1's leaf assets
@@ -55,7 +55,7 @@ Source documents:
 ### U5: Persistence layer compatibility
 - **Goal:** Banyan reads/writes the v1 knowledge store format exactly.
 - **Dependencies:** U3.
-- **Files:** `plugin/schemas/solution-frontmatter.yaml` (vendored), `plugin/skills/bn-conventions/scripts/validate-frontmatter.py` (vendored), `scripts/validate-frontmatter.py` (repo-root launcher), `plugin/skills/bn-conventions/references/knowledge-store.md` (the docs/solutions taxonomy, category list, two-track doc structure).
+- **Files:** `plugin/schemas/solution-frontmatter.yaml` (vendored), `plugin/skills/bn-conventions/scripts/validate-frontmatter.py` (vendored), `scripts/validate-frontmatter.py` (repo-root launcher), `plugin/skills/bn-conventions/references/knowledge-store.md` (the .banyan/solutions taxonomy, category list, two-track doc structure).
 - **Verification:** Validator passes on seeded fixture solutions; a doc written by a Banyan agent passes the vendored validator.
 
 ## Phase 2 — The coordination substrate
@@ -65,14 +65,14 @@ Source documents:
 - **Dependencies:** U1.
 - **Files:** `plugin/skills/bn-conventions/references/ledger.md` (spec), run layout:
   ```
-  docs/runs/<run-id>/
+  .banyan/runs/<run-id>/
     ledger.md            # task ledger: facts, plan, unit statuses (Magentic-One outer loop)
     progress/<agent>.md  # per-subtree progress notes
     findings/            # review findings JSON, one file per finding
     briefs/              # research briefs, plan-judge outputs
     lessons-staging/     # harvested candidate lessons (consumed by curator)
   ```
-- **Approach:** Run IDs are `YYYY-MM-DD-NNN-<slug>`. Ledger writes are append-mostly; unit statuses are single-writer (the lead that owns the unit). `docs/runs/` is local run state for resumability and audit while work is active; durable knowledge is promoted into `docs/solutions/`, and fixture/eval runs live in explicit fixture/eval paths.
+- **Approach:** Run IDs are `YYYY-MM-DD-NNN-<slug>`. Ledger writes are append-mostly; unit statuses are single-writer (the lead that owns the unit). `.banyan/runs/` is local run state for resumability and audit while work is active; durable knowledge is promoted into `.banyan/solutions/`, and fixture/eval runs live in explicit fixture/eval paths.
 - **Verification:** Spec doc reviewed; a scripted dry-run creates a conforming run dir; two concurrent writers to different progress files don't collide.
 
 ### U7: Delegation envelope convention
@@ -93,7 +93,7 @@ Source documents:
   - Reviewers write findings to `findings/`, return paths. Lead dedupes by v1's fingerprint rule (file + line ±3 + normalized title; cross-reviewer agreement promotes confidence; suppress <75 except P0 at 50+).
   - Each surviving finding → one `bn-finding-owner` child: independently verify (fresh context, external signal: run the failing case) → fix → re-run tests → write outcome. Pipeline semantics: finding-owners start as soon as their finding is confirmed, while other reviewers still run.
   - Single-writer law: finding-owners get disjoint file sets; overlapping findings are batched to one owner. Lead never edits files itself; it merges, runs the full suite, and commits (`fix(review): ...`) only if the pre-review tree was clean — preserving v1's safety contract.
-  - Keep v1's protected-artifacts rule (never act on findings proposing deletion of `docs/brainstorms|plans|solutions|runs`).
+  - Keep v1's protected-artifacts rule (never act on findings proposing deletion of `.banyan/brainstorms|plans|solutions|runs`).
 - **Verification:** Against the fixture repo's seeded bug inventory: ≥ v1 recall on seeded P0/P1 bugs, fixes applied with green suite, residuals correctly reported. No file written outside finding-owner scopes.
 
 ### U9: A/B evaluation vs `/ce-code-review`
@@ -116,7 +116,7 @@ Source documents:
 - **Goal:** Planning skill producing v1-compatible plan docs (Implementation Units, stable U-IDs), with deepening replaced by a real judge panel.
 - **Dependencies:** U10.
 - **Files:** `plugin/skills/bn-plan/SKILL.md`, `plugin/agents/bn-plan-generator.md` (parameterized prior: mvp-first | risk-first | ops-first), `plugin/agents/bn-plan-judge.md` (rubric-scored).
-- **Approach:** Trunk (single writer) drafts the plan from the research brief. For standard/deep efforts: spawn 2–3 generators with different priors → panel of 3 independent judges scores all drafts against a rubric (feasibility, coherence, scope discipline, verification quality) → trunk synthesizes from the winner, grafting runner-up ideas. Writes `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`.
+- **Approach:** Trunk (single writer) drafts the plan from the research brief. For standard/deep efforts: spawn 2–3 generators with different priors → panel of 3 independent judges scores all drafts against a rubric (feasibility, coherence, scope discipline, verification quality) → trunk synthesizes from the winner, grafting runner-up ideas. Writes `.banyan/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`.
 - **Verification:** Plans pass v1 structural conventions; judge scores recorded in `briefs/`; lightweight efforts skip the panel entirely (effort scaling observable in the ledger).
 
 ## Phase 5 — Delivery subtree
@@ -143,10 +143,10 @@ Source documents:
 - **Verification:** After a review run on the fixture, staging contains ≥1 candidate accurately describing a real dead-end from the run (checked by hand the first times); candidates pass the frontmatter validator.
 
 ### U14: `bn-knowledge-curator` (sleep-time compute)
-- **Goal:** Background consolidation: staging → `docs/solutions/`, dedup, pattern promotion, pruning, minimal `CLAUDE.md`/`CONCEPTS.md` discoverability edits.
+- **Goal:** Background consolidation: staging → `.banyan/solutions/`, dedup, pattern promotion, pruning.
 - **Dependencies:** U13.
 - **Files:** `plugin/agents/bn-knowledge-curator.md`, `plugin/skills/bn-curate/SKILL.md` (manual trigger + post-run background dispatch from trunk; optionally a cron/scheduled invocation).
-- **Approach:** Grep-first overlap detection (v1's 5-dimension rule): high overlap → update existing doc, else promote candidate. Repeated lessons (≥3 related docs) → propose a pattern doc. Runs in background with pre-granted write scope limited to `docs/solutions/`, `CONCEPTS.md`, `CLAUDE.md`; anything else is report-only (permission cliff).
+- **Approach:** Grep-first overlap detection (v1's 5-dimension rule): high overlap → update existing doc, else promote candidate. Repeated lessons (≥3 related docs) → propose a pattern doc. Runs in background with pre-granted write scope limited to `.banyan/solutions/`, the named staging dirs, and its curation summary; anything else is report-only (permission cliff).
 - **Verification:** Seed staging with a near-duplicate of an existing solution + a novel candidate: curator merges the first, promotes the second, and the staging dir is empty after; learnings-researcher retrieves the promoted doc in the next run.
 
 ### U15: `/bn-grow` (the full pipeline, replaces `/lfg`)
@@ -162,7 +162,7 @@ Source documents:
 - **Goal:** Periodic agent that mines run transcripts/ledgers for recurring harness failures and proposes diffs to Banyan's own agents and skills.
 - **Dependencies:** U15 + several real runs of accumulated ledger data.
 - **Files:** `plugin/agents/bn-harness-engineer.md`, `plugin/skills/bn-tune/SKILL.md`, `docs/harness-changelog.md`.
-- **Approach:** Inputs: `docs/runs/` ledgers + subagent transcripts (persisted under `~/.claude/projects/.../subagents/`). Looks for: repeated reviewer false positives, envelope violations, budget overruns, dead-end patterns. Output: PR-style proposed diffs to `plugin/` files with evidence citations — **never self-applies**; human merges. Each applied change logged with its evidence.
+- **Approach:** Inputs: `.banyan/runs/` ledgers + subagent transcripts (persisted under `~/.claude/projects/.../subagents/`). Looks for: repeated reviewer false positives, envelope violations, budget overruns, dead-end patterns. Output: PR-style proposed diffs under `.banyan/harness-proposals/` with evidence citations — **never self-applies**; human merges. Each applied change logged with its evidence.
 - **Verification:** On ≥5 runs of accumulated data, produces ≥1 actionable, evidence-cited proposal a human judges correct. (Soft gate; this unit is exploratory.)
 
 ---

@@ -27,7 +27,7 @@ prediction discipline below is non-negotiable.
   createOrder releases the wrong line items, leaking reservations").
 - `inputs` — the repro command / failing test, a 2-4 line bug summary, relevant
   `file:line` anchors, and the doctrine reference paths.
-- `artifact_path` — `docs/runs/<run-id>/briefs/hypothesis-<slug>.md`, your single
+- `artifact_path` — `.banyan/runs/<run-id>/briefs/hypothesis-<slug>.md`, your single
   permitted write.
 - `boundaries` — never edit source, config, or tests; never touch protected artifacts;
   read-only git only (`log`, `blame`, `bisect` in dry/read form, `show`, `diff`).
@@ -86,12 +86,12 @@ prediction discipline below is non-negotiable.
   tests** — you investigate; fixing belongs to the lead's fix mode.
 - Bash is for running tests/repros/probes and read-only git. No commits, no branch
   switches, no installs, no migrations.
-- Never touch protected artifacts (`docs/brainstorms`, `docs/plans`, `docs/solutions`,
-  `docs/runs` except your own artifact).
+- Never touch protected artifacts (`.banyan/brainstorms`, `.banyan/plans`, `.banyan/solutions`,
+  `.banyan/runs` except your own artifact).
 - You spawn nothing.
 
 ## Return one line
 
 Verdict plus path (invariant 3), e.g.
-`hypothesis rollback-leak: confirmed (prediction 1 held at src/orders.js:38) -> docs/runs/<run-id>/briefs/hypothesis-rollback-leak.md`.
+`hypothesis rollback-leak: confirmed (prediction 1 held at src/orders.js:38) -> .banyan/runs/<run-id>/briefs/hypothesis-rollback-leak.md`.
 Do not paste the artifact body into your reply; the lead reads the file.

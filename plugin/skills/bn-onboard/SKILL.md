@@ -27,21 +27,21 @@ Read these first (skip any already in your context):
 This skill runs at the trunk, foreground, with the user present. Prompt-worthy actions
 stay here:
 
-- scaffolding `docs/{brainstorms,plans,solutions,runs}/`;
-- `.gitignore` fixes for rules that exclude Banyan artifacts;
+- scaffolding `.banyan/{brainstorms,plans,solutions,runs}/`;
+- ensuring `.banyan/` exists and is ignored;
 - the classification gate;
 - per-file instruction approval;
-- writing `docs/onboarding-manifest.md`;
-- writing `docs/runs/<run-id>/onboarding-report.md`;
+- writing `.banyan/onboarding-manifest.md`;
+- writing `.banyan/runs/<run-id>/onboarding-report.md`;
 - the local commit.
 
 Surveyors and transformers never ask the user, commit, push, edit sources, write
-instruction files, write the manifest, or write `docs/solutions/`.
+instruction files, write the manifest, or write `.banyan/solutions/`.
 
 ## Transform-and-Link Doctrine
 
 Originals stay byte-identical in place. Derivatives link back to source paths, and
-`docs/onboarding-manifest.md` records every source-to-derivative mapping. On rerun, the
+`.banyan/onboarding-manifest.md` records every source-to-derivative mapping. On rerun, the
 source hash decides whether a row needs work. Do not move, delete, rename, or silently
 rewrite source documents.
 
@@ -71,18 +71,18 @@ Run inline in the trunk.
 2. Record the preflight tree state with `git status --porcelain`. This is the Phase 6
    commit oracle. A commit is allowed only when this output is empty.
 
-3. Check `.gitignore` for rules that exclude `docs/`, `docs/brainstorms/`, `docs/plans/`,
-   or `docs/solutions/`. Present the offending lines and the minimal fix. Apply the fix only
-   after user approval.
+3. Ensure `.banyan/` is locally ignored. Add `/.banyan/` to `.git/info/exclude` when
+   needed. If the repository policy uses a tracked `.gitignore` for local tool state,
+   add the same rule there.
 
 4. Say one line that `/bn-doctor` checks the environment floor and live nested-spawn
    behavior. Do not repeat doctor checks here.
 
-5. Detect `docs/onboarding-manifest.md` with `managed-by: /bn-onboard`. If present,
+5. Detect `.banyan/onboarding-manifest.md` with `managed-by: /bn-onboard`. If present,
    enter incremental mode and load it once.
 
 6. Exclude existing Banyan-owned paths from the corpus and do not restructure them:
-   `docs/brainstorms/`, `docs/plans/`, `docs/solutions/`, `docs/runs/`, and the
+   `.banyan/brainstorms/`, `.banyan/plans/`, `.banyan/solutions/`, `.banyan/runs/`, and the
    manifest itself.
 
 7. Detect the test command using the same heuristic chain as `/bn-plan`: prefer explicit
@@ -111,7 +111,7 @@ Hard excludes:
 - build output and generated docs;
 - licenses, code of conduct files, and `.github/*_TEMPLATE*`;
 - Banyan-owned paths from Phase 0;
-- `docs/onboarding-manifest.md`.
+- `.banyan/onboarding-manifest.md`.
 
 Apply incremental hash filtering with the manifest reference:
 
@@ -138,13 +138,13 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs onboard-<re
   --root <root> \
   --objective "<onboard this repository into Banyan-managed knowledge and instruction files>" \
   --plan-ref "none -- onboarding run" \
-  --unit "onboard|trunk|in-progress|docs/runs/<run-id>/onboarding-report.md" \
+  --unit "onboard|trunk|in-progress|.banyan/runs/<run-id>/onboarding-report.md" \
   --actor trunk
 ```
 
 Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts`. The script
 seeds the objective, plan ref, facts, unit row, and opening log line. Write
-`docs/runs/<run-id>/briefs/corpus.md` with the corpus list and proposed batch assignment. The
+`.banyan/runs/<run-id>/briefs/corpus.md` with the corpus list and proposed batch assignment. The
 trunk is the single writer of the ledger.
 
 ## Phase 2 - Classification and Gate
@@ -154,7 +154,7 @@ For lightweight runs, classify inline using
 
 For standard and deep runs, spawn `bn-doc-surveyor` in foreground waves of at most 4
 agents. Each surveyor receives a disjoint batch of at most 25 docs and writes
-`docs/runs/<run-id>/findings/survey-<n>.json`.
+`.banyan/runs/<run-id>/findings/survey-<n>.json`.
 
 Surveyor envelope:
 
@@ -165,7 +165,7 @@ inputs:
   run_id:        <run-id>
   surveyor:      survey-<n>
   sources:       <the batch's repo-relative source paths, at most 25>
-artifact_path:   docs/runs/<run-id>/findings/survey-<n>.json
+artifact_path:   .banyan/runs/<run-id>/findings/survey-<n>.json
 output_format:   JSON: { "surveyor": "survey-<n>", "docs": [ { "source", "title",
                  "doc_kind", "target_families", "track", "problem_type", "slug",
                  "confidence", "reason" } ], "errors": [] }.
@@ -173,7 +173,7 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read only the listed sources and required onboarding references. Write
                  only artifact_path. Do not edit sources, derivatives, instruction files,
-                 docs/onboarding-manifest.md, docs/solutions/, sibling artifacts, or any
+                 .banyan/onboarding-manifest.md, .banyan/solutions/, sibling artifacts, or any
                  protected artifact outside artifact_path.
 tool_guidance:   Read/Grep/Glob for classification; Write only artifact_path. Read
                  classification.md in full. Long docs: opening, targeted signal reads,
@@ -189,7 +189,7 @@ Aggregate survey JSONs. Apply `confidence < 70 -> skip with stated reason; never
 guess`. Resolve slug and target collisions in the trunk before any transformer spawns.
 
 If survey JSONs pressure trunk context in a deep run, use one aggregator pass
-to merge survey artifacts into `docs/runs/<run-id>/briefs/corpus-classification.json`.
+to merge survey artifacts into `.banyan/runs/<run-id>/briefs/corpus-classification.json`.
 This is an escape hatch, not a pre-built extra phase; decompose only on failure or
 context pressure.
 
@@ -214,17 +214,17 @@ AskUserQuestion gate:
 
 After classification approval, the trunk scaffolds:
 
-- `docs/brainstorms/`
-- `docs/plans/`
-- `docs/solutions/`
-- `docs/runs/`
+- `.banyan/brainstorms/`
+- `.banyan/plans/`
+- `.banyan/solutions/`
+- `.banyan/runs/`
 
-Create directories as needed. `docs/plans/` stays empty because plans come from `/bn-plan`.
+Create directories as needed. `.banyan/plans/` stays empty because plans come from `/bn-plan`.
 
 Partition approved transformables into disjoint assignments of at most 8 sources, each
 with exact pre-resolved derivative paths. Spawn `bn-doc-transformer` in foreground waves
 of at most 4. Transformers write only assigned paths plus
-`docs/runs/<run-id>/findings/transform-<n>.json`.
+`.banyan/runs/<run-id>/findings/transform-<n>.json`.
 
 Transformer envelope:
 
@@ -237,16 +237,16 @@ inputs:
   transformer:   transform-<n>
   assignments:   <at most 8 entries: source, its survey row, and the exact
                  pre-resolved derivative path or paths>
-artifact_path:   docs/runs/<run-id>/findings/transform-<n>.json
+artifact_path:   .banyan/runs/<run-id>/findings/transform-<n>.json
 output_format:   JSON: { "transformer": "transform-<n>", "results": [ { "source",
                  "family", "derivative", "validator", "status", "notes" } ],
                  "errors": [] }.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Write only assigned derivative paths, assigned
-                 docs/runs/<run-id>/lessons-staging/<slug>.md candidates, and
+                 .banyan/runs/<run-id>/lessons-staging/<slug>.md candidates, and
                  artifact_path. Never edit sources, instruction files, sibling
-                 assignments, docs/onboarding-manifest.md, or docs/solutions/. Never
+                 assignments, .banyan/onboarding-manifest.md, or .banyan/solutions/. Never
                  commit or push.
 tool_guidance:   Read assigned sources and required references. Use Bash only to run
                  python ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-frontmatter.py on
@@ -262,9 +262,9 @@ effort_class:    standard
 Family outputs:
 
 - `solution-bug` and `solution-knowledge`: stage v1 candidates with
-  `status: candidate` under `docs/runs/<run-id>/lessons-staging/`. Onboard never writes
-  `docs/solutions/` directly.
-- `brainstorm`: write `docs/brainstorms/<today>-<topic>-requirements.md`.
+  `status: candidate` under `.banyan/runs/<run-id>/lessons-staging/`. Onboard never writes
+  `.banyan/solutions/` directly.
+- `brainstorm`: write `.banyan/brainstorms/<today>-<topic>-requirements.md`.
 - `instruction-source`: no derivative file; it feeds Phase 4.
 
 ## Phase 4 - Instruction Files
@@ -303,7 +303,7 @@ Harvester envelope:
 === BANYAN ENVELOPE ===
 objective:       Mine the onboarding run artifacts for reusable lessons and stage 0-3
                  candidate knowledge docs for the curator.
-artifact_path:   docs/runs/<run-id>/lessons-staging/
+artifact_path:   .banyan/runs/<run-id>/lessons-staging/
 output_format:   0-3 v1-format candidate solution docs with staging-only keys status: candidate
                  + claim_type (plus intervention iff tested), or no files when no reusable
                  lesson is present.
@@ -311,8 +311,8 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
-boundaries:      Write only under artifact_path. Do not edit docs/solutions/, source
-                 files, instruction files, docs/onboarding-manifest.md, report files, or
+boundaries:      Write only under artifact_path. Do not edit .banyan/solutions/, source
+                 files, instruction files, .banyan/onboarding-manifest.md, report files, or
                  protected artifacts outside your staging files.
 tool_guidance:   Read survey artifacts, transform artifacts, corpus brief, manifest draft,
                  and run progress. Write only candidate files under artifact_path. No
@@ -326,18 +326,18 @@ effort_class:    lightweight
 
 Then dispatch `bn-knowledge-curator` by reference to `/bn-curate`'s steps, pinned to this
 run ID and foreground. Use `/bn-curate`'s envelope and write scope exactly: pre-granted
-`docs/solutions/`, `CONCEPTS.md`, `CLAUDE.md`, clearing this run's
-`lessons-staging/`, and `docs/runs/<run-id>/curation-summary.md`. Read
+`.banyan/solutions/`, `CONCEPTS.md`, `CLAUDE.md`, clearing this run's
+`lessons-staging/`, and `.banyan/runs/<run-id>/curation-summary.md`. Read
 `curation-summary.md` to fold each candidate's fate into the manifest.
 
 ## Phase 6 - Manifest, Report, and Commit
 
-Write or update `docs/onboarding-manifest.md` per
+Write or update `.banyan/onboarding-manifest.md` per
 `skills/bn-onboard/references/manifest.md`. Fold curation fates into row statuses:
 `staged`, `promoted`, `merged`, `transformed`, `skipped: <reason>`, `deferred`,
 `source-removed`, or `superseded`.
 
-Write `docs/runs/<run-id>/onboarding-report.md` with:
+Write `.banyan/runs/<run-id>/onboarding-report.md` with:
 
 - counts per family;
 - every skipped source and reason;
@@ -353,6 +353,7 @@ Commit safety:
 - Commit only when Phase 0 recorded a pre-clean tree.
 - Stage named paths only. Never use `git add .`.
 - Include only files written by this run.
+- Never stage or commit `.banyan/**`.
 - Commit message: `chore(onboard): onboard <repo> into the Banyan shape`.
 - Never push; point at `/bn-ship`.
 
@@ -370,5 +371,5 @@ If the tree was dirty at Phase 0, do not commit. State exactly what was written.
   resolves solution-track overlap; Phase 4 surfaces instruction contradictions to the
   user.
 - **Monorepo**: one Banyan shape per git root. Package-level docs are sources, and all
-  derivatives land at root `docs/`.
+  Banyan derivatives land under root `.banyan/`.
 - **Generated docs**: skip generated docs and record the reason; never transform them.
