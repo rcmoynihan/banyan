@@ -1,7 +1,7 @@
 ---
 name: bn-review
 description: "Structured review of a code change via a lead-owned subtree that selects reviewers, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (it commits on a clean tree but never pushes). Use before opening a PR or after finishing a change."
-argument-hint: "[blank = current branch | PR number/URL | base:<ref>]"
+argument-hint: "[blank = current branch | PR number/URL | base:<ref>] [--dogfood[=on|auto]]"
 ---
 
 # bn-review
@@ -41,6 +41,20 @@ Rules that always hold:
   what you tried. Do NOT fall back to `git diff HEAD` -- an unscoped diff is not a review.
 - `scope_mode` is one of: `local-aligned`, `pr-remote`, `branch-remote`, `standalone`.
   It drives the lead's APPLY-vs-REPORT decision (Step 4 boundaries).
+
+Also resolve the **`dogfood`** flag for the envelope (default **`off`** — `off` is the
+safe default: execution-grounded verification stays opt-in so a review never tries to
+launch a host repo unbidden):
+
+- A `--dogfood` arg (or `--dogfood=on`/`--dogfood=auto`) sets it: bare `--dogfood` →
+  `auto`; `=on` → `on`; `=auto` → `auto`.
+- When invoked via `/bn-grow`, a plan-frontmatter `dogfood:` field sets it.
+- Absent both, `dogfood: off`. The lead never spawns the verifier on `off`. On `auto` it
+  self-gates on effort and diff shape and degrades to a recorded Coverage skip when the repo is
+  not drivable. On `on` the user asserts the repo is drivable, so the lead spawns the verifier
+  regardless of diff-shape selection; a capability failure still degrades to the same recorded
+  Coverage skip — non-blocking, never a hard error. Resolution against effort and diff shape is
+  the lead's job.
 
 ## Step 2: Discover intent
 
@@ -90,6 +104,7 @@ inputs:
   scope_mode:      <local-aligned | pr-remote | branch-remote | standalone>
   plan_ref:        <docs/plans/...-plan.md, or "none">
   test_command:    <detected repo test command, or "none detected">
+  dogfood:         <off | auto | on>   # default off; opt-in execution-grounded verifier
 boundaries:      APPLY (edit + commit on a clean tree) ONLY when scope_mode is
                  local-aligned or standalone; otherwise REPORT only -- propose fixes,
                  do not edit. NEVER push or open a PR. NEVER touch protected artifacts
@@ -119,8 +134,10 @@ the lead's final-message prose -- invariant 3) and present to the user:
 - the verdict line;
 - what was applied and the commit status (or, in REPORT mode, that nothing was applied
   and why);
-- residual / unaddressed findings;
-- review coverage (which reviewers ran).
+- residual / unaddressed findings (including any dogfood `concern` legs the verifier
+  could not drive — "verify manually");
+- review coverage (which reviewers ran, and — when the dogfood verifier was in scope —
+  whether it drove the app, was skipped (with the reason), or was not run).
 
 Then state explicitly that **push remains the user's step** -- the lead commits on a
 clean tree but never pushes (permission cliff, invariant 6). Point the user at

@@ -294,8 +294,9 @@ Harvester envelope:
 objective:       Mine the onboarding run artifacts for reusable lessons and stage 0-3
                  candidate knowledge docs for the curator.
 artifact_path:   docs/runs/<run-id>/lessons-staging/
-output_format:   0-3 v1-format candidate solution docs with status: candidate, or no
-                 files when no reusable lesson is present.
+output_format:   0-3 v1-format candidate solution docs with staging-only keys status: candidate
+                 + claim_type (plus intervention iff tested), or no files when no reusable
+                 lesson is present.
 boundaries:      Write only under artifact_path. Do not edit docs/solutions/, source
                  files, instruction files, docs/onboarding-manifest.md, report files, or
                  protected artifacts outside your staging files.

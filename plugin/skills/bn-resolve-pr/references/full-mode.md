@@ -307,7 +307,8 @@ objective:       Mine this just-finished resolve-pr run's record for genuinely r
                  candidate lessons and stage them.
 inputs:          Ledger: docs/runs/<run-id>/ledger.md; outcomes dir: docs/runs/<run-id>/findings/
 artifact_path:   docs/runs/<run-id>/lessons-staging/
-output_format:   0-3 v1-format solution docs (one file per candidate, status: candidate),
+output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
+                 status: candidate + claim_type, plus intervention iff tested),
                  per knowledge-store.md. Write nothing if no lesson is worth keeping.
 boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source,
                  or protected artifacts.

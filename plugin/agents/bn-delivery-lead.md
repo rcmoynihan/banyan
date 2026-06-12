@@ -306,7 +306,8 @@ inputs:          Progress file: docs/runs/<run-id>/progress/bn-delivery-lead.md;
                  artifacts: docs/runs/<run-id>/findings/ (unit mini-reviews) and
                  progress/unit-*.md / bn-integrator.md (atomizer decisions, bounces, merges).
 artifact_path:   docs/runs/<run-id>/lessons-staging/
-output_format:   0-3 v1-format solution docs (one file per candidate, status: candidate),
+output_format:   0-3 v1-format solution docs (one file per candidate, with staging-only keys
+                 status: candidate + claim_type, plus intervention iff tested),
                  per knowledge-store.md. Write nothing if no lesson is worth keeping.
 boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source, or
                  protected artifacts (docs/brainstorms, docs/plans, docs/runs except your

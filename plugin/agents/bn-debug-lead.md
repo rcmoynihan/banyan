@@ -226,9 +226,23 @@ fidelity; this is the knowledge-store's primary feedstock. Write ONE bug-track v
 `skills/bn-conventions/references/knowledge-store.md`: frontmatter with the shared core
 (`module`, `date`, `problem_type` from the bug-track enum, `component`, `severity`) plus
 the bug-track required fields (`symptoms` — the observable failures, `root_cause` enum,
-`resolution_type` enum) and the staging-only `status: candidate`; body with the
-bug-track headings (Problem / Symptoms / Root cause / Solution / Prevention — the
-regression test is the Prevention). Honor the YAML-safety quoting rules. The curator
+`resolution_type` enum) and the staging-only keys (per the claim_type doctrine in
+`knowledge-store.md`):
+
+- `status: candidate`.
+- `claim_type` for the doc's **root_cause** (its central causal claim). In FIX
+  mode you wrote a regression test that **failed first, then went green on the fix** —
+  that red→green is an executed artifact that isolated the mechanism, so the candidate is
+  `claim_type: tested` and you cite that test in `intervention:` (e.g.
+  `intervention: "regression test <name> red before the fix, green after"`). In
+  INVESTIGATE / diagnosis-only mode, or any path where you did **not** execute a
+  counterexample that isolated the cause, the candidate is `claim_type: assumed` (a
+  confirmed-by-reasoning hypothesis is still not an executed isolation) — do **not** write
+  `tested` or an `intervention:` line. Never claim `tested` from a merely-green suite; the
+  isolating counterexample is what earns it.
+
+Body uses the bug-track headings (Problem / Symptoms / Root cause / Solution / Prevention —
+the regression test is the Prevention). Honor the YAML-safety quoting rules. The curator
 remains the sole promoter into `docs/solutions/` — you stage, never promote.
 
 Write `docs/runs/<run-id>/debug-fix-report.md`: fix applied (file:line), regression test
