@@ -1,46 +1,85 @@
 ---
 name: bn-work
-description: "Implement a plan via a delivery subtree: a lead makes per-unit atomizer decisions, spawns worktree-isolated unit-leads that self-test and mini-review, and a single integrator merges in dependency order. Commits per unit; never pushes. Use to execute an approved plan."
-argument-hint: "[path to a plan doc | blank to discover the latest plan]"
+description: "Implement a durable plan or lightweight direct-work spec via a delivery subtree: a lead makes per-unit atomizer decisions, spawns worktree-isolated unit-leads that self-test and mini-review, and a single integrator merges in dependency order. Commits per unit; never pushes."
+argument-hint: "[path to docs/plans/*-plan.md | direct task/context | blank to discover the latest plan]"
 ---
 
 # bn-work
 
 Thin trunk-side entry to the Banyan delivery subtree. This skill does a few cheap
-things -- locate the plan, run a pre-flight, open a run dir, build one envelope, and
-dispatch `bn-delivery-lead` -- then presents the result the lead writes. ALL the
-orchestration (per-unit atomizer decisions, worktree-isolated unit-leads, self-test,
-mini-review, dependency-ordered integration, harvesting) lives inside the lead, not
-here. Keep this procedure small.
+things -- resolve the delivery spec, run a pre-flight, open a run dir, build one
+envelope, and dispatch `bn-delivery-lead` -- then presents the result the lead writes.
+ALL the orchestration (per-unit atomizer decisions, worktree-isolated unit-leads,
+self-test, mini-review, dependency-ordered integration, harvesting) lives inside the
+lead, not here. Keep this procedure small.
 
-The trunk NEVER switches the user's branch and NEVER pushes or opens a PR: executing a
-plan is not permission to ship. The only writes this skill makes are the run dir and
-the staged plan ref under it. Implement/commit happen inside the foreground lead, in
-the user's session; push/PR remain a separate `bn-ship` step (permission cliff,
-invariant 6).
+The trunk NEVER switches the user's branch and NEVER pushes or opens a PR: executing
+work is not permission to ship. The only writes this skill makes are the run dir, its
+ledger setup, and -- in direct mode -- the run-local direct work spec. Implement/commit
+happen inside the foreground lead, in the user's session; push/PR remain a separate
+`bn-ship` step (permission cliff, invariant 6).
 
 Read `skills/bn-conventions/references/envelope.md`,
 `skills/bn-conventions/references/ledger.md`, and `AGENTS.md` (esp. invariant 3
 artifacts-over-prose, invariant 6 permission cliff).
 
-## Step 1: Locate the plan
+## Step 1: Resolve the delivery input
 
-Resolve exactly one plan doc; never invent one.
+Resolve exactly one delivery input. There are two modes:
 
-- **Path arg given** -> use it verbatim. READ it.
+- **Durable-plan mode** -- execute an existing plan doc under `docs/plans/`.
+- **Direct mode** -- synthesize a lightweight run-local delivery spec from the command
+  argument, readable non-plan input files, and the current conversation context.
+
+Dispatch rules:
+
 - **No arg** -> discover the most recent `docs/plans/*-plan.md` (highest
   `YYYY-MM-DD-NNN` prefix; the plan naming is
   `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`). If the branch/context names a
   specific plan, prefer that. Do NOT ask the user before proceeding if a clear latest
-  plan exists.
-- **No plan found** -> STOP with a clear message naming where you looked
-  (`docs/plans/`). Do NOT invent or draft a plan -- planning is `/bn-plan`'s job.
+  plan exists. If no plan exists, STOP with a clear message naming where you looked
+  (`docs/plans/`) and tell the user to pass a direct task/context argument for direct
+  mode or run `/bn-plan`.
+- **Arg is a readable path resolving under `docs/plans/` and matching `*-plan.md`** ->
+  use that plan verbatim. READ it.
+- **Arg is a readable path resolving under `docs/plans/` but not matching `*-plan.md`** ->
+  STOP and say `docs/plans/` is reserved for durable plan docs. Ask for a valid plan path
+  or direct task/context outside `docs/plans/`.
+- **Arg is anything else** -> enter direct mode. If the arg is a readable file path
+  outside `docs/plans/`, READ it as input context. Otherwise treat the arg as direct task
+  context. The current conversation is valid input in direct mode, but only after this
+  skill materializes the load-bearing details into a run-local direct work spec before
+  spawning the lead.
 
-From the plan, READ the `## Implementation Units` (the stable U-IDs, each unit's
-Files/Dependencies/Verification) and the `## Sequencing`. You only need enough to
-populate the ledger and the envelope; the lead re-reads the plan in full.
+Never search for the latest durable plan when the user gives a non-plan argument. The
+argument is the user's intent for this run; executing an unrelated latest plan would be
+the wrong work.
 
-## Step 2: Pre-flight
+## Step 2: Direct-to-work gate
+
+In durable-plan mode, skip this gate and proceed to pre-flight.
+
+In direct mode, fail closed. Before opening delivery, decide whether the task can be
+made executable without a durable plan:
+
+- **Scope:** The objective and done condition fit in 1-2 concrete sentences without
+  inventing product behavior.
+- **Units:** The work decomposes into 1-2 implementation units, or at most 3 when each is
+  mechanical and low-risk.
+- **Files:** Likely file boundaries can be named from the conversation, the input file,
+  and a quick repo scan.
+- **Dependencies:** Unit dependencies are absent or simple enough to express directly.
+- **Verification:** There is an obvious runnable test, lint, typecheck, or manual check.
+- **Risk:** The work does not touch auth, payments, migrations, data loss paths,
+  security-sensitive behavior, broad refactors, public API contracts, rollout/rollback
+  behavior, or other high-risk surfaces.
+- **Open questions:** No unresolved decision would materially change the implementation.
+
+If exactly one bounded fact is missing, ask one targeted question and resume from the
+answer. If broader uncertainty remains, STOP and say which gate failed; recommend
+`/bn-plan <task>` or a more explicit `/bn-work <task with files and done condition>`.
+
+## Step 3: Pre-flight
 
 Detect the facts the lead needs; surface anything that would move the user's tree.
 
@@ -57,7 +96,7 @@ Detect the facts the lead needs; surface anything that would move the user's tre
   `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/check-boundary.mjs` and record it
   for the lead. If it is missing, set `boundary_check_script` to `missing`.
 
-## Step 3: Open the run ledger
+## Step 4: Open the run ledger and prepare the delivery spec
 
 Scaffold a run dir so the lead reads files, not prose:
 
@@ -65,26 +104,91 @@ Scaffold a run dir so the lead reads files, not prose:
 node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug> --root <repo-root>
 ```
 
-- `<slug>` -> kebab-case from the plan name (e.g. `work-add-oauth-login`). The script
-  prints the run ID and absolute run dir on two lines; capture both.
-- `<repo-root>` -> the value from Step 2.
-- Fill the seeded `ledger.md`: set `## Objective` (implement this plan end to end), set
-  the `## Plan` ref to the located plan path, record the base branch + detected test
-  command under `## Facts / Context`, and append an opening `## Log` line.
-- Seed the `## Units` table from the plan's Implementation Units -- one row per U-ID,
-  owner `bn-delivery-lead`, status `pending`, artifact `docs/runs/<run-id>/progress/unit-<U>.md`
-  (the unit-lead's progress artifact; its scoped mini-review pair lands separately at
-  `findings/unit-<U>-review.json` and `findings/unit-<U>-spec-fidelity.json`). The lead owns
-  these rows from here on (single-writer); the trunk does not rewrite them after dispatch.
+- `<slug>` -> durable-plan mode: kebab-case from the plan name (e.g.
+  `work-add-oauth-login`); direct mode: kebab-case from the direct task. The script prints
+  the run ID and absolute run dir on two lines; capture both.
+- `<repo-root>` -> the value from Step 3.
+- Fill the seeded `ledger.md`: set `## Objective`, set the `## Plan` ref, record the
+  base branch + detected test command under `## Facts / Context`, and append an opening
+  `## Log` line.
 
-## Step 4: Build the envelope and spawn bn-delivery-lead
+Set the delivery spec path:
+
+- **Durable-plan mode** -> `delivery_spec_path` is the located `docs/plans/*-plan.md`;
+  `delivery_spec_kind` is `durable-plan`; the ledger `## Plan` ref is the plan path.
+- **Direct mode** -> write `docs/runs/<run-id>/briefs/direct-work-plan.md`;
+  `delivery_spec_kind` is `direct-work`; the ledger `## Plan` ref is
+  `none -- direct work spec docs/runs/<run-id>/briefs/direct-work-plan.md`.
+
+The direct work spec is written by the trunk as a run artifact, not by the user and not
+under `docs/plans/`. Write it in this structure:
+
+```markdown
+# Direct work plan: <task name>
+
+**Spec kind:** direct-work
+**Status:** executable
+
+## Source context
+
+- Command: <the `/bn-work` argument, or "none">
+- Input files: <paths read, or "none">
+- Conversation context: <1-3 bullets with the agreed behavior/constraints>
+
+## Direct-to-work gate
+
+| criterion | result |
+|-----------|--------|
+| scope | pass: <why> |
+| units | pass: <why> |
+| files | pass: <why> |
+| dependencies | pass: <why> |
+| verification | pass: <why> |
+| risk | pass: <why> |
+| open questions | pass: <why> |
+
+## Requirements
+
+- R1 [confirmed] <testable requirement>
+
+## Implementation Units
+
+### U1: <name>
+
+- **Goal:** <one sentence>
+- **Dependencies:** <U-IDs or "none">
+- **Files:** <repo-relative paths or dir/** entries>
+- **Approach:** <concise implementation approach>
+- **Verification:** <specific check, including the detected test command when relevant>
+
+## Sequencing
+
+<dependency order and parallelism, even if "U1 only">
+
+## Verification (whole feature)
+
+<end-to-end done check>
+```
+
+For both modes, READ the `## Implementation Units` and `## Sequencing` from
+`delivery_spec_path`. You only need enough to populate the ledger and the envelope; the
+lead re-reads the spec in full.
+
+Seed the `## Units` table from the delivery spec's Implementation Units -- one row per
+U-ID, owner `bn-delivery-lead`, status `pending`, artifact
+`docs/runs/<run-id>/progress/unit-<U>.md` (the unit-lead's progress artifact; its scoped
+mini-review pair lands separately at `findings/unit-<U>-review.json` and
+`findings/unit-<U>-spec-fidelity.json`). The lead owns these rows from here on
+(single-writer); the trunk does not rewrite them after dispatch.
+
+## Step 5: Build the envelope and spawn bn-delivery-lead
 
 Embed this envelope verbatim in the Agent prompt and spawn `bn-delivery-lead` (one
 child; foreground, in the user's session). Fill every field.
 
 ```
 === BANYAN ENVELOPE ===
-objective:       Implement the plan end to end for run <run-id>: per-unit atomizer
+objective:       Implement the delivery spec end to end for run <run-id>: per-unit atomizer
                  decisions, worktree-isolated unit-leads that self-test and mini-review,
                  and a single integrator merging in dependency order. Commit per unit.
 artifact_path:   docs/runs/<run-id>/delivery-report.md
@@ -93,11 +197,12 @@ output_format:   Markdown delivery report: units done/blocked, merge + suite sta
                  findings/unit-*-spec-fidelity.json), and the final branch/commit state.
                  Writes progress/ and ledger Units rows too.
 inputs:
-  plan_path:       <docs/plans/...-plan.md>
-  base_branch:     <current branch from Step 2>
+  delivery_spec_path: <docs/plans/...-plan.md OR docs/runs/<run-id>/briefs/direct-work-plan.md>
+  delivery_spec_kind: <durable-plan | direct-work>
+  base_branch:     <current branch from Step 3>
   test_command:    <detected repo test command, or "none detected">
   repo_root:       <repo root>
-  boundary_check_script: <absolute path from Step 2, or "missing">
+  boundary_check_script: <absolute path from Step 3, or "missing">
 boundaries:      NEVER push or open a PR -- push/PR is the trunk-level bn-ship step
                  (permission cliff, invariant 6); REPORT the need upward, do not fail
                  silently against it. NEVER switch the user's checked-out branch without
@@ -106,8 +211,8 @@ boundaries:      NEVER push or open a PR -- push/PR is the trunk-level bn-ship s
                  docs/runs (except this run's own artifacts). One writer per file set;
                  parallel unit-leads work in disjoint git worktrees, merged by the
                  integrator.
-tool_guidance:   Read, Grep, Glob, Bash, Edit to read the plan and implement ATOMIC units
-                 inline itself, and run the test command; Write to its own run artifacts.
+tool_guidance:   Read, Grep, Glob, Bash, Edit to read the delivery spec and implement
+                 ATOMIC units inline itself, and run the test command; Write to its own run artifacts.
                  Agent spawns are limited to its allowlist -- `bn-unit-lead` (composite
                  units, in worktrees) and `bn-integrator` (the single merge writer).
                  Atomizer decisions are inline judgment, not a spawned agent; harvesting
@@ -119,14 +224,15 @@ effort_class:    <lightweight | standard | deep>
 === END ENVELOPE ===
 ```
 
-- **effort_class by plan size/risk:** 1-2 trivial units -> `lightweight`; several units
-  -> `standard`; many units, OR any plan with migrations / auth / payments -> `deep`.
-- The envelope is the whole contract: the plan path, the base branch, the detected test
-  command, the boundary check script, and the repo root all travel inside it. The lead
-  re-reads the plan and owns the whole implement/test/review/merge subtree -- the trunk
-  does not decompose units.
+- **effort_class by spec size/risk:** direct mode always uses `lightweight`; durable
+  specs with 1-2 trivial units -> `lightweight`; several units -> `standard`; many units,
+  OR any spec with migrations / auth / payments -> `deep`.
+- The envelope is the whole contract: the delivery spec path/kind, the base branch, the
+  detected test command, the boundary check script, and the repo root all travel inside
+  it. The lead re-reads the spec and owns the whole implement/test/review/merge subtree
+  -- the trunk does not decompose units after dispatch.
 
-## Step 5: Present the result
+## Step 6: Present the result
 
 When the lead returns, READ `docs/runs/<run-id>/delivery-report.md` (the artifact, not
 the lead's final-message prose -- invariant 3) and present to the user:

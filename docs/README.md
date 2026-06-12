@@ -19,7 +19,8 @@ documents above. `/bn-brainstorm` and `/bn-plan` write new documents into
 Banyan runs against any repository, it creates (in that repository's `docs/`):
 
 - **`runs/<run-id>/`** — the per-run ledger: task ledger, progress notes,
-  findings, briefs, staged lessons. Spec: `plugin/skills/bn-conventions/references/ledger.md`.
+  findings, briefs, direct-work specs, staged lessons. Spec:
+  `plugin/skills/bn-conventions/references/ledger.md`.
 - **`solutions/`** — the durable knowledge store, schema-compatible with
   compound-engineering. Spec: `plugin/skills/bn-conventions/references/knowledge-store.md`.
 

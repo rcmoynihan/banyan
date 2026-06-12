@@ -113,7 +113,7 @@ function ledgerTemplate(runId, date) {
 
 ## Plan
 
-Plan ref: <docs/plans/...-plan.md, or "none -- ad hoc run">
+Plan ref: <docs/plans/...-plan.md, "none -- direct work spec docs/runs/<run-id>/briefs/direct-work-plan.md", or "none -- ad hoc run">
 
 ## Facts / Context
 

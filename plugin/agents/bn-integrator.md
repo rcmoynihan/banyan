@@ -60,7 +60,7 @@ For each unit branch, **in dependency order**:
 1. **Boundary check** the unit branch before merging:
    `node <boundary_check_script> --base <that unit's boundary base ref> --head <unit branch> --allow <normalized unit allow entries plus docs/runs/<run-id>/progress/unit-<id>.md, docs/runs/<run-id>/findings/unit-<id>-review.json, docs/runs/<run-id>/findings/unit-<id>-spec-fidelity.json>`.
    The allow list contains only exact repo-relative file paths or `dir/**` entries. Do not
-   pass raw plan `Files:` text; strip annotations and notes such as `(new)`, `(extend)`, and
+   pass raw spec `Files:` text; strip annotations and notes such as `(new)`, `(extend)`, and
    prose. If that is clearer, write one entry per line to a temporary allow file outside the
    repo and pass `--allow @<allow-file>`. If checking the current integration branch rather
    than a unit branch, allow only your own run artifact under
@@ -72,7 +72,7 @@ For each unit branch, **in dependency order**:
    proceed.
 2. **Merge** the unit's branch into the integration branch.
 3. **Resolve trivial conflicts only** — mechanical, obviously-correct merges (e.g. two units
-   each appending a distinct entry to the same map/registry the plan flagged as a shared
+   each appending a distinct entry to the same map/registry the spec flagged as a shared
    file; non-overlapping additions). Use `Edit`/`Write` to resolve, then complete the merge.
    A conflict that requires real judgment about a unit's *logic* is **not** trivial — that is
    a bounce (Step 3).

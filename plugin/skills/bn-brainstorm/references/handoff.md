@@ -18,11 +18,12 @@ an unresolved `Resolve Before Planning` section hides **Plan implementation** an
 1. **Plan implementation with `/bn-plan` (Recommended)** — Move to `/bn-plan` for
    structured implementation planning (prior-biased generators, judge panel). Shown only
    when `Resolve Before Planning` is empty.
-2. **Build it now with `/bn-work` (skip planning)** — Skip planning and move to
-   `/bn-work`; suited to lightweight, well-defined changes. Shown only when `Resolve
-   Before Planning` is empty **and** scope is lightweight, success criteria are clear,
-   scope boundaries are clear, and no meaningful technical or research questions remain
-   (the "direct-to-work gate").
+2. **Build it now with `/bn-work` direct mode** — Move to `/bn-work` with the finalized
+   brainstorm output as direct task context. `/bn-work` writes the run-local direct work
+   spec before delivery; suited to lightweight, well-defined changes. Shown only when
+   `Resolve Before Planning` is empty **and** scope is lightweight, success criteria are
+   clear, scope boundaries are clear, and no meaningful technical or research questions
+   remain (the "direct-to-work gate").
 3. **Keep refining** — More clarifying questions or another approach pass; return to the
    appropriate phase.
 4. **Done for now** — Print the closing summary and stop.
@@ -34,8 +35,10 @@ requirements document path when one exists; otherwise pass a concise summary of 
 finalized brainstorm decisions. Do not print the closing summary first.
 
 **Build it now** — Immediately invoke `/bn-work` in the current session using the
-finalized brainstorm output as context. If a compact requirements document exists, pass
-its path. Do not print the closing summary first.
+finalized brainstorm output as direct task context. If a compact requirements document
+exists, pass its path; `/bn-work` treats non-`docs/plans/` paths as direct-mode context
+and writes `docs/runs/<run-id>/briefs/direct-work-plan.md` itself. Do not print the
+closing summary first.
 
 **Keep refining** — Return to dialogue (Phase 1.3) or approaches (Phase 2) as the user's
 note indicates. Re-run Phase 2.5 and Phase 3 (updating the existing doc) before offering

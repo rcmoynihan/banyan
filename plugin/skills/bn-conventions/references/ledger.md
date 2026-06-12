@@ -30,7 +30,7 @@ docs/runs/<run-id>/
   ledger.md            # task ledger: objective, plan ref, facts, unit-status table, append-only log
   progress/<agent>.md  # per-subtree progress notes (one writer per file)
   findings/            # review findings JSON, one file per reviewer/finding
-  briefs/              # research briefs, plan-judge outputs (one file per artifact)
+  briefs/              # research briefs, plan-judge outputs, direct-work specs
   lessons-staging/     # harvested candidate lessons (consumed by the curator)
   <report>.md          # a lead's single final report at the run root (see below)
 ```
@@ -59,7 +59,7 @@ of the layout, not ad-hoc.
 - `findings/` holds one file per review finding (schema-valid JSON; see
   `schemas/findings-schema.json`). Reviewers write here; the lead reads them.
 - `briefs/` holds one file per distilled artifact: a research brief, a plan-judge
-  score sheet, a synthesis. One artifact = one file.
+  score sheet, a synthesis, or a direct-work spec. One artifact = one file.
 - `lessons-staging/` holds harvested candidate lessons in the v1 solution format
   (with `status: candidate`); the curator consumes and empties it (see Lifecycle).
 
@@ -121,7 +121,8 @@ A fresh `ledger.md` looks like this (the scaffolder seeds it; fill the placehold
 ## Plan
 
 Plan ref: docs/plans/2026-06-10-001-feat-add-oauth-login-plan.md
-(or "none -- ad hoc run" if there is no plan doc)
+(or "none -- direct work spec docs/runs/<run-id>/briefs/direct-work-plan.md" for
+`/bn-work` direct mode, or "none -- ad hoc run" for non-delivery runs)
 
 ## Facts / Context
 
