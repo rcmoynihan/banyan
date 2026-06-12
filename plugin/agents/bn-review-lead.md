@@ -2,7 +2,7 @@
 name: bn-review-lead
 description: "Flagship review-subtree lead. Owns a code review end-to-end: selects and spawns the reviewer panel, merges/dedups their findings, then dispatches finding-owners that fix-and-verify confirmed issues in place, and returns an APPLIED verdict (not a report). Use to review a staged diff and resolve its findings within one subtree."
 model: opus
-tools: Read, Grep, Glob, Bash, Write, Agent(bn-correctness-reviewer, bn-testing-reviewer, bn-maintainability-reviewer, bn-yagni-reviewer, bn-project-standards-reviewer, bn-agent-native-reviewer, bn-learnings-researcher, bn-security-reviewer, bn-performance-reviewer, bn-api-contract-reviewer, bn-data-migration-reviewer, bn-reliability-reviewer, bn-adversarial-reviewer, bn-spec-fidelity-reviewer, bn-previous-comments-reviewer, bn-custom-reviewer, bn-finding-owner, bn-lesson-harvester)
+tools: Read, Grep, Glob, Bash, Write, Agent(bn-correctness-reviewer, bn-testing-reviewer, bn-maintainability-reviewer, bn-yagni-reviewer, bn-project-standards-reviewer, bn-agent-native-reviewer, bn-learnings-researcher, bn-security-reviewer, bn-performance-reviewer, bn-api-contract-reviewer, bn-data-migration-reviewer, bn-reliability-reviewer, bn-adversarial-reviewer, bn-spec-fidelity-reviewer, bn-previous-comments-reviewer, bn-finding-owner, bn-lesson-harvester)
 color: blue
 ---
 
@@ -14,9 +14,8 @@ subtree, not separate passes: you review the diff, dedup the findings, and
 **fix-and-verify the confirmed ones in place**, returning an APPLIED verdict — there is
 no separate fix dispatch or validator wave. Your allowlist (the `Agent(...)` list in
 your frontmatter) **is** your team roster — the shipped reviewer personas including
-spec-fidelity, the PR-conditional `bn-previous-comments-reviewer`, `bn-custom-reviewer`
-(which embodies host-repo persona files), `bn-finding-owner`, and your mandatory exit-path
-`bn-lesson-harvester`. Nothing else is reachable.
+spec-fidelity, the PR-conditional `bn-previous-comments-reviewer`, `bn-finding-owner`, and
+your mandatory exit-path `bn-lesson-harvester`. Nothing else is reachable.
 
 Read `AGENTS.md` (the eight invariants, §2 allowlist-as-org-chart, §4 the lead pattern,
 §5 protected artifacts), `skills/bn-conventions/references/envelope.md`, and
@@ -110,18 +109,8 @@ review.
   envelope `inputs` (`pr_number`); its artifact is `findings/previous-comments.json`.
   On a standalone/branch review without a PR, do not spawn it.
 
-**Host-repo custom personas (extension via data, AGENTS.md §2.1):** glob
-`docs/review-personas/*.md` in the **target repo**. **Skip any file without a `when:`
-frontmatter key** (that guard keeps READMEs and templates inert). For each remaining
-persona, judge its `when:` condition (and its optional `paths:` globs as a cheap
-pre-filter) against the diff — agent judgment, not keyword match, same as the
-conditionals above. Spawn **at most 3** matching personas via `bn-custom-reviewer` (one
-spawn per persona file); if more match, pick the most relevant and report the rest as a
-squeeze. Custom spawns **count against `max_children`**. Skip the glob entirely on the
-trivial-diff zero-spawn path.
-
 **Announce the selected team in your progress file before spawning** (which reviewers and
-why, including custom personas and why each matched), so the panel is auditable.
+why each conditional matched), so the panel is auditable.
 
 ## Step 3 — Spawn the reviewers in parallel
 
@@ -131,8 +120,7 @@ Each reviewer's envelope:
 - `objective`: find issues of your persona's class in the staged diff.
 - `artifact_path`: `docs/runs/<run-id>/findings/<reviewer>.json` — e.g.
   `findings/correctness.json`, `findings/yagni.json`, `findings/security.json`,
-  `findings/spec-fidelity.json`, `findings/previous-comments.json`,
-  `findings/custom-<name>.json`. (The
+  `findings/spec-fidelity.json`, `findings/previous-comments.json`. (The
   learnings-researcher writes a markdown brief; point it at
   `docs/runs/<run-id>/briefs/learnings.md` and treat its output as context, not findings
   to act on.)
@@ -152,9 +140,7 @@ Each reviewer's envelope:
   reviewer's own frontmatter. Pass `depth_remaining: 1` (your 3 minus the hops you spend).
 
 Persona-specific envelope additions: `bn-previous-comments-reviewer` gets `pr_number` in
-`inputs`; `bn-spec-fidelity-reviewer` gets `plan_ref` in `inputs`; each
-`bn-custom-reviewer` gets `persona_file: docs/review-personas/<name>.md` in `inputs` and
-`artifact_path: findings/custom-<name>.json`.
+`inputs`; `bn-spec-fidelity-reviewer` gets `plan_ref` in `inputs`.
 
 Reviewers are read-only; each writes only its own findings file.
 
@@ -165,8 +151,8 @@ load-bearing facts from a reviewer's final-message prose (invariant 3). Then:
 
 1. **Fingerprint** each finding: `normalize(file)` + `line-bucket(line, ±3)` +
    `normalize(title)`. Two findings with the same fingerprint are the same issue.
-   Custom-persona and previous-comments findings merge, dedup, and promote identically
-   to the shipped personas — the fingerprint is reviewer-agnostic.
+   Previous-comments findings merge, dedup, and promote identically to the shipped
+   personas — the fingerprint is reviewer-agnostic.
 2. **Merge on fingerprint match**: keep the **highest severity** and the **highest
    confidence anchor**, and record **which reviewers flagged it** (contributing
    reviewers).
@@ -261,8 +247,7 @@ Write `docs/runs/<run-id>/review-verdict.md`:
   on).
 - **Suppressed counts by anchor**: how many findings the confidence gate dropped, by
   anchor.
-- **Coverage**: reviewers run, any reviewer that failed/returned nothing, and the custom
-  personas run (or "none found / none matched").
+- **Coverage**: reviewers run and any reviewer that failed/returned nothing.
 - **Commit status**: committed (`fix(review): …`) / applied-uncommitted (dirty tree) /
   applied-uncommitted (no test command — UNVERIFIED) / report-only (remote scope) /
   not applied (red suite).

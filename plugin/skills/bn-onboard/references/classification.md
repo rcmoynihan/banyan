@@ -14,7 +14,6 @@ one source supports more than one durable output.
 | `solution-bug` | A bug-track v1 candidate staged under `docs/runs/<run-id>/lessons-staging/` with `status: candidate`. |
 | `solution-knowledge` | A knowledge-track v1 candidate staged under `docs/runs/<run-id>/lessons-staging/` with `status: candidate`. |
 | `brainstorm` | A requirements artifact under `docs/brainstorms/`, following `bn-brainstorm/references/brainstorm-sections.md`. |
-| `persona` | A reviewer persona under `docs/review-personas/<name>.md`, following `bn-review/references/review-personas.md`. |
 | `instruction-source` | Additive source material for `CLAUDE.md`, `CONCEPTS.md`, or `STRATEGY.md`. It produces no derivative file by itself. |
 
 `instruction-source` is additive. It can appear beside another family, but it never
@@ -30,7 +29,7 @@ references.
 | Runbook / playbook | Step lists, operator flows, `if X then Y`, rollback or verification sections | `["solution-knowledge"]` | knowledge | `workflow_issue` or `best_practice`. |
 | PRD / requirements / product RFC | User stories, acceptance criteria, actors, scope boundaries | `["brainstorm"]` | none | Use `bn-brainstorm/references/brainstorm-sections.md` for the derivative shape. PRDs are not solutions. |
 | Architecture overview / system design | Component descriptions, service boundaries, data flows, diagrams | `["instruction-source"]`, optionally `["instruction-source","solution-knowledge"]` for discrete decisions | knowledge when a solution candidate is warranted | `architecture_pattern` for discrete durable decisions. Otherwise feed `CONCEPTS.md` or `CLAUDE.md` synthesis only. |
-| Style guide / review checklist | Lint rationale, `always` or `never` rules, review rubrics, checklist language | `["persona","instruction-source"]` | none | Persona output requires a derivable `when:` condition. Instruction-source guidance feeds repo instructions. |
+| Style guide / review checklist | Lint rationale, `always` or `never` rules, review rubrics, checklist language | `["instruction-source"]` | none | Feeds repo instructions so `bn-project-standards-reviewer` can audit concrete rules. |
 | README / CONTRIBUTING / dev setup | Top-level onboarding, local commands, contribution rules, setup steps | `["instruction-source"]` | none | Feeds `CLAUDE.md`. It never creates a derivative in its own track. |
 | Glossary | Term definitions, domain vocabulary, acronym lists | `["instruction-source"]` | none | Feeds `CONCEPTS.md`. |
 | Vision / strategy / roadmap | Product direction, priorities, sequencing rationale, goals | `["instruction-source"]` | none | Feeds `STRATEGY.md`. |
