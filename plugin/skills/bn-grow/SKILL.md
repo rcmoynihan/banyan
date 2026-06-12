@@ -248,18 +248,9 @@ ledger, not the trunk's context, is where the full run lives.
 
 ## Gates recover before surfacing
 
-Each phase has ONE gate, and the gate is a FILE plus a condition (see the per-phase GATE
-lines). The trunk checks the gate before proceeding:
-
-- intake  -> when fuzzy, a requirements doc or finalized requirements summary exists and
-  no planning-blocking questions remain
-- research -> `briefs/research-brief.md` exists
-- spec-stress -> skipped for clear lightweight work, or `briefs/spec-stress.md` exists with
-  empty `Resolve Before Planning`
-- plan     -> `docs/plans/...-plan.md` exists and `ledger.md` `## Plan` points at it
-- deliver  -> `delivery-report.md` exists, code changed, units done (not blocked)
-- review   -> `review-verdict.md` exists and the suite is green, OR the verdict explicitly
-  carries `UNVERIFIED (no test command)` surfaced to the user
+Each phase has ONE gate, and the gate is a FILE plus a condition stated inline at that phase
+above (the per-phase `GATE` lines are authoritative). The trunk checks each phase's gate
+before proceeding.
 
 If a gate is not met, recover before surfacing:
 
