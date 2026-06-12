@@ -403,9 +403,9 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md
-boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source, or
-                 protected artifacts (docs/brainstorms, docs/plans, docs/runs except your
-                 own staging files).
+boundaries:      Write ONLY under lessons-staging/. Never touch docs/solutions/, source,
+                 protected artifacts (docs/brainstorms, docs/plans), or docs/runs outside
+                 your own staging files.
 tool_guidance:   Read/Grep/Glob to mine the progress file and findings; Write only under
                  lessons-staging/. No Agent, Bash, or Edit.
 budget:

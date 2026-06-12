@@ -48,10 +48,10 @@ permission cliff, invariant 8 v1 persistence).
 Resolve which `lessons-staging/` dirs the curator will consolidate.
 
 - **Run-id arg given** -> curate exactly that run: `docs/runs/<run-id>/lessons-staging/`.
-  If the dir is missing or holds only `.gitkeep`, there is nothing to curate -- say so and stop.
+  If the dir is missing or has no candidate `.md` files, there is nothing to curate -- say so
+  and stop.
 - **No arg** -> sweep **all pending** staging across runs: find every
-  `docs/runs/*/lessons-staging/` that holds at least one candidate `.md` (i.e. more than a bare
-  `.gitkeep`). Collect those run dirs.
+  `docs/runs/*/lessons-staging/` that holds at least one candidate `.md`. Collect those run dirs.
 - **Nothing pending anywhere** -> STOP with a clear "no pending candidate lessons" message
   naming where you looked (`docs/runs/*/lessons-staging/`). Do not dispatch the curator over an
   empty set.

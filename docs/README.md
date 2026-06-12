@@ -20,9 +20,10 @@ Banyan runs against any repository, it creates (in that repository's `docs/`):
 
 - **`runs/<run-id>/`** — the per-run ledger: task ledger, progress notes,
   findings, briefs, direct-work specs, staged lessons. Spec:
-  `plugin/skills/bn-conventions/references/ledger.md`.
+  `plugin/skills/bn-conventions/references/ledger.md`. These raw run directories are
+  local run state and are normally gitignored.
 - **`solutions/`** — the durable knowledge store, schema-compatible with
   compound-engineering. Spec: `plugin/skills/bn-conventions/references/knowledge-store.md`.
 
-`brainstorms/`, `plans/`, `solutions/`, and `runs/` are protected artifacts: no
-agent may delete or "clean up" files under them (`plugin/AGENTS.md` §5).
+`brainstorms/`, `plans/`, and `solutions/` are durable protected artifacts: no agent may
+delete or "clean up" files under them (`plugin/AGENTS.md` §5).

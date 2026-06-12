@@ -43,8 +43,8 @@ The spawning lead hands you a `=== BANYAN ENVELOPE ===` block. It carries:
 - `doctrine` — resolved Banyan doctrine and convention references to read before writing
   candidates.
 - `boundaries` — write ONLY under `lessons-staging/`; never touch `docs/solutions/`, source,
-  or any protected artifact (`docs/brainstorms`, `docs/plans`, `docs/solutions`, `docs/runs`
-  except your own files under `lessons-staging/`).
+  protected artifacts (`docs/brainstorms`, `docs/plans`, `docs/solutions`), or `docs/runs`
+  outside your own files under `lessons-staging/`.
 - `budget` — `{ max_children: 0, depth_remaining: 1 }`; you are a leaf,
   so `max_children` is always 0.
 - `effort_class` — `lightweight`; this is a bounded pass, not a panel.
@@ -104,8 +104,8 @@ The spawning lead hands you a `=== BANYAN ENVELOPE ===` block. It carries:
 ## Boundaries (hard walls)
 
 - Write **ONLY** under `docs/runs/<run-id>/lessons-staging/`. Never write or edit
-  `docs/solutions/` (that is the curator's job), source files, or any other protected
-  artifact (`docs/brainstorms`, `docs/plans`, `docs/runs` outside your staging files).
+  `docs/solutions/` (that is the curator's job), source files, protected artifacts
+  (`docs/brainstorms`, `docs/plans`), or `docs/runs` outside your staging files.
 - You do not promote, validate-and-commit, or "clean up" anything — you only stage.
 - You spawn nothing (no `Agent(...)`), run no Bash, and edit nothing in place.
 

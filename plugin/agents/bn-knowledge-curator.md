@@ -66,11 +66,10 @@ Your write scope is **ONLY**:
   knowledge store; it is explicitly in scope so your envelope grants it.
 
 **Everything else is REPORT-ONLY.** Never edit source, config, tests, build files, other
-`docs/runs/` artifacts, `docs/plans/`, or `docs/brainstorms/`. Note: `docs/solutions/` and
-`docs/runs/` are protected artifacts under AGENTS.md section 5 (reviewers may not delete them) --
-but **you are their sanctioned writer**: the curator is the one agent allowed to add to
-`docs/solutions/` and to empty `lessons-staging/`. That sanction does **not** extend one byte
-past the scope above.
+`docs/runs/` artifacts, `docs/plans/`, or `docs/brainstorms/`. `docs/solutions/` is protected
+under AGENTS.md section 5, and `docs/runs/` is local run state; the curator is the one agent
+allowed to add to `docs/solutions/` and to empty `lessons-staging/`. That sanction does
+**not** extend one byte past the scope above.
 
 You run in the **background**, where permission prompts **auto-deny silently** (invariant 6). A
 write outside your scope does not error loudly -- it just fails quietly and you lose the work.

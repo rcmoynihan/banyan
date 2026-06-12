@@ -101,17 +101,16 @@ facts from a child's final-message prose (invariant 3).
 
 ## Lifecycle and retention
 
-- **`docs/runs/` IS committed.** It is the run's audit trail and the basis for
-  resumability: a halted run can be resumed from its ledger, and a user can watch a
-  run live by tailing `ledger.md`. Committing it is deliberate, not accidental
-  exhaust. (It is also a protected artifact -- AGENTS.md section 5 -- so no agent may
-  delete or gitignore it.)
-- **`lessons-staging/` is the one transient area.** It holds candidates between
-  harvest and promotion. The knowledge curator reads each candidate, promotes
-  the keepers into `docs/solutions/` (stripping `status: candidate`), and empties the
-  staging dir. Everything else under `docs/runs/<run-id>/` persists indefinitely.
-- A fresh run dir is seeded with `.gitkeep` files in the empty subdirs so the layout
-  commits even before artifacts land.
+- **`docs/runs/` is local run state.** It is the run's audit trail and the basis for
+  resumability while the working tree is active: a halted run can be resumed from its
+  ledger, and a user can watch a run live by tailing `ledger.md`. Repositories normally
+  gitignore raw run directories.
+- **Durable knowledge is promoted.** Lessons worth keeping are curated into
+  `docs/solutions/`; plans, decisions, fixtures, eval goldens, and examples live in their
+  explicit project locations instead of raw run directories.
+- **`lessons-staging/` is curator feedstock.** It holds candidates between harvest and
+  promotion. The knowledge curator reads each candidate, promotes the keepers into
+  `docs/solutions/` (stripping `status: candidate`), and empties the staging dir.
 
 ## ledger.md template
 

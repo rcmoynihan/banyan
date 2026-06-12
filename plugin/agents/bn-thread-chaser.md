@@ -75,8 +75,9 @@ artifact_path:   docs/runs/<run-id>/briefs/thread-<sub-slug>.md
 output_format:   Markdown: the sub-thread, the leaf fact found, evidence (file:line), still-applies?
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
-boundaries:      Read-only. Do NOT edit source, switch branches, commit/push, or touch
-                 docs/brainstorms, docs/plans, docs/solutions, docs/runs (except your artifact_path).
+boundaries:      Read-only. Do NOT edit source, switch branches, commit/push, touch
+                 docs/brainstorms, docs/plans, docs/solutions, or write docs/runs outside
+                 your artifact_path.
 tool_guidance:   Read/Grep/Glob to follow the reference; Bash/web only if the trail leaves the repo.
 budget:
   max_children:    <1 only if (your depth_remaining - 1) > 0, else 0>

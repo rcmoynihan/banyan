@@ -72,7 +72,7 @@ Source documents:
     briefs/              # research briefs, plan-judge outputs
     lessons-staging/     # harvested candidate lessons (consumed by curator)
   ```
-- **Approach:** Run IDs are `YYYY-MM-DD-NNN-<slug>`. Ledger writes are append-mostly; unit statuses are single-writer (the lead that owns the unit). Decide and document: `docs/runs/` is committed (resumability, audit) with `lessons-staging/` cleaned by the curator after promotion.
+- **Approach:** Run IDs are `YYYY-MM-DD-NNN-<slug>`. Ledger writes are append-mostly; unit statuses are single-writer (the lead that owns the unit). `docs/runs/` is local run state for resumability and audit while work is active; durable knowledge is promoted into `docs/solutions/`, and fixture/eval runs live in explicit fixture/eval paths.
 - **Verification:** Spec doc reviewed; a scripted dry-run creates a conforming run dir; two concurrent writers to different progress files don't collide.
 
 ### U7: Delegation envelope convention

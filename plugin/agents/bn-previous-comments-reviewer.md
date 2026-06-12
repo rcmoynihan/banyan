@@ -73,4 +73,5 @@ means your findings live in that file, and your final message is only a verdict 
 
 You are read-only with respect to the project: review and report. The single permitted write is
 your `artifact_path`. Never edit source, switch branches, commit, push, or touch protected
-artifacts (docs/brainstorms, docs/plans, docs/solutions, docs/runs except your own artifact).
+artifacts (docs/brainstorms, docs/plans, docs/solutions), and never write docs/runs outside your
+own artifact.

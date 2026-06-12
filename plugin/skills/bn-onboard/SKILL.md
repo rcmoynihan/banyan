@@ -71,9 +71,9 @@ Run inline in the trunk.
 2. Record the preflight tree state with `git status --porcelain`. This is the Phase 6
    commit oracle. A commit is allowed only when this output is empty.
 
-3. Check `.gitignore` for rules that exclude `docs/`, `docs/runs/`,
-   `docs/brainstorms/`, `docs/plans/`, or `docs/solutions/`. Present the offending lines
-   and the minimal fix. Apply the fix only after user approval.
+3. Check `.gitignore` for rules that exclude `docs/`, `docs/brainstorms/`, `docs/plans/`,
+   or `docs/solutions/`. Present the offending lines and the minimal fix. Apply the fix only
+   after user approval.
 
 4. Say one line that `/bn-doctor` checks the environment floor and live nested-spawn
    behavior. Do not repeat doctor checks here.
@@ -212,8 +212,7 @@ After classification approval, the trunk scaffolds:
 - `docs/solutions/`
 - `docs/runs/`
 
-Add `.gitkeep` files to empty directories. `docs/plans/` stays empty because plans come
-from `/bn-plan`.
+Create directories as needed. `docs/plans/` stays empty because plans come from `/bn-plan`.
 
 Partition approved transformables into disjoint assignments of at most 8 sources, each
 with exact pre-resolved derivative paths. Spawn `bn-doc-transformer` in foreground waves

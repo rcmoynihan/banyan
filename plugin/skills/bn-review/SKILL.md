@@ -122,8 +122,8 @@ doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
 boundaries:      APPLY (edit + commit on a clean tree) ONLY when scope_mode is
                  local-aligned or standalone; otherwise REPORT only -- propose fixes,
                  do not edit. NEVER push or open a PR. NEVER touch protected artifacts
-                 docs/brainstorms, docs/plans, docs/solutions, docs/runs (except this
-                 run's own artifacts). One writer per file set.
+                 docs/brainstorms, docs/plans, docs/solutions, or docs/runs outside this
+                 run's own artifacts. One writer per file set.
 tool_guidance:   Read, Grep, Glob, Bash to inspect the diff and run the test command;
                  Write to its own run artifacts; Agent(...) to spawn its reviewer panel
                  and finding-owners per its own dispatch policy.

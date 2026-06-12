@@ -5,7 +5,7 @@
 //   node new-run.mjs <slug> [--root <repo-root>] [--date YYYY-MM-DD] [--force]
 //
 // Creates docs/runs/<date>-<NNN>-<slug>/ with a seeded ledger.md and the
-// progress/, findings/, briefs/, lessons-staging/ subdirs (each with .gitkeep).
+// progress/, findings/, briefs/, lessons-staging/ subdirs.
 // NNN is the next zero-padded per-day sequence (scans existing dirs; starts 001).
 // Refuses to overwrite an existing run dir unless --force is given.
 //
@@ -172,7 +172,6 @@ function main() {
   for (const sub of subdirs) {
     const d = path.join(runDir, sub);
     fs.mkdirSync(d, { recursive: true });
-    fs.writeFileSync(path.join(d, '.gitkeep'), '');
   }
   fs.writeFileSync(path.join(runDir, 'ledger.md'), ledgerTemplate(runId, date));
 

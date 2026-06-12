@@ -54,9 +54,9 @@ node scripts/new-run.mjs <slug> [--root <repo-root>] [--date YYYY-MM-DD] [--forc
 
 It computes the run ID `<date>-<NNN>-<slug>` (next zero-padded `NNN` for that date),
 creates the full layout -- `ledger.md` seeded from the template plus empty
-`progress/`, `findings/`, `briefs/`, `lessons-staging/` dirs each with a `.gitkeep` --
-and prints the run ID and absolute path. After it runs, fill in `## Objective` and the
-`## Plan` ref, then append the opening line to `## Log`.
+`progress/`, `findings/`, `briefs/`, `lessons-staging/` dirs -- and prints the run ID
+and absolute path. After it runs, fill in `## Objective` and the `## Plan` ref, then
+append the opening line to `## Log`.
 
 (The script lives at `plugin/skills/bn-conventions/scripts/new-run.mjs`; invoke it by
 its path from wherever you are, e.g. `node <plugin>/skills/bn-conventions/scripts/new-run.mjs ...`.)
@@ -75,7 +75,6 @@ its path from wherever you are, e.g. `node <plugin>/skills/bn-conventions/script
    mkdir -p docs/runs/<run-id>/lessons-staging
    ```
 
-   Add a `.gitkeep` to each empty subdir so the layout commits.
 3. Create `docs/runs/<run-id>/ledger.md` from the template in `references/ledger.md`
    (`# Run <id>`, `## Objective`, `## Plan`, `## Facts / Context`, `## Units` table,
    `## Log`, `## Open questions`). Fill the objective and plan ref; append the opening
@@ -98,9 +97,8 @@ unit tests live beside it (`check-boundary.test.mjs`, run via `node --test`).
 
 ## Reminders
 
-- `docs/runs/` is committed and is a protected artifact (AGENTS.md section 5): never
-  delete or gitignore it. `lessons-staging/` is the only transient area, emptied by the
-  curator after promotion.
+- `docs/runs/` is local run state and is normally gitignored. Durable knowledge belongs in
+  `docs/solutions/`; fixture or eval runs belong in explicit fixture/eval paths.
 - One writer per file set (invariant 2): own your progress file and your unit's status
   row; append to the log without rewriting others' lines; never co-write a `findings/`
   or `briefs/` file.

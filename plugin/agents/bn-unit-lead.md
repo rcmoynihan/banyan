@@ -90,9 +90,9 @@ inputs:          Scope = this unit's own diff only (e.g.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only review. The single permitted write is artifact_path. Do NOT edit
-                 source, switch branches, commit, push, or touch protected artifacts
-                 (docs/brainstorms, docs/plans, docs/solutions, docs/runs except your own
-                 artifact_path). Review ONLY this unit's diff — not the wider repo.
+                 source, switch branches, commit, push, touch protected artifacts
+                 (docs/brainstorms, docs/plans, docs/solutions), or write docs/runs outside
+                 your own artifact_path. Review ONLY this unit's diff — not the wider repo.
 tool_guidance:   Read/Grep/Glob and read-only Bash (git diff/show/log) to inspect the unit's
                  diff and surrounding code; Write only to artifact_path.
 budget:
@@ -119,9 +119,9 @@ inputs:          The unit's spec: delivery spec path <delivery spec path>, kind
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      Read-only review. The single permitted write is artifact_path. Do NOT edit
-                 source, switch branches, commit, push, or touch protected artifacts
-                 (docs/brainstorms, docs/plans, docs/solutions, docs/runs except your own
-                 artifact_path). Review ONLY this unit's diff — not the wider repo.
+                 source, switch branches, commit, push, touch protected artifacts
+                 (docs/brainstorms, docs/plans, docs/solutions), or write docs/runs outside
+                 your own artifact_path. Review ONLY this unit's diff — not the wider repo.
 tool_guidance:   Read/Grep/Glob and read-only Bash (git diff/show/log) to inspect the unit's
                  diff and surrounding code; Write only to artifact_path.
 budget:

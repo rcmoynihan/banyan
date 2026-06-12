@@ -144,7 +144,8 @@ artifact so the run can resume from files rather than conversation memory.
   - `plugin/schemas/` — vendored/shared schema files (e.g. findings schema, solution frontmatter).
   - `plugin/AGENTS.md` — this file.
 - **Run artifacts** live in the *target repo*, not the plugin: `docs/runs/<run-id>/`
-  (see `skills/bn-conventions/references/ledger.md`). Knowledge lives in `docs/solutions/`.
+  (see `skills/bn-conventions/references/ledger.md`). They are local run state; durable
+  knowledge lives in `docs/solutions/`.
 
 ### Agent file frontmatter
 
@@ -205,15 +206,16 @@ holds intent, and dispatches leads.
 
 ## 5. Protected artifacts
 
-No agent may act on (delete, gitignore, "clean up") files under these paths — they are the
-harness's own memory:
+No agent may delete or "clean up" durable Banyan artifacts under these paths:
 
 - `docs/brainstorms/*`
 - `docs/plans/*.md`
 - `docs/solutions/*.md`
-- `docs/runs/*`
 
 A reviewer that flags one of these for removal has its finding discarded during synthesis.
+Run artifacts under `docs/runs/*` are local coordination state. Agents may write only their
+assigned paths in the active run, must not mutate unrelated run artifacts, and leave retention
+or archive decisions to the trunk or user.
 
 Two narrowly-bounded exceptions exist, both belonging to the `bn-knowledge-curator`:
 
@@ -221,8 +223,8 @@ Two narrowly-bounded exceptions exist, both belonging to the `bn-knowledge-curat
   `docs/runs/<run-id>/lessons-staging/` candidate files it promoted or merged (the staging
   lifecycle in `skills/bn-conventions/references/ledger.md`). That staging area is the curator's
   own transient feedstock, not durable memory, so clearing a consumed candidate is sanctioned. A
-  held candidate and every other `docs/runs/*` artifact (the ledger, progress notes, briefs,
-  findings) stay untouchable.
+  held candidate and every other run artifact (the ledger, progress notes, briefs, findings) stay
+  untouchable.
 - **Deleting a drifted solution.** The curator may delete a drifted `docs/solutions/*.md` entry,
   and only when **all** of these hold: the curator is the actor; it is running **foreground**
   under `/bn-curate --refresh` (never in background or sleep-time curation); and the user has

@@ -86,9 +86,9 @@ artifact_path:   docs/runs/2026-06-10-007/findings/correctness-<id>.json
 output_format:   One JSON object per finding, conforming to schemas/findings-schema.json.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
-boundaries:      Read-only review. Do NOT edit source, run migrations, or touch
-                 docs/brainstorms, docs/plans, docs/solutions, docs/runs (except your
-                 own artifact_path). Do not write any file a sibling reviewer owns.
+boundaries:      Read-only review. Do NOT edit source, run migrations, touch
+                 docs/brainstorms, docs/plans, docs/solutions, or write docs/runs outside
+                 your own artifact_path. Do not write any file a sibling reviewer owns.
 tool_guidance:   Read, Grep, Glob to inspect the diff and surrounding code; Bash to
                  reproduce a suspected failure; Write only to artifact_path. Least
                  privilege -- no Agent spawns.
@@ -117,8 +117,8 @@ artifact_path:   docs/runs/2026-06-10-007/briefs/repo-auth-middleware.md
 output_format:   Markdown brief: findings, sources (file:line), open questions. No raw dumps.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
-boundaries:      Read-only. Do NOT edit source or touch docs/brainstorms, docs/plans,
-                 docs/solutions, docs/runs (except your own artifact_path).
+boundaries:      Read-only. Do NOT edit source, touch docs/brainstorms, docs/plans,
+                 docs/solutions, or write docs/runs outside your own artifact_path.
 tool_guidance:   Read, Grep, Glob to trace the code; Write only to artifact_path.
 budget:
   max_children:    1

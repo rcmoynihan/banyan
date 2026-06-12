@@ -50,8 +50,8 @@ corpus and sets the under-5 warning.
 ## Step 2: Ensure the proposals directory exists
 
 The agent writes one proposal file per pattern under `docs/harness-proposals/`. Make sure that
-directory exists (it ships with a `.gitkeep`). The agent writes the proposals; this skill just
-guarantees the target dir is there.
+directory exists. The agent writes the proposals; this skill just guarantees the target dir is
+there.
 
 ## Step 3: Build the envelope and dispatch bn-harness-engineer
 

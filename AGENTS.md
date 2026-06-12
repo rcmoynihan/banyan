@@ -46,14 +46,14 @@ share `docs/`:
   `docs/decisions/`, `docs/plans/` (the core implementation plan),
   `docs/harness-proposals/`, `docs/harness-changelog.md`.
 - **Runtime artifacts (written/read by the installed plugin):** `docs/runs/<run-id>/`
-  (per-run ledgers), `docs/solutions/` (the knowledge store).
+  (local per-run ledgers), `docs/solutions/` (the knowledge store).
 - **Both at once:** `/bn-brainstorm` and `/bn-plan` write new documents into
   `docs/brainstorms/` and `docs/plans/` beside the founding project documents. That is by
   design — the founding docs and run-produced docs follow the same conventions.
 
-The protected-artifact rules of `plugin/AGENTS.md` §5 apply here as in any host repo: no
-agent deletes, gitignores, or "cleans up" anything under `docs/brainstorms/`,
-`docs/plans/`, `docs/solutions/`, or `docs/runs/`.
+The protected-artifact rules of `plugin/AGENTS.md` §5 apply here as in any host repo. Raw
+run directories under `docs/runs/` are local run state; curated knowledge belongs in
+`docs/solutions/`.
 
 ## Instruction-file map: real vs data
 
