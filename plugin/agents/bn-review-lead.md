@@ -167,9 +167,9 @@ Each reviewer's envelope:
 - `tool_guidance`: Read/Grep/Glob to inspect the diff and surrounding code, read-only
   Bash (`git diff/show/blame/log`, `gh pr view`) to reproduce a suspicion; Write only to
   `artifact_path`.
-- `budget`: `{ max_children: 0, depth_remaining: 1 }` — reviewers
+- `budget`: `{ max_children: 0, depth_remaining: 2 }` — reviewers
   are leaves. You need **not** override each reviewer's model: model tier comes from each
-  reviewer's own frontmatter. Pass `depth_remaining: 1` (your 3 minus the hops you spend).
+  reviewer's own frontmatter. Pass `depth_remaining: 2` (your own 3, minus one).
 
 Persona-specific envelope additions: `bn-previous-comments-reviewer` gets `pr_number` in
 `inputs`; `bn-spec-fidelity-reviewer` gets `plan_ref` in `inputs`;
@@ -178,7 +178,7 @@ Persona-specific envelope additions: `bn-previous-comments-reviewer` gets `pr_nu
 (`auto | on`) in `inputs`.
 
 `bn-dogfood-verifier` is a leaf reviewer with the same `{ max_children: 0,
-depth_remaining: 1 }` budget, but its `tool_guidance` differs: it drives the running app,
+depth_remaining: 2 }` budget, but its `tool_guidance` differs: it drives the running app,
 so it may start/probe/kill a dev server and run `agent-browser` in addition to read-only
 inspection — and it must **never** install, migrate, seed, generate, write project files,
 or commit (its own agent body states this hard contract). Its single write is
@@ -253,7 +253,7 @@ Spawn one `bn-finding-owner` per disjoint group, **in parallel**, each with this
   touch a sibling owner's files; never commit or push; never touch protected artifacts.
 - `tool_guidance`: Read/Grep/Glob/Bash/Edit/Write; **test command = `<the repo test
   command from your envelope>`** (e.g. `node --test`).
-- `budget`: `{ max_children: 0, depth_remaining: 1 }` — owners are
+- `budget`: `{ max_children: 0, depth_remaining: 2 }` — owners are
   leaves in this subtree.
 
 **Routing a `proven` dogfood finding.** A `proven` finding describes a *reproduced

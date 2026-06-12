@@ -66,7 +66,7 @@ change applied.
 
 - **Frontmatter `name`:** `ce-adversarial-reviewer` -> `bn-adversarial-reviewer` (matches filename stem).
 - **Frontmatter `model`:** kept `inherit` per invariant 7 (adversarial is a highest-stakes reviewer; inherits the session/strong model).
-- **Frontmatter `tools`:** unchanged (`Read, Grep, Glob, Bash, Write`). No `Agent(...)` added — `Agent(bn-repro-prover)` is deferred to unit U13 per the port spec and is intentionally NOT present now. `color: red` kept.
+- **Frontmatter `tools`:** unchanged (`Read, Grep, Glob, Bash, Write`). No `Agent(...)` added — the adversarial reviewer is intentionally a read-only leaf; execution-grounded verification is delivered by `bn-dogfood-verifier` and finding-owner repro replays, not a reviewer-spawned prover. `color: red` kept.
 - **Frontmatter formatting:** removed the stray blank line before the closing `---`.
 - **`description`:** unchanged (no v1 skill names).
 - **Persona body:** the depth-calibration block (Quick/Standard/Deep size + risk-signal selection) and all four attack techniques — (1) assumption violation, (2) composition failures, (3) cascade construction, (4) abuse cases, each with its full sub-bullets — preserved verbatim. Anchors 100/75/50/25 preserved. The scenario-oriented-titles guidance, the step-by-step `evidence` guidance, and the `autofix_class: advisory` / `owner: human` default guidance preserved (relocated into the Output contract section). (Attack techniques were the explicitly-protected IP for this file.)

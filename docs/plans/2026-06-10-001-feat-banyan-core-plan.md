@@ -49,7 +49,7 @@ Source documents:
 - **Goal:** The reviewer personas, researchers, and utility agents available under Banyan, minimally edited for the nested world.
 - **Dependencies:** U3.
 - **Files:** `plugin/agents/bn-*.md` — initial set: the 6 always-on reviewers (correctness, testing, maintainability, project-standards, agent-native, learnings-researcher) + conditional reviewers (security, performance, api-contract, data-migration, reliability, adversarial) + researchers (repo-research, learnings, best-practices, framework-docs, web) + `bn-deployment-verifier`.
-- **Approach:** Rename to `bn-` prefix. Edits limited to: (a) tool grants where a v2 contract differs (e.g., adversarial reviewer gains `Agent(bn-repro-prover)` later in U13); (b) output contract changed from "return JSON text" to "write JSON to the artifact path in your envelope, return verdict + path"; (c) strip v1 orchestration references. Log every edit in `vendor/MANIFEST.md`.
+- **Approach:** Rename to `bn-` prefix. Edits limited to: (a) tool grants where a v2 contract differs (a lead carries an `Agent(...)` allowlist; reviewer personas stay read-only leaves — the adversarial reviewer remains read-only, and execution-grounded verification is delivered by `bn-dogfood-verifier` plus finding-owner repro replays, not a reviewer-spawned prover); (b) output contract changed from "return JSON text" to "write JSON to the artifact path in your envelope, return verdict + path"; (c) strip v1 orchestration references. Log every edit in `vendor/MANIFEST.md`.
 - **Verification:** Each agent spawnable standalone against the fixture repo; reviewer agents produce schema-valid findings files; learnings-researcher retrieves a seeded solution doc.
 
 ### U5: Persistence layer compatibility
@@ -115,8 +115,8 @@ Source documents:
 ### U11: `/bn-plan` + plan-judge subtree
 - **Goal:** Planning skill producing v1-compatible plan docs (Implementation Units, stable U-IDs), with deepening replaced by a real judge panel.
 - **Dependencies:** U10.
-- **Files:** `plugin/skills/bn-plan/SKILL.md`, `plugin/agents/bn-plan-generator.md` (parameterized prior: mvp-first | risk-first | ops-first), `plugin/agents/bn-plan-judge.md` (Haiku/Sonnet-class, rubric-scored).
-- **Approach:** Trunk (single writer) drafts the plan from the research brief. For standard/deep efforts: spawn 2–3 generators with different priors → panel of 3 cheap judges scores all drafts against a rubric (feasibility, coherence, scope discipline, verification quality) → trunk synthesizes from the winner, grafting runner-up ideas. Writes `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`.
+- **Files:** `plugin/skills/bn-plan/SKILL.md`, `plugin/agents/bn-plan-generator.md` (parameterized prior: mvp-first | risk-first | ops-first), `plugin/agents/bn-plan-judge.md` (rubric-scored).
+- **Approach:** Trunk (single writer) drafts the plan from the research brief. For standard/deep efforts: spawn 2–3 generators with different priors → panel of 3 independent judges scores all drafts against a rubric (feasibility, coherence, scope discipline, verification quality) → trunk synthesizes from the winner, grafting runner-up ideas. Writes `docs/plans/YYYY-MM-DD-NNN-<type>-<name>-plan.md`.
 - **Verification:** Plans pass v1 structural conventions; judge scores recorded in `briefs/`; lightweight efforts skip the panel entirely (effort scaling observable in the ledger).
 
 ## Phase 5 — Delivery subtree
@@ -129,7 +129,7 @@ Source documents:
   - Delivery-lead reads the plan, makes per-unit atomizer decisions: atomic → implement inline (itself, serial); composite → spawn unit-leads in `isolation: worktree`.
   - Unit-lead owns its unit end-to-end: implement → test-fix loop → scoped mini-review (one correctness reviewer over its own diff) → conventional commits → return verdict + branch ref. May split once more **only on failure or context pressure** (envelope-gated).
   - Integrator (single writer for the merge) merges branches in dependency order, runs the full suite, resolves conflicts or bounces a unit back with a specific envelope.
-  - Optional sampling mode: a unit flagged `contested` in the plan gets 2–3 parallel attempts, selected by tests — only if the unit has runnable tests (verifier-gated).
+  - Optional sampling mode (deferred — see "Deferred to follow-up work"): a unit flagged `contested` would get 2–3 parallel attempts selected by tests, gated on runnable tests. The shipped delivery subtree does not sample competing attempts; `bn-unit-lead` splits once on genuine over-size or failure, not into parallel rival implementations.
   - Permission cliff: delivery subtree never pushes; push/PR remains a trunk-level `bn-ship` step (vendor v1's commit/push/PR utilities).
 - **Verification:** Fixture plan with 3 units (two independent, one dependent): parallel worktrees, dependency-ordered merge, green suite, per-unit mini-review evidence in the ledger. Failure injection: a unit whose tests can't pass must escalate per envelope, not loop forever.
 
@@ -199,5 +199,5 @@ Phases 0–3 are the minimum credible product: a working review subtree with evi
 
 - Multi-platform export (v1's converter approach) — Claude Code only for now.
 - Cron-scheduled curator and product-pulse style reporting.
-- Sampling mode beyond `contested` units (cost gate).
+- Verifier-gated sampling / multiple-attempt mode, including `contested` units (cost gate).
 - Agent Teams / SendMessage integration (blocked on the feature leaving experimental).
