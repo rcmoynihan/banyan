@@ -37,9 +37,10 @@ auto-denies prompts (permission cliff), and both modes can want a foreground-onl
 user-confirmed delete, a domain-model write). A background dispatch is always plain
 `consolidate`.
 
-Read `skills/bn-conventions/references/envelope.md`,
-`skills/bn-conventions/references/ledger.md`,
-`skills/bn-conventions/references/knowledge-store.md`, and `AGENTS.md` (esp. invariant 6
+Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md`, and
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 6
 permission cliff, invariant 8 v1 persistence).
 
 ## Step 1: Locate the pending candidates

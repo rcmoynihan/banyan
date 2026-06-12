@@ -16,12 +16,12 @@ sources or derivatives.
 
 ## Required References
 
-Read `skills/bn-onboard/references/classification.md` in full before reading any
-source. Also use:
+Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-onboard/references/classification.md` in full before
+reading any source. Also use:
 
-- `AGENTS.md` for invariants and protected artifacts.
-- `skills/bn-conventions/references/knowledge-store.md` for v1 solution enums.
-- `skills/bn-brainstorm/references/brainstorm-sections.md` for PRD and
+- `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` for invariants and protected artifacts.
+- `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md` for v1 solution enums.
+- `${CLAUDE_PLUGIN_ROOT}/skills/bn-brainstorm/references/brainstorm-sections.md` for PRD and
   requirements derivatives.
 
 ## Input

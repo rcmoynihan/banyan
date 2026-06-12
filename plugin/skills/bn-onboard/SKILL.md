@@ -14,12 +14,12 @@ batches only.
 
 Read these first:
 
-- `AGENTS.md`
-- `skills/bn-conventions/references/envelope.md`
-- `skills/bn-conventions/references/ledger.md`
-- `skills/bn-conventions/references/knowledge-store.md`
-- `skills/bn-onboard/references/classification.md`
-- `skills/bn-onboard/references/manifest.md`
+- `${CLAUDE_PLUGIN_ROOT}/AGENTS.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/bn-onboard/references/classification.md`
+- `${CLAUDE_PLUGIN_ROOT}/skills/bn-onboard/references/manifest.md`
 - `/bn-curate`'s skill instructions
 
 ## Permission Cliff

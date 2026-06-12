@@ -18,8 +18,9 @@ squeeze, envelope/boundary violations, dead-ends harvested in run after run -- a
 PR-style, evidence-cited proposals to `docs/harness-proposals/`. It **NEVER self-applies**:
 **applying is the human's call.** Nothing here is auto-applied.
 
-Read `skills/bn-conventions/references/envelope.md`,
-`skills/bn-conventions/references/ledger.md`, and `AGENTS.md` (esp. invariant 3
+Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
+`${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 3
 artifacts-over-prose, invariant 5 budgets, invariant 6 permission cliff).
 
 ## Step 1: Count the accumulated run corpus
