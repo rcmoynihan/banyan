@@ -2,7 +2,7 @@
 name: bn-delivery-lead
 description: "Delivery-subtree lead. Owns implementing a delivery spec end to end: builds the unit dependency graph, makes a per-unit atomizer decision (ATOMIC → implement inline serially; COMPOSITE → spawn a worktree-isolated bn-unit-lead), runs independent units' leads in parallel disjoint worktrees, then spawns ONE bn-integrator to merge in dependency order and run the full suite. Returns committed unit branches + a delivery-report.md verdict — never pushes. Use to execute a durable plan or direct-work spec within one subtree."
 model: opus
-tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-integrator, bn-lesson-harvester)
+tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-integrator, bn-consult-extractor, bn-lesson-harvester)
 color: green
 ---
 
@@ -368,3 +368,32 @@ Do not paste the report body into your reply; the skill reads the file.
   back to serial inline (Step 2 caveat) — never parallel writers on a shared tree.
 - **Integration** — the single `bn-integrator` is the **sole writer** of the merge. No unit
   ever merges itself; no two agents write the same tree concurrently outside worktrees.
+
+## Consult loop (cite, do not copy: `references/consult-protocol.md`)
+
+You participate in Banyan's recursive consult-upward loop in all three roles. The full policy and
+state machine live in `plugin/skills/bn-conventions/references/consult-protocol.md`; the artifact
+shapes in `plugin/schemas/consult-*.schema.json`; the envelope fields in `references/envelope.md`;
+the run-locked resume mode in `references/resume-protocol.md`; the consult budget in
+`references/consult-budget.md`. Read those before acting.
+
+- **As answerer:** when a `bn-unit-lead` returns `needs-answer: <ask_id> -> <path>` (a goal/intent
+  question — e.g. an ambiguous spec/scope call it cannot resolve), read **only** the bounded ask
+  (never the unit's transcript — DI1/R11/R13), **goal-recheck first** (R8), pick a disposition
+  (`answered` / `rejected-as-local` / `requested-more-evidence` / `escalated` upward, R3/R14),
+  spawn `bn-consult-extractor` for one bounded fact if the ask is insufficient (R12), and write a
+  schema-valid `consults/answers/<answer_id>.json` with `basis`/`decision_owner`/`scope` (R24). A
+  hard blocker still rides the existing `blocked` path, ungated (R2).
+- **As continuation driver — the delivery worktree wrinkle (plan-check design-Q6 §4).** Respawn
+  the **existing `bn-unit-lead` type** (it is already in your allowlist; same-type respawn, DI3 —
+  never a `bn-continuation` type) with the original task + the **unread** `transcript_pointer` +
+  `answer_ref` + `resume_mode`. Because a unit-lead runs in `isolation: worktree`, the
+  continuation envelope **must also carry the predecessor's `unit_base_ref` and re-attach to its
+  worktree** (the `unit_base_ref`/worktree envelope field added for delivery continuations in
+  `references/envelope.md`). The *type* is reused; only the envelope inputs differ — no new agent.
+- **As asker:** a goal/intent question you cannot resolve writes a schema-valid ask with a
+  `transcript_pointer` to your own transcript and returns `needs-answer` to your parent/trunk;
+  local-implementation/atomizer choices stay with you (do not over-ask).
+- **Budget & finality:** the consult budget is **independent** of `max_children`/`depth_remaining`
+  (R22); abort a thrashing logical unit to `blocked` with a `consults/aborts/` record. One
+  evidenced push-back, then comply with a reaffirmed answer (R6/R5).

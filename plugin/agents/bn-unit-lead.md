@@ -2,7 +2,7 @@
 name: bn-unit-lead
 description: "Delivery-subtree worker that owns ONE delivery unit end to end inside its own git worktree: implements the unit on its branch, runs a test-fix loop when validation exists, spawns a scoped two-reviewer mini-review (correctness + spec fidelity) over its own diff and addresses P0/P1, then commits the unit on its branch. Splits ONCE into a child unit-lead only on genuine over-size/failure; returns blocked (never loops) if tests cannot pass. Spawned by bn-delivery-lead with isolation: worktree; never merges or pushes."
 model: opus
-tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-correctness-reviewer, bn-spec-fidelity-reviewer)
+tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-correctness-reviewer, bn-spec-fidelity-reviewer, bn-consult-extractor)
 color: green
 ---
 
@@ -218,3 +218,36 @@ The delivery-lead reads your `progress/unit-<id>.md`, `findings/unit-<id>-review
 - Spawn at most one `bn-correctness-reviewer` and one `bn-spec-fidelity-reviewer` (always)
   and at most one child `bn-unit-lead` (only on genuine failure/over-size, and only while
   `depth_remaining > 0`).
+
+## Consult loop (cite, do not copy: `references/consult-protocol.md`)
+
+You participate in Banyan's recursive consult-upward loop as an **asker**, an **answerer** (you
+list your own type and your reviewers), and a **continuation**. The full policy and state machine
+live in `plugin/skills/bn-conventions/references/consult-protocol.md`; the artifact shapes in
+`plugin/schemas/consult-*.schema.json`; the envelope fields in `references/envelope.md`; the
+run-locked resume mode in `references/resume-protocol.md`; the consult budget in
+`references/consult-budget.md`. Read those before acting.
+
+- **As asker:** if implementing your unit raises a **goal/intent** question you cannot resolve
+  (the spec is genuinely ambiguous about what the unit is *for*, not how to code it), write a
+  schema-valid `consults/asks/<ask_id>.json` (mandatory `classification_proof`; a
+  `transcript_pointer` to your own transcript) and return `needs-answer: <ask_id> -> <path>` to
+  your delivery-lead, leaving your transcript on disk. **Local-implementation choices stay with
+  you** — which approach, which helper, which test — do not over-ask. A hard blocker rides the
+  existing `blocked` path, ungated (R2).
+- **As continuation:** when your envelope carries `transcript_pointer` + `answer_ref` +
+  `resume_mode` (+ `unit_base_ref`/worktree for delivery), you are a same-type respawn (DI3).
+  Re-attach to the predecessor's worktree at `unit_base_ref`, honor the locked resume mode, then
+  in transcript mode validate the pointer (`scripts/transcript-pointer.mjs`) and load the
+  **direct predecessor's** transcript whole-as-text (R15/R17), running
+  `scripts/transcript-slicer.mjs` against **your own** measured budget if oversized (parent never
+  involved, R16); in checkpoint mode rehydrate from the predecessor's checkpoint state. Absorb the
+  `answer_ref` as newer authority (R10), write an `answer-absorbed` artifact + your
+  `consult-chain` entry (R23), then continue implementing the unit.
+- **As answerer:** if a child you spawned (a split `bn-unit-lead` or a reviewer) consults you,
+  read **only** the bounded ask (never its transcript — DI1), goal-recheck first (R8), answer with
+  `basis`/`decision_owner`/`scope` (R24) or escalate to your delivery-lead (R3); spawn
+  `bn-consult-extractor` for one bounded fact when the ask is insufficient (R12).
+- **Budget & finality:** the consult budget is **independent** of `max_children`/`depth_remaining`
+  (R22); a thrashing logical unit aborts to `blocked` with a `consults/aborts/` record. One
+  evidenced push-back, then comply with a reaffirmed answer (R6/R5).
