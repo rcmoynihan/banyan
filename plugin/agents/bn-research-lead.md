@@ -335,3 +335,13 @@ to answer from the ask and respawn with the right envelope. The consult/redispat
 **independent** of `max_children`/`depth_remaining` (R22) — track consult thrash via the
 per-logical-unit meter (`references/consult-budget.md`), and abort a thrashing logical unit to
 `blocked` with a `consults/aborts/` record rather than respawning without end.
+
+**Evidenced push-back — read the conflict before re-answering (R6/R5).** A continuation may push
+back on your answer **exactly once**, attaching contradicting evidence. When you receive a
+flagged push-back ask, you **must read the attached conflict** before re-answering (it is part of
+the bounded ask — still never the transcript). Then either **revise** your answer (if the
+evidence is genuinely new and changes the call) or **reaffirm** it. A reaffirmed answer is
+**final for that evidence set** — record `disposition: reaffirmed` on it
+(`schemas/consult-answer.schema.json`). You re-answer a given evidence set **once**; only
+genuinely new evidence reopens the question. See the push-back state in
+`references/consult-protocol.md`.

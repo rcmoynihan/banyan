@@ -122,14 +122,33 @@ artifacts.
             (writes consults/aborts/<id>; rides the existing blocked path)   │
 ```
 
-> **Push-back / finality (R6/R5) is reserved for U10.** The exactly-once evidenced-push-back state
-> and the finality rule (a reaffirmed answer is final for an evidence set; genuinely new evidence may
-> reopen it) are an **additive edit to this section by U10**, sequenced strictly after U6 (plan U10).
-> U6 establishes the drive-loop skeleton above with the push-back transition named but not specified;
-> U10 fills in the state's semantics here and authors the matching behavior inside the asker body's
-> continuation section. The `consult-answer` schema's `disposition: reaffirmed` and the
-> `consult-chain` entry's `outcome: pushed-back` values exist now so U10's behavioral edit has
-> shapes to write against without re-touching the schemas.
+### The evidenced push-back state (R6/R5 finality)
+
+The `evidenced push-back` transition in the state machine above is the **one** sanctioned way a
+continuation can decline an answer. An answer **binds by default** (R5). The exception is narrow
+and exactly-once:
+
+1. **Emit (continuation side).** A continuation that holds **concrete contradicting evidence** —
+   a specific file or a failing check that disproves the answer, not a mere preference — may emit
+   **one** push-back ask. It is a normal `consult-ask` (`kind: goal-intent`) **flagged as a
+   push-back**, with the **conflict attached** as `evidence[]`. The continuation then returns as
+   an asker does; it does **not** proceed on its own contrary judgment.
+2. **Read-before-reanswer (lead side).** The lead **must read the attached conflict** before
+   re-answering (it is in the bounded ask — the lead still never reads the transcript, DI1).
+   The lead then either **revises** the answer (the evidence genuinely changes the call) or
+   **reaffirms** it.
+3. **Finality (R6).** A **reaffirmed** answer is **final for that evidence set** — the lead
+   records `disposition: reaffirmed` on the answer and the continuation **complies**. A **second**
+   push-back on the **same evidence set is refused** by the continuation. The matching
+   `consult-chain` entry records `outcome: pushed-back` for the push-back round.
+4. **Reopening.** Only **genuinely new evidence** (a different file/check, not a reword of the
+   same point) may reopen the question with a fresh push-back. A **near-duplicate reworded re-ask
+   is thrash** and counts toward the consult budget (`references/consult-budget.md`); the budget's
+   near-duplicate-question meter is what stops a continuation from laundering the same conflict
+   through reworded asks.
+
+This keeps the loop convergent: every evidence set is adjudicated at most twice (answer, then one
+push-back → reaffirm-or-revise), and only new facts — never new phrasings — extend it.
 
 ## DI3 — the continuation is a same-type respawn, NOT a new agent type
 

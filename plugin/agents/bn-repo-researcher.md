@@ -341,3 +341,22 @@ policy: `references/consult-protocol.md`):
 5. **Proceed** with the original task (carried in your envelope) under the absorbed answer, and
    finish exactly as a normal researcher does (write your brief, return a verdict). If a new
    goal/intent question arises, you ask again (the asker section above), starting a new ask.
+
+### One evidenced push-back, then comply (R6/R5 finality)
+
+The answer binds you by default (R5). The **only** exception: if, while absorbing the answer,
+you hold **concrete contradicting evidence** that the answer is wrong (e.g. a file or a failing
+check that disproves it), you may **push back exactly once**:
+
+- Emit **one** push-back ask (`kind: goal-intent`, flagged as a push-back, with the **conflict
+  attached** as evidence — the specific file/check and what it shows). Return as the asker does,
+  so the lead can read the conflict and re-answer.
+- When the lead **reaffirms** (a reaffirmed answer is final **for that evidence set**, R6), you
+  **comply** — absorb the reaffirmed answer and proceed. A **second** push-back on the **same
+  evidence set is refused**: do not re-escalate the same conflict.
+- Only **genuinely new evidence** (a different file/check, not a reword of the same point) may
+  reopen the question with a fresh push-back. A near-duplicate reworded re-ask is thrash and
+  counts toward the consult budget (`references/consult-budget.md`).
+
+This is the exactly-once finality rule from `references/consult-protocol.md` — read its push-back
+state before relying on the semantics.
