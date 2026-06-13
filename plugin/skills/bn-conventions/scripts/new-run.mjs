@@ -100,6 +100,10 @@ function parseUnit(raw) {
   if (!unit || !owner || !status || !artifact) {
     fail(`--unit fields must be non-empty, got: ${raw}`);
   }
+  const allowed = ['pending', 'in-progress', 'blocked', 'done', 'abandoned'];
+  if (!allowed.includes(status)) {
+    fail(`--unit status must be one of ${allowed.join(' | ')}, got: ${status}`);
+  }
   return { unit, owner, status, artifact };
 }
 

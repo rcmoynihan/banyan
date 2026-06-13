@@ -83,11 +83,12 @@ Resolve exactly one primary input:
 
 - A readable `.banyan/brainstorms/*-requirements.md` file is the scope authority. Read it in full.
   If its `Resolve Before Planning` section or equivalent blocker has any item other than
-  `none`, do not draft through it. Write `plan-lead-report.md` with `verdict: needs-user`,
-  include `blocker_class`, `next_safe_action`, and `resume_from_phase: plan`, then return.
+  `none`, do not draft through it. Set `verdict: needs-user` with `blocker_class`,
+  `next_safe_action`, and `resume_from_phase: plan`, then go to Step 8 (which writes the
+  report, runs the mandatory harvest, and returns) — do not return directly.
 - A readable `.banyan/runs/<run-id>/briefs/research-brief.md` is research grounding.
 - A readable `.banyan/runs/<run-id>/briefs/spec-stress.md` is spec-stress grounding. If its
-  `Resolve Before Planning` section is non-empty, return `needs-user` as above.
+  `Resolve Before Planning` section is non-empty, set `verdict: needs-user` and go to Step 8 as above.
 - Anything else is the task description or finalized requirements summary.
 
 Then read the available grounding artifacts for the resolved run:
@@ -239,7 +240,8 @@ effort_class:    <standard | deep>
 
 Read `plan-check.md`. Fold every surviving finding into the final plan. Do not leave an
 unaddressed `infeasible-claim` in a `Status: draft` plan; repair it from repo evidence, fall
-back to the next viable draft, or return `needs-user` with recovery metadata.
+back to the next viable draft, or set `verdict: needs-user` with recovery metadata and go to
+Step 8 (report, harvest, return) — do not return directly.
 
 ## Step 7 - Write the Durable Plan
 
@@ -282,6 +284,10 @@ Update the ledger:
   present, checker result when present, and assumption count.
 
 ## Step 8 - Write the Report, Harvest, Return
+
+Every exit path lands here — `ready`, `needs-user`, or `blocked`. Write the report for the
+actual verdict, run the harvest, then return the matching line. The harvest is mandatory on
+every exit path (AGENTS.md §4), not only the `ready` path.
 
 Write `.banyan/runs/<run-id>/briefs/plan-lead-report.md`:
 

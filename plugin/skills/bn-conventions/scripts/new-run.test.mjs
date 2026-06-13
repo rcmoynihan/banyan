@@ -70,6 +70,26 @@ test('scaffolds a fresh run with seeded facts and unit rows', (t) => {
   assert.match(fs.readFileSync(path.join(root, '.git/info/exclude'), 'utf8'), /^\/\.banyan\/$/m);
 });
 
+test('rejects a --unit with an invalid status', (t) => {
+  const root = createRepo(t);
+  const result = spawnSync(
+    process.execPath,
+    [
+      SCRIPT_PATH,
+      'plan-add-widget',
+      '--date',
+      '2026-06-12',
+      '--unit',
+      'plan|bn-plan-lead|inprogress|.banyan/plans/x.md',
+      '--root',
+      root,
+    ],
+    { encoding: 'utf8' },
+  );
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /--unit status must be one of/);
+});
+
 test('prefers documented test commands over package scripts', (t) => {
   const root = createRepo(t);
   writeFile(root, 'README.md', 'Run `pnpm test` before shipping.\n');
