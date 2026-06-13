@@ -107,7 +107,7 @@ test('planning is owned by bn-plan-lead', () => {
   assert.match(planSkill, /Spawn one foreground `bn-plan-lead`/);
   assert.match(planSkill, /Do not scaffold a\s+run, write the ledger/);
   assert.match(planLead, /name: bn-plan-lead/);
-  assert.match(planLead, /Agent\(bn-plan-generator, bn-plan-judge, bn-plan-checker, bn-lesson-harvester\)/);
+  assert.match(planLead, /Agent\(bn-plan-generator, bn-plan-judge, bn-plan-checker, bn-consult-extractor, bn-lesson-harvester\)/);
   assert.match(planLead, /Write the Durable Plan/);
   assert.match(grow, /Phase 4 -- Plan \(subtree: bn-plan-lead/);
 });
