@@ -10,6 +10,9 @@ tmp/
 # Banyan local state
 /.banyan/
 
+# Claude Code agent worktrees (transient; never commit)
+.claude/worktrees/
+
 # python
 __pycache__/
 *.pyc
