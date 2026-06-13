@@ -1,6 +1,6 @@
 ---
 name: bn-doctor
-description: "Capability doctor: checks the host environment (Claude Code >= 2.1.172, node, gh, python3, pwsh), verifies plugin assets are discoverable and well-formed, and runs a LIVE depth-2 nested-spawn probe plus allowlist and nested user-question probes. Prints a green/yellow/red checklist and leaves no files behind."
+description: "Capability doctor: checks the host environment (Claude Code >= 2.1.172, node, gh, python3, pwsh), verifies plugin assets are discoverable and well-formed, and runs a LIVE depth-2 nested-spawn probe plus allowlist, transcript locate+complete, and nested user-question probes. Prints a green/yellow/red checklist and leaves no files behind."
 argument-hint: "[--static  (skip the live probe)]"
 ---
 
@@ -9,12 +9,14 @@ argument-hint: "[--static  (skip the live probe)]"
 A capability check for the premise Banyan stands on: nested subagents. `/bn-hello` proves
 the plugin loaded; this skill proves the *host can run it* — the version floor, the dev
 toolchain, the asset integrity, and (live) whether a depth-2 nested spawn actually works,
-whether the runtime enforces `Agent(...)` allowlists, and whether a nested probe has a reliable
+whether the runtime enforces `Agent(...)` allowlists, whether a complete per-agent transcript
+is locatable at the undocumented Claude Code path, and whether a nested probe has a reliable
 user-question path.
 
 This is a health check, not a run: it opens **no run ledger**, and every file it creates
 lives in a temporary probe directory that is deleted before the report prints. If the
-argument contains `--static`, skip Check 3 entirely (note it as YELLOW / skipped).
+argument contains `--static`, skip the live Checks 3 and 4 entirely (note them as YELLOW /
+skipped) — Check 4 reuses Check 3's probe, so they stand or fall together.
 
 ## Check 1 — Static environment (read-only Bash)
 
@@ -61,17 +63,21 @@ Then check, RED only on structural failure:
 
    ```
    === BANYAN ENVELOPE ===
-   objective:       Run the nesting, allowlist, and user-question probes; write the probe report.
+   objective:       Run the nesting, allowlist, transcript, and user-question probes; write
+                    the probe report.
    artifact_path:   <probe-dir>/probe-report.txt
-   output_format:   Three lines: "nesting: ...", "allowlist: ...", and "user-question: ...".
+   output_format:   Four lines: "nesting: ...", "allowlist: ...", "transcript: ...", and
+                    "user-question: ...".
    doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                     ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
    inputs:
-     token:     <token>
-     probe_dir: <probe-dir>
+     token:        <token>
+     probe_dir:    <probe-dir>
+     session_path: <the resolved Claude Code session path, if you can derive it; omit
+                    otherwise to exercise the locator's filesystem-discovery fallback>
    boundaries:      Read and write ONLY inside <probe-dir>. Never touch .banyan/runs,
                     source, or any protected artifact.
-   tool_guidance:   Read, Write; Agent(bn-probe-leaf) for the nesting probe.
+   tool_guidance:   Read, Write; Agent(bn-probe-leaf) for the nesting + transcript probe.
    budget:
      max_children:    2
      depth_remaining: 2
@@ -94,7 +100,33 @@ Then check, RED only on structural failure:
      surface. Missing or malformed → YELLOW.
 
 5. **Cleanup**: `rm -rf .claude/banyan-doctor/` and confirm it is gone. The probe
-   directory is the skill's own scratch space — it is not a protected artifact.
+   directory is the skill's own scratch space — it is not a protected artifact. **Read the
+   probe report's `transcript:` line for Check 4 *before* cleanup** — once the probe directory
+   is gone the report is gone with it.
+
+## Check 4 — Transcript locate+complete probe (skipped under `--static`)
+
+This is the kill-or-confirm for the recursive-consult-loop's #1 risk: the per-agent
+transcript path is undocumented Claude Code internal state, and the consult loop's
+continuation needs a **complete** transcript to be **locatable** at it. The probe is
+**locate-and-complete only** (Design invariant DI2) — it confirms a non-empty, terminated,
+non-growing file exists at the resolved path; it never parses any internal transcript field.
+
+The work was already done inside Check 3: `bn-probe-leaf`, the deepest agent in the nesting
+probe, ran `locate-transcript.mjs` on its own per-agent transcript path and reported a
+`transcript:` line, which `bn-probe` carried into `<probe-dir>/probe-report.txt`. Read that
+line (before the Check-3 cleanup) and grade it:
+
+- `transcript: locatable+complete (<path>)` → **GREEN: a complete per-agent transcript is
+  locatable** at the resolved path — print the path. Transcript mode is viable; the run may
+  lock to transcript mode.
+- `transcript: not-locatable (<reason>)` → **YELLOW: the transcript is not locatable on this
+  host** — print the reason. This is **not** a failure: per R19/R20 the run locks to
+  **checkpoint mode** and the consult loop degrades rather than breaks. Note: "the run will
+  run in checkpoint mode."
+- line missing or malformed → **YELLOW** (treat as not-locatable, reason `no-probe-result`).
+
+Under `--static`, skip this check the same way as Check 3 (note it YELLOW / skipped).
 
 ## Report
 
@@ -110,8 +142,13 @@ Print one table and stop — no files are left behind, nothing else is written:
 | frontmatter name = stem    | GREEN  | all agents                              |
 | depth-2 nested spawn       | GREEN  | token round-tripped                     |
 | allowlist enforcement      | YELLOW | not enforced by runtime (prompt-level by design) |
+| transcript locate+complete | GREEN  | locatable+complete at <resolved path>   |
 | nested user question       | GREEN  | unavailable in nested probe (trunk-only) |
 ```
+
+The `transcript locate+complete` row is YELLOW (`not-locatable → run will lock to checkpoint
+mode`) rather than RED when the transcript is not found — checkpoint mode is the designed
+degrade path, not a broken host.
 
 End with one line: overall GREEN (all green), YELLOW (any yellow, no red), or RED (any
 red) — and for RED, the single most load-bearing failure to fix first.
