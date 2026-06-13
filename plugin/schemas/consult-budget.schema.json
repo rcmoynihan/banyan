@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Consult thrash/cost budget",
+  "description": "Configuration, live counters, and abort record for the deterministic per-logical-unit consult thrash/cost budget meter (plan U5; requirements R21/R22/R2). The meter is independent of the spawn budget (max_children / depth_remaining): those fields are NOT part of this schema and must not influence the verdict.",
+  "type": "object",
+  "definitions": {
+    "config": {
+      "type": "object",
+      "description": "The budget dials. All caps and weights are documented constants fixed in references/consult-budget.md; a caller may override individual values.",
+      "properties": {
+        "caps": {
+          "type": "object",
+          "description": "Per-dimension caps. A counter reaching (>=) its cap trips that dimension on its own.",
+          "properties": {
+            "respawn_count": { "type": "integer", "minimum": 1, "description": "Max continuation respawns one logical unit may chain through." },
+            "cumulative_tokens": { "type": "integer", "minimum": 1, "description": "Cumulative model tokens spent across the whole logical-unit chain." },
+            "repeated_reread_count": { "type": "integer", "minimum": 1, "description": "Max times the same file is re-read across the chain (spinning signal)." },
+            "no_progress_diff_count": { "type": "integer", "minimum": 1, "description": "Max consecutive continuations producing no measurable diff/progress." },
+            "near_duplicate_question_count": { "type": "integer", "minimum": 1, "description": "Max near-duplicate reworded re-asks of an already-asked question." },
+            "transcript_ancestry_depth": { "type": "integer", "minimum": 1, "description": "R22: max transcript-ancestry depth of the continuation chain (capped separately from depth_remaining)." },
+            "total_transcript_bytes": { "type": "integer", "minimum": 1, "description": "R22: max total raw transcript bytes carried laterally across the chain." }
+          },
+          "additionalProperties": false
+        },
+        "weights": {
+          "type": "object",
+          "description": "Per-dimension weight applied to each dimension's normalized fill (counter / cap) when summing the composite cost score against hard_ceiling.",
+          "additionalProperties": { "type": "number", "minimum": 0 }
+        },
+        "hard_ceiling": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Absolute ceiling on the weighted composite cost score. Fires regardless of any single dimension -- the unconditional backstop against grinding on every axis at once."
+        },
+        "near_duplicate_similarity_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Jaccard token-overlap at or above which two normalized questions are near-duplicate."
+        }
+      },
+      "additionalProperties": false
+    },
+    "counters": {
+      "type": "object",
+      "description": "Live per-logical-unit counters fed to evaluate(). near_duplicate_question_count may be supplied directly OR derived deterministically from the raw `questions` history.",
+      "properties": {
+        "respawn_count": { "type": "integer", "minimum": 0 },
+        "cumulative_tokens": { "type": "integer", "minimum": 0 },
+        "repeated_reread_count": { "type": "integer", "minimum": 0 },
+        "no_progress_diff_count": { "type": "integer", "minimum": 0 },
+        "near_duplicate_question_count": { "type": "integer", "minimum": 0 },
+        "transcript_ancestry_depth": { "type": "integer", "minimum": 0 },
+        "total_transcript_bytes": { "type": "integer", "minimum": 0 },
+        "questions": {
+          "type": "array",
+          "description": "Ordered question history; when near_duplicate_question_count is absent it is derived from this list via the normalized-token fingerprint.",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "abort_record": {
+      "type": "object",
+      "description": "Reconstructable record written to consults/aborts/ when the meter trips, so a logical unit's abort is auditable from files alone (R23). The abort rides the existing `blocked` path (R2).",
+      "required": ["logical_unit", "tripped_dimension", "counter_values", "reason"],
+      "properties": {
+        "logical_unit": { "type": "string", "description": "Identifier of the aborted logical unit (the continuation chain)." },
+        "tripped_dimension": {
+          "type": "string",
+          "enum": [
+            "respawn_count",
+            "cumulative_tokens",
+            "repeated_reread_count",
+            "no_progress_diff_count",
+            "near_duplicate_question_count",
+            "transcript_ancestry_depth",
+            "total_transcript_bytes",
+            "hard_ceiling"
+          ],
+          "description": "The dimension that tripped, or 'hard_ceiling' when only the composite ceiling fired."
+        },
+        "ceiling_hit": { "type": "boolean", "description": "Whether the absolute composite ceiling fired (independent of any single dimension)." },
+        "counter_values": {
+          "type": "object",
+          "description": "The resolved per-dimension counter values at abort time (near-duplicate count is the derived value)."
+        },
+        "composite_score": { "type": "number", "description": "The weighted composite cost score at abort time." },
+        "last_progress_ref": {
+          "type": ["string", "null"],
+          "description": "Pointer to the last progress/chain artifact before abort, for reconstruction."
+        },
+        "reason": { "type": "string", "description": "Human-readable trip reason." }
+      },
+      "additionalProperties": false
+    }
+  },
+  "properties": {
+    "config": { "$ref": "#/definitions/config" },
+    "counters": { "$ref": "#/definitions/counters" },
+    "abort_record": { "$ref": "#/definitions/abort_record" }
+  },
+  "additionalProperties": false
+}
