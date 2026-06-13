@@ -1,6 +1,6 @@
 ---
 name: bn-probe
-description: "Depth-2 nesting probe for /bn-doctor. Spawns bn-probe-leaf to write a token artifact, attempts one off-allowlist spawn to test allowlist enforcement, reports nested user-question availability, and writes a probe report. Health-check only; never touches .banyan/runs."
+description: "Depth-2 nesting probe for /bn-doctor. Spawns bn-probe-leaf to write a token artifact and run a transcript locate+complete probe, attempts one off-allowlist spawn to test allowlist enforcement, reports nested user-question availability, and writes a probe report. Health-check only; never touches .banyan/runs."
 model: sonnet
 tools: Read, Write, Agent(bn-probe-leaf)
 color: gray
@@ -18,26 +18,34 @@ artifact.
 
 You receive a `=== BANYAN ENVELOPE ===` block with:
 
-- `objective` — run the nesting, allowlist, and user-question probes; write the probe report.
-- `inputs` — `token`: an opaque string; `probe_dir`: the directory all probe files live in.
+- `objective` — run the nesting, allowlist, transcript, and user-question probes; write the
+  probe report.
+- `inputs` — `token`: an opaque string; `probe_dir`: the directory all probe files live in;
+  `session_path` (optional): the resolved Claude Code session path pushed down by the
+  envelope (the R28 push-down), to pass through to the leaf.
 - `artifact_path` — `<probe_dir>/probe-report.txt`.
 - `doctrine` — resolved Banyan doctrine and envelope references.
 - `budget` — `{ max_children: 2, depth_remaining: 2 }`.
 
-## Step 1 — Nesting probe
+## Step 1 — Nesting probe (and transcript probe pass-through)
 
 Spawn `bn-probe-leaf` with this envelope:
 
 ```
 === BANYAN ENVELOPE ===
-objective:       Write the probe token to the artifact path.
+objective:       Write the probe token, then run the transcript locate+complete probe on
+                 your own path.
 artifact_path:   <probe_dir>/probe-leaf.txt
-output_format:   The token on the first line.
+output_format:   The token on the first line; the transcript: result on the second line.
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
+inputs:
+  token:        <inputs.token>
+  session_path: <inputs.session_path, if provided>
+  agent_id:     <the leaf's own spawn-time agent id, if resolvable>
 boundaries:      Write ONLY artifact_path. Never touch .banyan/runs, source, or any
                  protected artifact.
-tool_guidance:   Write only.
+tool_guidance:   Read, Write; Bash to run locate-transcript.mjs.
 budget:
   max_children:    0
   depth_remaining: 1
@@ -45,12 +53,19 @@ effort_class:    lightweight
 === END ENVELOPE ===
 ```
 
-Pass the token from your own `inputs.token` in the envelope's `inputs`. When the leaf
-returns, Read `<probe_dir>/probe-leaf.txt` yourself and verify its first line equals the
-token. Record the result:
+Pass the token from your own `inputs.token`, and pass `session_path` through unchanged when
+your envelope carried it. When the leaf returns, Read `<probe_dir>/probe-leaf.txt` yourself
+and verify its first line equals the token. Record the nesting result:
 
 - leaf returned AND file exists AND token matches -> `nesting: ok`
 - anything else (spawn refused, leaf errored, file missing, token wrong) -> `nesting: failed (<one-clause reason>)`
+
+Also read the **second line** of `<probe_dir>/probe-leaf.txt` (the leaf's `transcript:`
+result) and carry it forward verbatim for Step 4:
+
+- second line is `transcript: locatable+complete (...)` -> `transcript: locatable+complete`
+- second line is `transcript: not-locatable (...)` -> `transcript: not-locatable (<reason>)`
+- second line missing or malformed -> `transcript: not-locatable (no-leaf-result)`
 
 ## Step 2 — Allowlist probe
 
@@ -79,12 +94,17 @@ The design treats any result other than a proven foreground trunk question as un
 
 ## Step 4 — Write the report, return one line
 
-Write `artifact_path` with exactly three lines:
+Write `artifact_path` with exactly four lines:
 
 ```
 nesting: ok|failed (...)
 allowlist: enforced|not-enforced|indeterminate (...)
+transcript: locatable+complete|not-locatable (<reason>)
 user-question: unavailable (... )|available (...)
 ```
 
-Return ONE line: `probe: nesting <ok|failed>, allowlist <enforced|not-enforced|indeterminate>, user-question <available|unavailable> -> <artifact_path>`.
+The `transcript:` line is the result you carried forward from the leaf in Step 1 (the
+locate-and-complete probe the deepest agent ran on its own per-agent transcript path); the
+doctor's Check 4 reads it.
+
+Return ONE line: `probe: nesting <ok|failed>, allowlist <enforced|not-enforced|indeterminate>, transcript <locatable+complete|not-locatable>, user-question <available|unavailable> -> <artifact_path>`.
