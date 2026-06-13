@@ -94,6 +94,13 @@ Reads parallelize; writes serialize. Every file in the layout has a defined owne
 - **`residuals.md` -- grow trunk only.** Child leads and leaves never write this file. They
   expose blocked reasons and next safe actions in their own artifacts; the grow trunk reads
   those artifacts and writes the single residual summary when recovery is exhausted.
+- **`consults/chains/<logical-unit>.json` -- folded by the owning lead/trunk only.** Like the
+  `## Log`, the continuation-chain index for a logical unit is coordination state written by a
+  **single writer** -- the lead (or trunk) that drives that logical unit's consult loop. Asks
+  (`consults/asks/`) and answers (`consults/answers/`) are one-file-per-artifact (the asker writes
+  its ask; the answering lead writes its answer; writes never collide), but the **chain index** that
+  ties them into one reconstructable logical unit is folded by the driving lead/trunk as each
+  physical child returns -- never co-written by the children. See `## Consult artifacts` below.
 
 Parents read these artifacts directly. A lead reads its children's `findings/`,
 `briefs/`, and `progress/` files for anything load-bearing -- it does not extract
@@ -119,6 +126,48 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/heartbeat.mjs <run-dir>
 - Observe with `tail -f <run-dir>/activity.log`. The log distinguishes the two failure modes:
   recent lines from anywhere in the tree mean it is alive (a slow deep review is normal); **no new
   line tree-wide for several minutes means suspect a real hang**, not slow progress.
+
+## Consult artifacts
+
+The recursive consult-upward loop (redispatch — see `references/consult-protocol.md`) writes its
+artifacts under a `consults/` subtree of the run dir, seeded from scaffold time by
+`scripts/new-run.mjs` so no consult artifact is ever un-housed (un-auditable):
+
+```
+.banyan/runs/<run-id>/
+  consults/
+    asks/<ask_id>.json        # bounded asks written by askers (schemas/consult-ask.schema.json)
+    answers/<answer_id>.json   # answers written by answering leads (schemas/consult-answer.schema.json)
+    chains/<logical-unit>.json # continuation-chain index per logical unit (schemas/consult-chain.schema.json)
+    aborts/<id>.json           # thrash/cost abort records (U5; rides the existing blocked path)
+```
+
+(The `consults/metrics/` subdir is added by the deferred U13, not at U6 scaffold time.)
+
+**The three artifact families:**
+
+- **ask** -- a single asker's bounded, strong brief: the blocking question, the asker's
+  recommendation, the alternatives, evidence lines with file/tool refs, a classification proof
+  (goal/intent vs local), what would change the recommendation, and the U2 transcript pointer to the
+  asker's own transcript (R14). One file per ask; the asker writes it.
+- **answer** -- the answering lead's response, written from the ask alone after the required
+  goal-recheck, carrying a basis, decision owner, and scope (R8/R24). One file per answer; the
+  answering lead writes it.
+- **chain** -- the continuation-chain index for one **logical unit**: a chain of physical children,
+  each entry linking to its predecessor, the ask it raised, the answer id it acted on, the artifact
+  it produced, and the files it touched (R23). This is what makes one logical unit reconstructable
+  from files alone, proven executably by `scripts/check-consult-chain.mjs`.
+
+**Per-child attribution rule (R23).** One logical unit spans many physical children (the original
+asker, then one or more same-type continuations). **Each physical child contributes one chain
+entry** attributing exactly its own work: its `physical_agent_id`, its direct
+`predecessor_agent_id`, the `input_ask_id` it raised (if any), the `acted_on_answer_id` it absorbed
+(every continuation has one), its `produced_artifact`, its `files_touched`, and the transcript
+pointer to its own transcript. No child's entry claims another child's work; the chain is the
+disjoint union of per-child attributions. The chain index itself is **folded by the owning
+lead/trunk only** (see the `consults/chains/...` Writer rules entry above): the children return
+their per-child facts as artifacts, and the driving lead/trunk records them into the chain as each
+child completes -- the children never co-write the chain file.
 
 ## Lifecycle and retention
 

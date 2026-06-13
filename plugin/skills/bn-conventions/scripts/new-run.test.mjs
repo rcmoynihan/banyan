@@ -70,6 +70,27 @@ test('scaffolds a fresh run with seeded facts and unit rows', (t) => {
   assert.match(fs.readFileSync(path.join(root, '.git/info/exclude'), 'utf8'), /^\/\.banyan\/$/m);
 });
 
+test('creates the consult artifact subdirs at scaffold time (U6/R23)', (t) => {
+  const root = createRepo(t);
+
+  const result = runNewRun(['plan-add-widget', '--date', '2026-06-12'], root);
+
+  for (const sub of ['consults/asks', 'consults/answers', 'consults/chains', 'consults/aborts']) {
+    const dir = path.join(result.run_dir, sub);
+    assert.ok(fs.existsSync(dir) && fs.statSync(dir).isDirectory(), `missing consult subdir: ${sub}`);
+  }
+  // consults/metrics belongs to the deferred U13 and must NOT be created here.
+  assert.ok(
+    !fs.existsSync(path.join(result.run_dir, 'consults/metrics')),
+    'consults/metrics must not be created by U6 (it is U13)',
+  );
+
+  // The pre-existing subdirs are still created alongside the new ones.
+  for (const sub of ['progress', 'findings', 'briefs', 'lessons-staging']) {
+    assert.ok(fs.existsSync(path.join(result.run_dir, sub)), `missing pre-existing subdir: ${sub}`);
+  }
+});
+
 test('rejects a --unit with an invalid status', (t) => {
   const root = createRepo(t);
   const result = spawnSync(

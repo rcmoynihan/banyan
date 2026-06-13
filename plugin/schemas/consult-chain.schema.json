@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Consult continuation chain",
+  "description": "The ledger record that makes one logical unit a files-only-reconstructable chain of physical children (R23). A logical unit is realized by redispatch: the asker writes an ask and returns; the lead answers; the lead respawns a fresh peer of the asker's type (the continuation — DI3, NOT a new agent type) carrying the answer and the predecessor's transcript pointer; the continuation absorbs the answer and proceeds, possibly asking again. Each physical child appends ONE entry recording its predecessor, the ask it raised, the answer it acted on, the artifact it produced, the files it touched, the transcript pointer to its own transcript, and its outcome. The chain-checker (check-consult-chain.mjs) walks entries to confirm every continuation links to its input pointer/ask and the answer id it acted on, and flags dangling links (AE4). The chain index is folded by the owning lead/trunk only (one writer, per ledger.md Writer rules).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["logical_unit", "entries"],
+  "properties": {
+    "logical_unit": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The logical unit this chain reconstructs. Matches consult-ask.logical_unit; every entry's work belongs to this one logical unit even though it spans many physical children."
+    },
+    "entries": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per physical child in the chain, in chain order. The first entry is the original asker (no predecessor, no acted_on_answer_id); each later entry is a continuation linking back to its direct predecessor.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "physical_agent_id",
+          "produced_artifact",
+          "files_touched",
+          "transcript_pointer",
+          "outcome"
+        ],
+        "properties": {
+          "physical_agent_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Spawn-time agent id of this physical child. Unique within the chain; an entry's predecessor names this id of an earlier entry."
+          },
+          "predecessor_agent_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The direct predecessor's physical_agent_id (the child this one continued from). Absent ONLY on the first entry (the original asker). A continuation reads exactly its direct predecessor's transcript (R17); descendant context arrives through that predecessor's own artifacts."
+          },
+          "input_ask_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The ask this child raised (consult-ask.ask_id), if it asked. Absent on a child that did not raise an ask (e.g. a continuation that proceeded to completion without re-asking)."
+          },
+          "acted_on_answer_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The answer this child absorbed and acted on (consult-answer.answer_id). Present on every continuation (a continuation exists because it is acting on an answer); absent on the original asker entry. The chain-checker flags a continuation (one with a predecessor) that is missing this link (R23/AE4)."
+          },
+          "produced_artifact": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The artifact this child produced and left on disk — its ask, its answer-absorbed note, or its final work output. The audit trail's proof the child did something durable."
+          },
+          "files_touched": {
+            "type": "array",
+            "description": "The repo files this child created or edited, by path. May be empty for a child whose only output was a consult artifact under the run dir (which is named by produced_artifact).",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "transcript_pointer": {
+            "$ref": "transcript-pointer.schema.json",
+            "description": "The U2 pointer naming THIS child's own transcript, so the NEXT continuation can rehydrate from it laterally (R15/R17). The chain-checker validates the pointer's shape and flags a dangling pointer (AE4)."
+          },
+          "outcome": {
+            "type": "string",
+            "enum": ["asked", "answered-absorbed", "completed", "pushed-back", "blocked", "aborted"],
+            "description": "How this child ended. asked: wrote an ask and returned for redispatch. answered-absorbed: a continuation that absorbed the answer and proceeded. completed: finished the logical unit's work. pushed-back: a continuation that raised a one-time evidenced push-back (R6). blocked: hit a hard blocker (R2). aborted: tripped the composite thrash/cost budget and aborted to blocked (R21, U5)."
+          }
+        }
+      }
+    }
+  }
+}

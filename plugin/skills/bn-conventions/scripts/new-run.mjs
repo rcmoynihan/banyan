@@ -11,7 +11,20 @@ const RUN_ID_RE = /^\d{4}-\d{2}-\d{2}-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const BANYAN_DIR_NAME = '.banyan';
 const RUNS_DIR_NAME = 'runs';
 const RUN_PATH_RE = /\.banyan[/\\]runs[/\\](\d{4}-\d{2}-\d{2}-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*)/g;
-const SUBDIRS = ['progress', 'findings', 'briefs', 'lessons-staging'];
+const SUBDIRS = [
+  'progress',
+  'findings',
+  'briefs',
+  'lessons-staging',
+  // Consult-loop artifact families (U6/R23): every run houses its asks, answers,
+  // continuation chains, and abort records from scaffold time so no consult
+  // artifact is ever un-housed (un-auditable). `consults/metrics` is added by the
+  // deferred U13, not here.
+  'consults/asks',
+  'consults/answers',
+  'consults/chains',
+  'consults/aborts',
+];
 const DOCUMENTED_COMMANDS = [
   'poetry run pytest',
   'uv run pytest',
