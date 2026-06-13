@@ -99,6 +99,27 @@ Parents read these artifacts directly. A lead reads its children's `findings/`,
 `briefs/`, and `progress/` files for anything load-bearing -- it does not extract
 facts from a child's final-message prose (invariant 3).
 
+## Liveness heartbeat
+
+A long-running subtree is invisible from outside until it returns — invariant 3 gives a child no
+upward channel mid-work — so a healthy-but-slow deep agent is indistinguishable from a hung one.
+To close that gap, every lead and worker appends a one-line heartbeat to a single shared,
+tailable file at each significant step (spawn, phase start, tests run, mini-review start/done,
+commit, return):
+
+```
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/heartbeat.mjs <run-dir> <actor> "<one line>"
+```
+
+- One file per run: `<run-dir>/activity.log`, append-only, `<ISO-8601>\t<actor>\t<message>`.
+- Use the **absolute** run-dir path carried in the envelope, so agents in isolated worktrees write
+  to the one canonical log rather than a per-worktree copy.
+- This is a write to shared run state, not an upward return, so it does not violate invariant 3.
+- A heartbeat must never break the work it reports: the helper exits 0 even if the append fails.
+- Observe with `tail -f <run-dir>/activity.log`. The log distinguishes the two failure modes:
+  recent lines from anywhere in the tree mean it is alive (a slow deep review is normal); **no new
+  line tree-wide for several minutes means suspect a real hang**, not slow progress.
+
 ## Lifecycle and retention
 
 - **`.banyan/runs/` is local run state.** It is the run's audit trail and the basis for
