@@ -5,6 +5,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
+import { resolveResumeMode, CHECKPOINT_MODE } from './resolve-resume-mode.mjs';
+
 const RUN_ID_RE = /^\d{4}-\d{2}-\d{2}-\d{3}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const BANYAN_DIR_NAME = '.banyan';
 const RUNS_DIR_NAME = 'runs';
@@ -39,6 +41,7 @@ function parseArgs(argv) {
     facts: [],
     force: false,
     inputs: [],
+    locate: null,
     objective: null,
     planRef: null,
     root: process.cwd(),
@@ -61,6 +64,8 @@ function parseArgs(argv) {
       opts.inputs.push(readValue(argv, (i += 1), '--input'));
     } else if (arg === '--json') {
       continue;
+    } else if (arg === '--locate') {
+      opts.locate = readValue(argv, (i += 1), '--locate');
     } else if (arg === '--objective') {
       opts.objective = readValue(argv, (i += 1), '--objective');
     } else if (arg === '--plan-ref') {
@@ -273,6 +278,33 @@ function detectRepoFacts(root) {
   };
 }
 
+// Resolve the run's locked resume mode (R19/R20/R28) from U1's locate probe.
+//
+// `--locate` carries the JSON locate result ({located, path, complete, reason})
+// from the U1 doctor probe. When the flag is absent (no probe was run), or its
+// value is not valid JSON, the resolver falls back to checkpoint mode — the safe
+// degrade. The returned { mode, sessionPath } is seeded into ledger.md's
+// `## Facts / Context` so every continuation reads the lock from the ledger
+// rather than re-probing (files-only reconstruction surviving a resumed trunk).
+function resolveResumeFacts(locateRaw) {
+  let locateResult = null;
+  if (typeof locateRaw === 'string' && locateRaw.trim() !== '') {
+    try {
+      locateResult = JSON.parse(locateRaw);
+    } catch {
+      // Unparseable probe input is treated as "no usable probe" -> checkpoint.
+      // We do not fail the scaffold on a malformed probe; degrade-not-break.
+      locateResult = null;
+    }
+  }
+  const resolved = resolveResumeMode(locateResult);
+  return {
+    resume_mode: resolved.mode ?? CHECKPOINT_MODE,
+    session_path: resolved.sessionPath ?? 'none (checkpoint mode)',
+    resume_reason: resolved.reason,
+  };
+}
+
 function detectDocumentedTestCommand(root) {
   const files = ['AGENTS.md', 'CLAUDE.md', 'README.md', path.join('scripts', 'README.md')];
   for (const file of files) {
@@ -443,6 +475,12 @@ function ledgerTemplate(runId, date, opts, facts) {
   const factLines = [
     `- Repo root: ${facts.repo_root}`,
     `- Test command: ${facts.test_command} (source: ${facts.test_source})`,
+    // Resume mode is locked once here, at run open (R19), from U1's locate probe.
+    // It defaults to `checkpoint` (the safe degrade) when no probe was supplied.
+    // Continuations read these two facts from the ledger instead of re-probing
+    // (R20/R28, files-only reconstruction). See references/resume-protocol.md.
+    `- Resume mode: ${facts.resume_mode} (reason: ${facts.resume_reason})`,
+    `- Session path: ${facts.session_path}`,
     ...opts.facts.map((fact) => `- ${renderRunId(fact, runId)}`),
   ];
   const units = opts.units.length > 0 ? opts.units : [{ unit: 'U1', owner: opts.actor, status: 'pending', artifact: '<path>' }];
@@ -519,7 +557,7 @@ function main() {
   const root = resolveRepoRoot(opts.root);
   ensureBanyanExcluded(root);
   const date = validateDate(opts.date ?? todayISO());
-  const facts = detectRepoFacts(root);
+  const facts = { ...detectRepoFacts(root), ...resolveResumeFacts(opts.locate) };
   const resolution = resolveRun(root, opts);
   const run =
     resolution.kind === 'adopted'
