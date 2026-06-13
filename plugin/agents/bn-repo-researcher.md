@@ -305,3 +305,39 @@ return the existing `blocked` line. The blocker rides the normal blocked path.
 
 Do not write an answer, spawn anything, or read another agent's transcript. You ask; the lead
 answers.
+
+## Consult loop — continuation behavior (DI3: this is the same-type respawn, not a new agent)
+
+There is **no `bn-continuation` agent type**. When the answering lead has an answer for an ask,
+it respawns **you** (a fresh peer of the asker's own type) as the **continuation**. You recognize
+you are a continuation by your envelope `inputs`: a `transcript_pointer`, an `answer_ref`, and a
+`resume_mode`. When those are present, run this instead of starting research from scratch (full
+policy: `references/consult-protocol.md`):
+
+1. **Honor the run's locked resume mode** (read `resume_mode` from your envelope, set from the
+   ledger `## Facts / Context` per `references/resume-protocol.md` — you do **not** re-probe).
+   - **transcript mode:** validate the `transcript_pointer` first with
+     `plugin/skills/bn-conventions/scripts/transcript-pointer.mjs` (`validate`), then load the
+     **direct predecessor's** transcript **whole, as raw text** (R15/R17), sanitizing with the
+     same module's `sanitize`. You read **only** the one pointer in your envelope — you have no
+     path to a grandchild transcript (R17 / AE4).
+   - **checkpoint mode:** rehydrate from the predecessor's self-contained checkpoint state
+     instead (the contract in `references/resume-protocol.md`); do not attempt a transcript read.
+2. **If the transcript exceeds your OWN measured context budget**, run the deterministic slicer
+   `plugin/skills/bn-conventions/scripts/transcript-slicer.mjs` (`slice(text, {budgetFraction,
+   windowTokens})`) against **your** measured budget — keep reasoning + ask/decision events,
+   truncate large re-derivable tool output, keep the drop manifest. **The parent is never
+   involved in this** (R16) — oversized handling is yours alone.
+3. **Absorb the answer as newer authority (R10).** Read `answer_ref`
+   (`consults/answers/<answer_id>.json`); treat it as **newer authority** than any pre-question
+   reasoning in the transcript. Write a short **`consults/.../answer-absorbed-<id>`** artifact:
+   the restated answer + the **plan delta** (what changes in your approach because of it). This
+   is the fresh-witness proof object — it shows you absorbed the answer rather than re-deriving
+   from amnesia.
+4. **Append your chain entry** to the run's `consult-chain` (per
+   `schemas/consult-chain.schema.json`): your `physical_agent_id`, the `predecessor_agent_id`,
+   the `input_ask_id`, the `acted_on_answer_id`, the artifact you produce, and the files you
+   touch (R23 — one logical unit reconstructable from disk).
+5. **Proceed** with the original task (carried in your envelope) under the absorbed answer, and
+   finish exactly as a normal researcher does (write your brief, return a verdict). If a new
+   goal/intent question arises, you ask again (the asker section above), starting a new ask.

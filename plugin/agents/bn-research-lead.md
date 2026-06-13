@@ -319,6 +319,19 @@ it could not resolve), drive the consult state machine:
    answer that skipped the goal-recheck or omitted its basis/scope is an **invalid, visible
    artifact** — that is the guarantee R8/R24 actually happened.
 
-You then spawn the continuation (see the continuation-spawn section, added with the continuation
-behavior). You never add a `bn-continuation` type — the continuation is a same-type respawn of
-the asker already in your allowlist (DI3).
+**Spawn the continuation (R9, DI3 same-type respawn).** After writing the answer, spawn the
+**existing asker type** — `bn-repo-researcher`, already in your allowlist — as the continuation.
+You never add a `bn-continuation` type. Its envelope `inputs` carry:
+
+- the **original task** (what the asker was doing);
+- the predecessor's `transcript_pointer`, **passed through unread** (DI1 / R11 — you treat it as
+  an opaque capability; you never opened the transcript);
+- the `answer_ref` (the `consults/answers/<answer_id>.json` you just wrote);
+- the `resume_mode` and `session_path` read from the ledger (`references/resume-protocol.md`).
+
+The continuation rehydrates from the predecessor laterally and absorbs the answer — that
+behavior lives in the asker agent body's continuation section (DI3), not here. Your job is only
+to answer from the ask and respawn with the right envelope. The consult/redispatch budget is
+**independent** of `max_children`/`depth_remaining` (R22) — track consult thrash via the
+per-logical-unit meter (`references/consult-budget.md`), and abort a thrashing logical unit to
+`blocked` with a `consults/aborts/` record rather than respawning without end.
