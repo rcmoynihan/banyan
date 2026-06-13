@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Consult answer",
+  "description": "The answering lead's response to a bounded ask (R8/R24). The lead answers from the ask ALONE (it never reads the asker's transcript — DI1/R11), and it MUST first re-state the current goal in its own words and check the question against it: goal_restatement is a required field precisely so an answer that skipped the goal-recheck is an invalid, visible artifact (R8). Every answer also records its basis (how the lead reached it), the decision owner, and the scope (how far the decision binds) — required fields so an answer missing its basis/scope is rejected at validation (R24). The disposition records whether the lead actually answered, rejected the ask, requested more evidence, escalated, or reaffirmed after a push-back (R14/R6).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "answer_id",
+    "ask_id",
+    "goal_restatement",
+    "answer",
+    "basis",
+    "decision_owner",
+    "scope",
+    "disposition",
+    "answered_at"
+  ],
+  "properties": {
+    "answer_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable id of this answer. Names the artifact file (consults/answers/<answer_id>.json) and is referenced by the chain entry the continuation produces (entry.acted_on_answer_id)."
+    },
+    "ask_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The ask this answers (consult-ask.ask_id). The link the chain-checker follows to confirm every continuation acted on a real answer to a real ask (R23/AE4)."
+    },
+    "goal_restatement": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The current goal re-stated by the lead IN ITS OWN WORDS, against which it checked the question (the required goal-recheck, R8). Required: an answer without it skipped the recheck and is invalid. This is the field that makes R8 checkable rather than aspirational."
+    },
+    "answer": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The lead's answer to the question. For a non-answer disposition (reject-as-local, requested-more-evidence, escalated) this records the decision and its reasoning (what the lead is asking for, or where it climbed)."
+    },
+    "basis": {
+      "type": "string",
+      "enum": ["answered-from-ask", "after-reading-code", "after-web", "assumed"],
+      "description": "How the lead reached the answer (R24). answered-from-ask: from the bounded ask alone. after-reading-code / after-web: the lead fetched external context (the external-fetch signal, R29). assumed: the lead made a defensible assumption without confirming it. Never 'after-reading-transcript' — that basis cannot exist (DI1)."
+    },
+    "decision_owner": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Who owns this decision — the agent/role accountable for it (e.g. the answering lead's id, 'trunk', or 'human'). Names accountability so a later reader knows who to re-consult if the decision is reopened (R24)."
+    },
+    "scope": {
+      "type": "string",
+      "enum": ["local", "subtree-wide", "run-wide", "human-level"],
+      "description": "How far the decision binds (R24). local: this asker only. subtree-wide: this lead's whole subtree. run-wide: the entire run. human-level: a decision that actually belongs to the human (signals the lead should climb via needs-user, not decide)."
+    },
+    "disposition": {
+      "type": "string",
+      "enum": [
+        "answered",
+        "escalated",
+        "rejected-as-local",
+        "requested-more-evidence",
+        "reaffirmed"
+      ],
+      "description": "What the lead did with the ask (R14/R6). answered: gave a binding answer. escalated: climbed because it genuinely could not resolve (R3). rejected-as-local: the question was a local-implementation choice the asker should make (the classification_proof failed). requested-more-evidence: the ask was too thin to answer. reaffirmed: on a one-time evidenced push-back, the lead re-affirmed its prior answer for that evidence set (R6) — final unless genuinely new evidence reopens it."
+    },
+    "answered_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp the answer was written. Orders answers within a logical unit and feeds the consult-latency tally (U13)."
+    }
+  }
+}

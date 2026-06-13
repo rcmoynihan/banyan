@@ -26,7 +26,7 @@ included.
 | field | what it is |
 |---|---|
 | `objective` | One crisp goal, one sentence. Not a role ("be a reviewer") -- a target ("find correctness bugs in the diff at HEAD"). |
-| `inputs` | Optional. The task-specific payload the parent hands the child: base ref, diff/files paths, intent summary, scope mode, plan ref, test command, and any flags -- the shapes review/delivery/debug leads already pass. Resolved paths, never bare host-repo paths (see the `doctrine` footgun). |
+| `inputs` | Optional. The task-specific payload the parent hands the child: base ref, diff/files paths, intent summary, scope mode, plan ref, test command, and any flags -- the shapes review/delivery/debug leads already pass. For a **consult continuation** spawn it also carries the continuation fields (`transcript_pointer`, `answer_ref`, `resume_mode`, `session_path`, and -- for delivery -- `unit_base_ref`/worktree); see "Consult / continuation inputs" below. Resolved paths, never bare host-repo paths (see the `doctrine` footgun). |
 | `artifact_path` | The single file the child MUST write (invariant 3, artifacts over prose). The child's final message is a verdict plus this path -- never the payload. |
 | `output_format` | What the artifact contains: schema name, section headings, or "JSON per `schemas/findings-schema.json`". The parent reads the file expecting this shape. |
 | `doctrine` | Resolved paths to the Banyan doctrine and required convention references. Include `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` whenever the child needs Banyan invariants, lead pattern, protected artifacts, or recovery doctrine; do not rely on a bare `AGENTS.md`, which belongs to the host repo. |
@@ -181,6 +181,36 @@ in its artifact; and it propagates an explicit `UNVERIFIED (no test command)` ma
 upward in its verdict line. If a delivery unit names its own runnable `Verification`
 check, the unit runs that check as a substitute and records exactly what ran. The
 upward marker remains because the repo-level validation spine is unavailable.
+
+## Consult / continuation inputs
+
+When a lead answers a consult and spawns a **continuation** (the recursive consult-upward loop —
+see `references/consult-protocol.md`), the continuation is a **same-type respawn of the asker**, not
+a new agent type (DI3). The *type* is reused; only the envelope `inputs` differ. A continuation
+spawn carries these additional `inputs` fields:
+
+| `inputs` field | what it is |
+|---|---|
+| `transcript_pointer` | The U2 structured-capability pointer (`schemas/transcript-pointer.schema.json`) naming the **direct predecessor's** transcript, so the continuation can rehydrate from it laterally (R15/R17). **Opaque to the lead** -- the lead passes it through **unread** and never opens the transcript it names (the rule below). |
+| `answer_ref` | The path/id of the `consults/answers/<answer_id>.json` the continuation must absorb and treat as newer authority than its predecessor's pre-question reasoning (R10). |
+| `resume_mode` | The run's **locked** resume mode (`transcript` \| `checkpoint`), read from the ledger lock -- not re-decided per spawn (R19/R20). See `references/resume-protocol.md`. |
+| `session_path` | The envelope-pushed session path for transcript-path derivation (R28). Resolved once at run start by the trunk/owning lead and pushed down every spawn; the filesystem-discovery fallback in `locate-transcript.mjs` applies when it is absent. |
+| `unit_base_ref` / worktree | **Delivery only.** A `bn-unit-lead` continuation must re-attach to the predecessor's `isolation: worktree` + `unit_base_ref` (plan-check design-Q6 §4). Carried here so the reused type lands in the right worktree. |
+
+> **The pointer is opaque to the lead (R11/DI1).** A lead that answers a consult **reads the bounded
+> ask only**; it must never open, read, or summarize the predecessor's transcript. It copies the
+> `transcript_pointer` from the ask into the continuation's `inputs` **verbatim and unread**. The
+> only transcript readers in the whole loop are the continuation (a same-type peer, direct
+> predecessor only) and the disposable `bn-consult-extractor` (one bounded fact). A lead's context
+> scales with the questions it answers, never with the work done below it (R13).
+
+> **The consult/redispatch budget is independent of `max_children`/`depth_remaining` (R22).** The
+> spawn budget bounds the spawn tree; it does **not** bound consult thrash. A separate composite
+> per-logical-unit meter (respawn count, cumulative tokens, repeated re-reads, no-progress diff,
+> near-duplicate questions, plus a `transcript_ancestry_depth` cap and a `total_transcript_bytes`
+> cap) governs the loop and aborts a thrashing logical unit to `blocked` -- see
+> `references/consult-budget.md`. Do not conflate the two: a healthy spawn budget says nothing about
+> whether a logical unit is making consult progress.
 
 ## User touchpoints: artifact-backed re-entry
 
