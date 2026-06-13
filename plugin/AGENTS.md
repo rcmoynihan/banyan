@@ -38,6 +38,12 @@ These hold for every agent, skill, and spawn in Banyan.
    disjoint reading, isolated writing, or fresh-context judging. Never for role-play. There is
    no PM-agent talking to an architect-agent talking to an engineer-agent. "Department" is a
    metaphor for ownership and accountability, not a screenplay.
+   *(Affirming note — the recursive consult-upward loop is consistent with this invariant, not an
+   amendment to it. The loop exists for a context reason: the layer above holds goal/intent
+   context a leaf lacks. The continuation is a fresh peer of the asker's own type — a same-type
+   respawn, never a new "consultant" role; the one new agent, `bn-consult-extractor`, is a
+   disposable read-only context, not a persona. See
+   `skills/bn-conventions/references/consult-protocol.md`.)*
 2. **One writer per file set.** Reads parallelize; writes serialize within a subtree. Parallel
    writers exist only across disjoint git worktrees, merged by their parent. Each lead is the
    single-threaded writer for its domain.
@@ -45,6 +51,16 @@ These hold for every agent, skill, and spawn in Banyan.
    channel back to its parent is its final message, so that message is a **verdict plus paths** —
    never the payload. Parents read artifacts, not summaries. (At depth 5 a
    summary-of-a-summary-of-a-summary is the telephone game; the filesystem is the ground truth.)
+   *(Transfer categories. Two transfers are distinguished and must not be conflated. (a) **Parent
+   review** — a parent reads a child's verdict-plus-paths and bounded artifacts (asks, briefs,
+   findings); it never reads a child's raw transcript. This invariant is **preserved unchanged**
+   for parents. (b) **Lateral peer rehydration under a resume protocol** — a continuation, which
+   is a fresh same-type peer of an asker (not a parent), reads its **direct predecessor's** raw
+   transcript whole-as-text to resume the work, governed by
+   `skills/bn-conventions/references/consult-protocol.md` and the run-locked resume mode. This
+   lateral, peer-to-peer read never travels upward: a transcript flows peer to peer, never to a
+   parent. The only transcript readers are the continuation and the disposable
+   `bn-consult-extractor`; every lead body is audited to contain no transcript-read instruction.)*
 4. **Decompose on failure, not eagerly.** Default depth is 1–2. Depth 3–5 is *reserve capacity*
    triggered by failure or context pressure, not spent preemptively. Most tasks stay shallow.
    A procedure-owning lead is the narrow standing reason for one eager level when a command

@@ -256,6 +256,24 @@ Use this structure:
   - **Recovery attempted:** <attempts made, with artifact paths>
   - **Next safe action:** <what a resumed trunk or user should do>
 
+## Terminal decisions
+
+The consult-loop `/bn-grow` carve-out (R25): the topmost grow answering layer **decides** one rung
+below the human rather than escalating mid-run, recording each terminal decision here. A
+terminal-decision entry is a decision made and recorded for later review — **not** a hard-stop. The
+narrow hard-stop class (R26) is recorded under **Blockers** instead, using `Class: no-safe-default`
+(R26a — irreversible / high-blast-radius product decision with no defensible default) or
+`Class: missing-external-authority` (R26b — work blocked on access wholly outside the agent, e.g.
+secrets/credentials/vendor state).
+
+- TD1. <short decision title>
+  - **Assumption decided:** <the call made, in one sentence>
+  - **Alternatives rejected:** <the options considered and why not>
+  - **Blast radius:** <what this affects>
+  - **Reversibility:** reversible | hard-to-reverse | irreversible
+  - **Files likely affected:** <paths or "none yet">
+  - **Recorded from consult:** <consults/answers/<answer_id>.json, or "n/a">
+
 ## Safe assumptions already made
 
 - <assumption and where it was recorded, or "none">

@@ -306,3 +306,29 @@ If a gate is not met, recover before surfacing:
 
 When exiting before the ship gate, write `.banyan/runs/<run-id>/residuals.md` using the ledger
 template, point `ledger.md` at it, and then surface the residual path plus the next safe action.
+
+### Consult-loop carve-out: decide one rung below the human (R25/R26)
+
+`/bn-grow` is **hands-off** — the trunk does not interrupt the user mid-run. So the consult-upward
+ladder (see `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/consult-protocol.md`)
+**terminates one rung below the human** in a grow run. The topmost grow agent answering a consult
+**decides** rather than escalating to the user, with two exceptions:
+
+- **R25 — decide-and-record (the default at the top rung).** When a goal/intent question climbs to
+  the topmost answering layer, that layer **makes the call** and records a rich
+  **terminal-decision residual** via the existing `residuals.md` path: the **assumption** it
+  decided on, the **alternatives rejected**, the **blast radius**, the **reversibility**, and the
+  **files likely affected**. This is a decision recorded for later review, **not** a guess silently
+  buried — the run continues under the recorded decision. Use the `Terminal decisions` block of the
+  `residuals.md` template (`references/ledger.md`).
+- **R26 — the narrow hard-stop class (the only thing that halts the work line).** Two cases are
+  exempt from R25 and **stop the work line** rather than deciding: (a) a genuinely **irreversible /
+  high-blast-radius product decision with no defensible default** — record it as a `residuals.md`
+  hard-stop of class `no-safe-default`; or (b) work blocked on action **wholly outside the agent's
+  access** (secrets, credentials, vendor / account / deployment state) — record it as class
+  `missing-external-authority`. A hard-stop is written as a residual **blocker** (not a guess) and
+  rides the existing residual/blocked rails; it is the one path that surfaces upward to the user.
+
+A reworded re-ask of an already-decided terminal decision is thrash (the consult budget's
+near-duplicate meter), not a new escalation. Only genuinely new evidence reopens a terminal
+decision.
