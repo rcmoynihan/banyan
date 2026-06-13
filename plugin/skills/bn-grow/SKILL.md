@@ -75,6 +75,13 @@ This single run dir is reused by every phase below -- pass its run ID and run di
 `/bn-spec-stress`, `bn-plan-lead`, `/bn-work`, and `/bn-review` so they do NOT each open a
 fresh run.
 
+When resuming from an existing plan-created run, normalize the ledger before entering phases
+that were not seeded by the original `/bn-grow` scaffold. If `## Units` has only a `plan`
+row, add missing phase rows for `deliver|bn-delivery-lead|pending|.banyan/runs/<run-id>/delivery-report.md`
+and `review|bn-review-lead|pending|.banyan/runs/<run-id>/review-verdict.md`. Append a `trunk`
+log line that names the resume phase and the rows added. Do this once before the phase dispatch;
+do not rewrite existing rows or replace phase rows with per-implementation-unit rows.
+
 ### Fuzzy intake (skill: /bn-brainstorm)
 
 If the input is a fuzzy idea, invoke the `/bn-brainstorm` flow in **grow intake mode**:
@@ -210,6 +217,13 @@ draft`; delivery consumes it next.)
 
 ## Phase 5 -- Deliver (skill: /bn-work)
 
+Before invoking delivery, ensure the active ledger has a `deliver` row. If this grow resumed
+from a plan-only run and the row is missing, add it now with owner `bn-delivery-lead`, status
+`in-progress`, and artifact `.banyan/runs/<run-id>/delivery-report.md`; also ensure a pending
+`review` row exists for the next gate. Append a `trunk: entering deliver via /bn-work` log line
+before dispatch so a user tailing the ledger can see delivery started even if the child spawn
+fails before writing its report.
+
 Invoke the `/bn-work` flow on the plan from Phase 4, reusing THIS run dir. `/bn-work`
 dispatches `bn-delivery-lead`, which makes per-unit atomizer decisions, fans composite
 units out to worktree-isolated unit-leads that self-test and mini-review, and merges in
@@ -217,12 +231,16 @@ dependency order via a single integrator. It commits per unit; it NEVER pushes.
 
 **GATE:** `.banyan/runs/<run-id>/delivery-report.md` exists, code actually changed, and the
 report says the units are done or names blocked units explicitly. READ the report (the
-file, not the lead's prose). If units are blocked, inspect the report's recovery section.
-When the blocker is recoverable by delivery ownership (boundary under-scope, shared-file
-assignment, worktree isolation fallback, a bounced unit with a concrete fix path), re-enter
-`/bn-work` once with the blocked-unit context and the same run dir. Do not proceed to review
-unless the report says all required units are done. If delivery remains blocked after the
-retry, write `residuals.md` with phase `deliver` and exit.
+file, not the lead's prose). If the delivery spawn returns an internal/missing tool result
+and `delivery-report.md` does not exist, append a `trunk` log line with the dispatch failure
+and re-enter `/bn-work` once with the same run dir, same plan path, and the concrete note
+`previous delivery dispatch returned missing/internal tool result before report`. If units
+are blocked, inspect the report's recovery section. When the blocker is recoverable by
+delivery ownership (boundary under-scope, shared-file assignment, worktree isolation fallback,
+a bounced unit with a concrete fix path), re-enter `/bn-work` once with the blocked-unit
+context and the same run dir. Do not proceed to review unless the report says all required
+units are done. If delivery remains blocked after the retry, write `residuals.md` with phase
+`deliver` and exit.
 
 ## Phase 6 -- Review (skill: /bn-review)
 

@@ -99,6 +99,36 @@ test('bn-grow recovers gates before surfacing residuals', () => {
   assert.doesNotMatch(grow, /STOP and surface/);
 });
 
+test('reused delivery runs preserve phase ledgers', () => {
+  const work = readPlugin('skills/bn-work/SKILL.md');
+  const grow = readPlugin('skills/bn-grow/SKILL.md');
+  const deliveryLead = readPlugin('agents/bn-delivery-lead.md');
+  const ledger = readPlugin('skills/bn-conventions/references/ledger.md');
+
+  assert.match(work, /Adoption is intentionally\s+non-mutating/);
+  assert.match(work, /delivery started via \/bn-work/);
+  assert.match(work, /plan-only run resumed into `\/bn-grow`/);
+  assert.match(work, /Do not add per-implementation-unit rows to a reused\s+phase ledger/);
+  assert.match(work, /do NOT replace the table with per-unit rows/);
+
+  assert.match(grow, /resuming from an existing plan-created run/);
+  assert.match(grow, /deliver\|bn-delivery-lead\|pending\|\.banyan\/runs\/<run-id>\/delivery-report\.md/);
+  assert.match(grow, /trunk: entering deliver via \/bn-work/);
+  assert.match(grow, /internal\/missing tool result/);
+  assert.match(grow, /previous delivery dispatch returned missing\/internal tool result before report/);
+
+  assert.match(deliveryLead, /Standalone `\/bn-work` unit ledger/);
+  assert.match(deliveryLead, /Reused `\/bn-grow` or plan-created phase ledger/);
+  assert.match(deliveryLead, /Do \*\*not\*\* replace the phase table with[\s\S]*per-implementation-unit rows/);
+  assert.match(deliveryLead, /Missing owned row/);
+
+  assert.match(ledger, /## Phase ledgers and unit ledgers/);
+  assert.match(ledger, /Phase ledger[\s\S]*`deliver`/);
+  assert.match(ledger, /Unit ledger[\s\S]*`U1`, `U2`/);
+  assert.match(ledger, /Adopting an existing run is non-mutating/);
+  assert.match(ledger, /scaffolder's `--run-id` path/);
+});
+
 test('planning is owned by bn-plan-lead', () => {
   const planSkill = readPlugin('skills/bn-plan/SKILL.md');
   const planLead = readPlugin('agents/bn-plan-lead.md');

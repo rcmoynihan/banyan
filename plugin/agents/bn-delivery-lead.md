@@ -311,11 +311,23 @@ file, so it must stand alone):
   resume_from_phase: deliver | plan; or "none">
 ```
 
-Then **update the ledger** at `.banyan/runs/<run-id>/ledger.md`: write the **`## Units`
-table** — **one row per delivery unit** (`unit | owner (lead) | status | artifact`) with status
-∈ `done | blocked`, the owner (`bn-delivery-lead` for inline units, `bn-unit-lead` for
-composite), and the artifact (the branch ref / `progress/unit-<id>.md`). You own these rows
-(single-writer). **Append** one event line to `## Log`
+Then **update the ledger** at `.banyan/runs/<run-id>/ledger.md` according to the active
+ledger shape:
+
+- **Standalone `/bn-work` unit ledger:** if `## Units` already contains one row per `U<N>`
+  delivery unit that you own, update those rows to `done` or `blocked` and point each
+  artifact at the branch ref / `progress/unit-<id>.md`.
+- **Reused `/bn-grow` or plan-created phase ledger:** if `## Units` contains a `deliver`
+  row owned by `bn-delivery-lead`, update only that row to `done` or `blocked` and point it
+  at `.banyan/runs/<run-id>/delivery-report.md`. Do **not** replace the phase table with
+  per-implementation-unit rows; the per-unit detail belongs in `delivery-report.md` and
+  `progress/bn-delivery-lead.md`.
+- **Missing owned row:** if neither shape gives you an owned row, do not rewrite unrelated
+  rows. Append a log line that says the delivery ledger row was missing, keep the full unit
+  detail in `delivery-report.md`, and report the missing row in `### Squeeze / shortfalls`
+  with `recovery_owner: bn-work`.
+
+For every shape, **append** one event line to `## Log`
 (`- <ISO8601> bn-delivery-lead: <event>`). Do not edit any row or log line you do not own.
 
 **Before returning, spawn ONE `bn-lesson-harvester`** with an envelope

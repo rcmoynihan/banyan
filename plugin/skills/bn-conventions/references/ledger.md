@@ -164,6 +164,28 @@ Notes on the template:
 - `## Log` lines are `- <ISO8601> <agent>: <event>` -- append only.
 - `## Open questions` is a living list: add when blocked, remove when resolved.
 
+## Phase ledgers and unit ledgers
+
+Two `## Units` shapes are valid:
+
+- **Phase ledger** -- `/bn-grow` and any plan-created run later resumed into `/bn-grow` use
+  rows such as `research`, `spec-stress`, `plan`, `deliver`, and `review`. Each phase lead
+  owns only its phase row. Delivery unit detail stays in `delivery-report.md` and
+  `progress/bn-delivery-lead.md`; the delivery lead updates the `deliver` row, not a
+  replacement table of `U<N>` rows.
+- **Unit ledger** -- standalone `/bn-work` runs may use one row per implementation unit
+  (`U1`, `U2`, ...). The delivery lead owns those rows and updates them as units finish or
+  block.
+
+Do not mix the shapes in one run. If a plan-only ledger with only a `plan` row is resumed
+into `/bn-grow`, the grow/work trunk adds missing phase rows such as `deliver` and `review`
+before dispatch. It does not convert the run to a standalone `/bn-work` unit ledger.
+
+Adopting an existing run is non-mutating. The scaffolder's `--run-id` path returns the same
+structured facts and ensures subdirectories exist, but it must not overwrite `ledger.md` or
+seed missing rows. The caller that adopts the run owns any phase-transition row update and
+the append-only `## Log` line that makes the resumed phase visible.
+
 ## residuals.md template
 
 `residuals.md` exists only for a grow run that has exhausted bounded recovery before the ship
@@ -217,9 +239,12 @@ permission-cliff decisions.
 
 ## How a run flows
 
-1. **The owning trunk or procedure lead opens the run.** It runs the scaffolder (or does the
-   manual fallback in the bn-conventions skill), writes the `## Objective`, sets the `## Plan`
-   ref, and appends the opening line to `## Log`.
+1. **The owning trunk or procedure lead opens or adopts the run.** It runs the scaffolder
+   (or does the manual fallback in the bn-conventions skill), writes the `## Objective`, sets
+   the `## Plan` ref, and appends the opening line to `## Log` for a fresh run. When it
+   adopts an existing run via `--run-id`, the scaffolder does not mutate the ledger; the
+   caller appends the phase-transition log line and adds any missing phase row it owns before
+   dispatch.
 2. **Trunk dispatches leads** with delegation envelopes (see `references/envelope.md`).
    Each lead's envelope names its artifact paths under this run dir.
 3. **Each lead echoes its envelope** into `progress/<lead>.md` on start, so its

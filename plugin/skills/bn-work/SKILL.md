@@ -15,9 +15,9 @@ lead, not here. Keep this procedure small.
 
 The trunk NEVER switches the user's branch and NEVER pushes or opens a PR: executing
 work is not permission to ship. The only writes this skill makes are the run dir, its
-ledger setup, and -- in direct mode -- the run-local direct work spec. Implement/commit
-happen inside the foreground lead, in the user's session; push/PR remain a separate
-`bn-ship` step (permission cliff, invariant 6).
+ledger setup or phase-transition ledger lines, and -- in direct mode -- the run-local
+direct work spec. Implement/commit happen inside the foreground lead, in the user's
+session; push/PR remain a separate `bn-ship` step (permission cliff, invariant 6).
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
@@ -120,9 +120,18 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs work-<slug>
   `work-add-oauth-login`); direct mode: kebab-case from the direct task. The script emits
   JSON; capture `run_id`, `run_dir`, `ledger_path`, and `facts`.
 - `<repo-root>` -> the value from Step 3.
-- When reusing a grow run, call the script with `--run-id <run-id>` so it returns the same
-  structured facts without overwriting the existing ledger. Append only the delivery-specific
-  log line or progress note the active run needs.
+- When reusing an existing run, call the script with `--run-id <run-id>` so it returns the
+  same structured facts without overwriting the existing ledger. Adoption is intentionally
+  non-mutating: `created: false` means the scaffolder only ensured the run subdirs and
+  returned repo facts. The caller must make the delivery phase visible in `ledger.md`
+  before spawning the lead.
+- After adopting an existing run, append exactly one delivery-start event to `## Log`
+  (`- <ISO8601> trunk: delivery started via /bn-work; spec <path>; run reused`). If the
+  active ledger has a `deliver` row, set only that row to `in-progress`. If the active
+  ledger has no `deliver` row (for example a plan-only run resumed into `/bn-grow`), add
+  a phase row `deliver|bn-delivery-lead|in-progress|.banyan/runs/<run-id>/delivery-report.md`
+  instead of leaving the run plan-only. Do not add per-implementation-unit rows to a reused
+  phase ledger.
 
 Set the delivery spec path:
 
@@ -191,10 +200,11 @@ Units -- one row per U-ID, owner `bn-delivery-lead`, status `pending`, artifact
 `.banyan/runs/<run-id>/progress/unit-<U>.md` (the unit-lead's progress artifact; its scoped
 mini-review pair lands separately at `findings/unit-<U>-review.json` and
 `findings/unit-<U>-spec-fidelity.json`). The lead owns these rows from here on
-(single-writer); the trunk does not rewrite them after dispatch. **When reusing the grow
-run, do NOT re-seed this table** -- the grow trunk already owns it at phase granularity
-(the `deliver` row the Phase 4 gate tracks), so per-unit detail stays in the delivery
-lead's `progress/` notes rather than colliding with grow's phase rows.
+(single-writer); the trunk does not rewrite them after dispatch. **When reusing an existing
+run, do NOT replace the table with per-unit rows** -- the active run already owns delivery
+at phase granularity (the `deliver` row the grow/work gate tracks), so per-unit detail
+stays in the delivery lead's `progress/` notes and `delivery-report.md` rather than
+colliding with phase rows.
 
 ## Step 5: Build the envelope and spawn bn-delivery-lead
 
@@ -210,7 +220,8 @@ artifact_path:   .banyan/runs/<run-id>/delivery-report.md
 output_format:   Markdown delivery report: units done/blocked, merge + suite status,
                  per-unit mini-review summary (findings/unit-*-review.json and
                  findings/unit-*-spec-fidelity.json), and the final branch/commit state.
-                 Writes progress/ and ledger Units rows too.
+                 Writes progress/ and updates either the reused-run `deliver` phase row
+                 or standalone unit rows, as appropriate.
 inputs:
   delivery_spec_path: <.banyan/plans/...-plan.md OR .banyan/runs/<run-id>/briefs/direct-work-plan.md>
   delivery_spec_kind: <durable-plan | direct-work>
