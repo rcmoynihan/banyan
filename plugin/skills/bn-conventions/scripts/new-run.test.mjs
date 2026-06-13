@@ -197,3 +197,146 @@ test('scaffolds a fresh run when a durable artifact mentions multiple live runs'
   assert.equal(result.reason, 'ambiguous-mentioned-run');
   assert.equal(result.run_id, '2026-06-12-003-work-widget');
 });
+
+// --- resume-mode lock (U3: R19/R20/R28, AE5) ------------------------------
+
+test('defaults to checkpoint mode with no probe input (safe degrade)', (t) => {
+  const root = createRepo(t);
+
+  const result = runNewRun(['plan-add-widget', '--date', '2026-06-12'], root);
+
+  // The JSON output carries the resolved facts.
+  assert.equal(result.facts.resume_mode, 'checkpoint');
+  assert.equal(result.facts.session_path, 'none (checkpoint mode)');
+  assert.equal(result.facts.resume_reason, 'no-probe-result');
+
+  // And the ledger ## Facts / Context is seeded with both lines.
+  const ledger = fs.readFileSync(result.ledger_path, 'utf8');
+  assert.match(ledger, /- Resume mode: checkpoint \(reason: no-probe-result\)/);
+  assert.match(ledger, /- Session path: none \(checkpoint mode\)/);
+});
+
+test('locks to transcript mode when --locate reports located+complete', (t) => {
+  const root = createRepo(t);
+  const locate = JSON.stringify({
+    located: true,
+    complete: true,
+    path: '/home/u/.claude/projects/p/s/subagents/agent-abc.jsonl',
+    reason: 'located-and-complete',
+  });
+
+  const result = runNewRun(['plan-add-widget', '--date', '2026-06-12', '--locate', locate], root);
+
+  assert.equal(result.facts.resume_mode, 'transcript');
+  assert.equal(result.facts.session_path, '/home/u/.claude/projects/p/s/subagents/agent-abc.jsonl');
+
+  const ledger = fs.readFileSync(result.ledger_path, 'utf8');
+  assert.match(ledger, /- Resume mode: transcript \(reason: located-and-complete\)/);
+  assert.match(
+    ledger,
+    /- Session path: \/home\/u\/\.claude\/projects\/p\/s\/subagents\/agent-abc\.jsonl/,
+  );
+});
+
+test('locks to checkpoint mode when --locate reports not-locatable (degrade)', (t) => {
+  const root = createRepo(t);
+  const locate = JSON.stringify({
+    located: false,
+    complete: false,
+    path: null,
+    reason: 'file-not-found',
+  });
+
+  const result = runNewRun(['plan-add-widget', '--date', '2026-06-12', '--locate', locate], root);
+
+  assert.equal(result.facts.resume_mode, 'checkpoint');
+  assert.equal(result.facts.session_path, 'none (checkpoint mode)');
+
+  const ledger = fs.readFileSync(result.ledger_path, 'utf8');
+  assert.match(ledger, /- Resume mode: checkpoint \(reason: file-not-found\)/);
+});
+
+test('locked-but-incomplete transcript degrades to checkpoint mode (R20)', (t) => {
+  const root = createRepo(t);
+  // A located-but-incomplete (growing/truncated) transcript must NOT unlock
+  // transcript mode — locate-AND-complete is the gate (R20).
+  const locate = JSON.stringify({
+    located: true,
+    complete: false,
+    path: '/x/subagents/agent-abc.jsonl',
+    reason: 'actively-growing',
+  });
+
+  const result = runNewRun(['plan-add-widget', '--date', '2026-06-12', '--locate', locate], root);
+
+  assert.equal(result.facts.resume_mode, 'checkpoint');
+  const ledger = fs.readFileSync(result.ledger_path, 'utf8');
+  assert.match(ledger, /- Resume mode: checkpoint \(reason: actively-growing\)/);
+});
+
+test('malformed --locate JSON degrades to checkpoint rather than failing', (t) => {
+  const root = createRepo(t);
+
+  // A malformed probe payload must not break the scaffold — degrade-not-break.
+  const result = runNewRun(['plan-add-widget', '--date', '2026-06-12', '--locate', '{not json'], root);
+
+  assert.equal(result.created, true);
+  assert.equal(result.facts.resume_mode, 'checkpoint');
+  assert.equal(result.facts.resume_reason, 'no-probe-result');
+});
+
+test('adopting a live run leaves its locked resume facts untouched (R19 locked-once)', (t) => {
+  const root = createRepo(t);
+
+  // Open a fresh run with no probe -> ledger locks to checkpoint.
+  const first = runNewRun(['grow-widget', '--date', '2026-06-12'], root);
+  const ledgerBefore = fs.readFileSync(first.ledger_path, 'utf8');
+  assert.match(ledgerBefore, /- Resume mode: checkpoint \(reason: no-probe-result\)/);
+
+  // Re-invoke against the SAME run (adoption via an input under it) WITH a
+  // transcript-mode probe. The lock was set once at open; adoption must not
+  // re-decide it in the durable ledger.
+  writeFile(root, `${path.relative(root, first.run_dir)}/briefs/research-brief.md`, '# Brief\n');
+  const transcriptLocate = JSON.stringify({
+    located: true,
+    complete: true,
+    path: '/x/a.jsonl',
+    reason: 'located-and-complete',
+  });
+  const adopted = runNewRun(
+    [
+      'plan-widget',
+      '--date',
+      '2026-06-12',
+      '--input',
+      `${path.relative(root, first.run_dir)}/briefs/research-brief.md`,
+      '--locate',
+      transcriptLocate,
+    ],
+    root,
+  );
+
+  assert.equal(adopted.created, false);
+  assert.equal(adopted.run_id, first.run_id);
+  // The durable ledger lock is the source of truth and is unchanged.
+  const ledgerAfter = fs.readFileSync(first.ledger_path, 'utf8');
+  assert.match(ledgerAfter, /- Resume mode: checkpoint \(reason: no-probe-result\)/);
+  assert.doesNotMatch(ledgerAfter, /- Resume mode: transcript/);
+});
+
+test('resume-mode facts coexist with user --fact lines and test-command fact', (t) => {
+  const root = createRepo(t);
+  writeFile(root, 'package.json', JSON.stringify({ scripts: { test: 'node --test' } }));
+
+  const result = runNewRun(
+    ['plan-add-widget', '--date', '2026-06-12', '--fact', 'Input: docs/brief.md'],
+    root,
+  );
+
+  const ledger = fs.readFileSync(result.ledger_path, 'utf8');
+  // All fact families survive together (no clobbering of the existing seam).
+  assert.match(ledger, /- Test command: npm test \(source: package\.json scripts\.test\)/);
+  assert.match(ledger, /- Resume mode: checkpoint/);
+  assert.match(ledger, /- Session path: none \(checkpoint mode\)/);
+  assert.match(ledger, /- Input: docs\/brief\.md/);
+});
