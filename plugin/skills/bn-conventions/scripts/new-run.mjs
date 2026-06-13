@@ -18,12 +18,13 @@ const SUBDIRS = [
   'lessons-staging',
   // Consult-loop artifact families (U6/R23): every run houses its asks, answers,
   // continuation chains, and abort records from scaffold time so no consult
-  // artifact is ever un-housed (un-auditable). `consults/metrics` is added by the
-  // deferred U13, not here.
+  // artifact is ever un-housed (un-auditable). `consults/metrics` (U13/R29) houses
+  // the per-run consult metric roll-up derived mechanically from the audit artifacts.
   'consults/asks',
   'consults/answers',
   'consults/chains',
   'consults/aborts',
+  'consults/metrics',
 ];
 const DOCUMENTED_COMMANDS = [
   'poetry run pytest',

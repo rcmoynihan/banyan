@@ -75,15 +75,17 @@ test('creates the consult artifact subdirs at scaffold time (U6/R23)', (t) => {
 
   const result = runNewRun(['plan-add-widget', '--date', '2026-06-12'], root);
 
-  for (const sub of ['consults/asks', 'consults/answers', 'consults/chains', 'consults/aborts']) {
+  for (const sub of [
+    'consults/asks',
+    'consults/answers',
+    'consults/chains',
+    'consults/aborts',
+    // consults/metrics is added by U13 (R29 metric roll-up).
+    'consults/metrics',
+  ]) {
     const dir = path.join(result.run_dir, sub);
     assert.ok(fs.existsSync(dir) && fs.statSync(dir).isDirectory(), `missing consult subdir: ${sub}`);
   }
-  // consults/metrics belongs to the deferred U13 and must NOT be created here.
-  assert.ok(
-    !fs.existsSync(path.join(result.run_dir, 'consults/metrics')),
-    'consults/metrics must not be created by U6 (it is U13)',
-  );
 
   // The pre-existing subdirs are still created alongside the new ones.
   for (const sub of ['progress', 'findings', 'briefs', 'lessons-staging']) {
