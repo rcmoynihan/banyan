@@ -48,9 +48,14 @@ of a path); an unresolved `Resolve Before Planning` section hides **Stress requi
    `Resolve Before Planning` is empty **and** scope is lightweight, success criteria are
    clear, scope boundaries are clear, and no meaningful technical or research questions
    remain (the "direct-to-work gate").
-4. **Keep refining** — More clarifying questions or another approach pass; return to the
+4. **See it first / mock it with `/bn-mock`** — Build a deliberately-fake, semi-functional
+   mock under `mock/<slug>/` so design holes surface before planning or building. Shown
+   standalone (offered whether or not a requirements document exists, since `/bn-mock` accepts
+   free text — R2). Because this menu is skipped entirely under the `/bn-grow` intake guard at
+   the top of this file, the mock option is never surfaced inside `/bn-grow` intake (R5).
+5. **Keep refining** — More clarifying questions or another approach pass; return to the
    appropriate phase.
-5. **Done for now** — Print the closing summary and stop.
+6. **Done for now** — Print the closing summary and stop.
 
 ## Dispatch
 
@@ -66,6 +71,10 @@ finalized brainstorm output as direct task context. If a compact requirements do
 exists, pass its path; `/bn-work` treats non-`.banyan/plans/` paths as direct-mode context
 and writes `.banyan/runs/<run-id>/briefs/direct-work-plan.md` itself. Do not print the
 closing summary first.
+
+**See it first / mock it** — Immediately invoke `/bn-mock` in the current session, passing
+the requirements-doc path when one exists, otherwise the finalized brainstorm summary as
+free-text input, reusing the live run; do not print the closing summary first.
 
 **Keep refining** — Return to dialogue (Phase 1.3) or approaches (Phase 2) as the user's
 note indicates. Re-run Phase 2.5 and Phase 3 (updating the existing doc) before offering
