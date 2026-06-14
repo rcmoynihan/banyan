@@ -145,7 +145,10 @@ exhausted the owning layer's recovery cap. Escalation-worthy cases include:
 - missing external authority such as secrets, account access, vendor settings, or private
   deployment state;
 - unsafe working-tree state where recovery would overwrite or entangle user-owned changes;
-- repeated failure after the phase or lead has used its bounded recovery path.
+- repeated failure after the phase or lead has used its bounded recovery path;
+- an explicit user-invoked procedure (a skill or command) you judge disproportionate to the
+  real task: get consent before deviating from it onto a leaner path, even when you are
+  confident the leaner path reaches the right result (§2.4).
 
 User prompt text can steer autonomy for the current run. A request like "be aggressive and do not
 ask unless blocked" raises the threshold for escalation; a request like "pause before product
@@ -167,6 +170,46 @@ and writes the durable state; the trunk does not patch lead-owned artifacts itse
 When an autonomous grow run exits early after recovery is exhausted, the grow trunk writes the
 residual state to `.banyan/runs/<run-id>/residuals.md` before surfacing it. The ledger points at that
 artifact so the run can resume from files rather than conversation memory.
+
+### 2.4 Deviating from an invoked procedure requires consent
+
+**When the user explicitly invokes a Banyan skill or names a procedure, that invocation is a
+directive to run *that* procedure — not merely a hint about intent.** This rule is binding;
+adherence to it is not optional.
+
+Skills are built to scale *down*. Most carry a lightweight path for small tasks — `/bn-grow`
+skips fuzzy intake and spec-stress and runs a thin plan for a clear lightweight task; `/bn-plan`
+and `/bn-review` scale their panels by effort. **Take the skill's own lightweight path before
+concluding the skill does not fit.** The lightweight path is part of the procedure, not an
+exception to it.
+
+If, *after* accounting for that lightweight path, you still judge that running the invoked
+procedure would be disproportionate overkill for the actual task, you **must not silently bypass
+it.** Reaching the right *result* by freelancing around an invoked procedure is still a
+violation of this doctrine: the user chose that procedure, and the gates, ledger, and durable
+record it produces are part of what they asked for. Quietly substituting your own judgment — even
+a *correct* judgment that the procedure is overkill — is precisely the failure this rule exists to
+prevent.
+
+Instead, **get the human driver's consent before deviating.** In one trunk-level touchpoint,
+surface up front:
+
+- what the invoked skill would do, and that even its lightweight path is more than the task needs;
+- the leaner alternative you propose; and
+- a clear recommendation.
+
+Ask with the platform's blocking question tool — `AskUserQuestion` in Claude Code; the equivalent
+elsewhere (`request_user_input` in Codex, `ask_user` in Gemini/Pi). Proceed on the leaner path
+**only once the user picks it.** This decision lives at the **trunk**: the trunk is the only layer
+that receives a user skill invocation and can ask (`AskUserQuestion` is trunk-only, §2.3).
+
+Two narrow cases are *already* consent and need no re-ask:
+
+- **Explicit prompt-local waiver.** If the user's own prompt authorizes the shortcut ("don't
+  bother with the full pipeline, just delete it"), consent is already given. This is the
+  run-local autonomy steering of §2.2 applied to procedure choice — do not re-ask.
+- **The skill routes itself elsewhere.** A skill may define its own thresholds that hand off,
+  no-op, or downgrade; following the skill's *written* branch is adherence, not deviation.
 
 ---
 

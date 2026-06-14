@@ -15,7 +15,8 @@ the reviewers -- the subtrees do. The trunk holds intent and enforces gates. Tha
 entire job.
 
 Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 1 context-centric decomposition,
-invariant 3 artifacts-over-prose, invariant 6 permission cliff, and §2.2 self-recovery),
+invariant 3 artifacts-over-prose, invariant 6 permission cliff, §2.2 self-recovery, and
+§2.4 deviating-from-an-invoked-procedure-requires-consent),
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md` (skip any already in your context). The phases you
 choreograph each have their own contract: `/bn-brainstorm`, `bn-research-lead` (the agent),
@@ -32,6 +33,32 @@ A failed gate is a recovery signal for the phase that owns it. Use the stage rec
 caps in **Gates recover before surfacing**; write `.banyan/runs/<run-id>/residuals.md` only
 when bounded recovery is exhausted or the blocker requires user authority. Honor prompt-local
 autonomy steering from the user without inventing formal modes.
+
+### This skill scales down — use the lightweight path before deciding it doesn't fit
+
+**bn-grow is not all-or-nothing.** It has a built-in lightweight path for small, clear tasks,
+and most of its weight is conditional:
+
+- **Fuzzy intake** (`/bn-brainstorm`) runs only for fuzzy ideas; a clear feature/task skips it
+  and treats the 2-3 line objective as the finalized requirements summary (Phase 1).
+- **Spec stress** is skipped for a clear lightweight task with no ambiguity flags (Phase 3).
+- **Planning** runs the generator + judge panel for standard/deep work and *skips it for
+  lightweight*, producing a thin plan (Phase 4).
+
+So before concluding the pipeline is overkill, route the task down THIS lightweight path —
+open the one run ledger, skip the phases above, and let each phase scale itself. The ledger
+and the artifact gates are cheap and are the point: they leave the durable record the user
+asked for by invoking `/bn-grow`.
+
+**If even the lightweight path is genuinely disproportionate** (e.g. a one-line deletion the
+user happened to send through `/bn-grow`), you may NOT silently freelance around the skill and
+just do the work — that is the violation `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` §2.4 exists to
+prevent, even when your direct edit reaches the right result. Instead, **ask the human driver
+first**, in one touchpoint: state what bn-grow would do, that even its lightweight path is more
+than the task needs, the leaner alternative you propose, and your recommendation. Use
+`AskUserQuestion` (or the platform's blocking question tool). Proceed directly only once they
+choose it — unless their original prompt already authorized the shortcut, which is consent
+already given (§2.4).
 
 ## Phase 1 -- Assess intake and open the run
 
