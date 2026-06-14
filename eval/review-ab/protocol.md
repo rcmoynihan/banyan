@@ -1,5 +1,22 @@
 # A/B evaluation protocol: Banyan `/bn-review` vs compound-engineering `/ce-code-review`
 
+> **⚠️ STALE — pending re-baseline (review-subtree read-only refactor).** This protocol and
+> its captured results describe the **prior** design in which `/bn-review` reviewed *and*
+> applied fixes (finding-owners + a clean-tree commit). `/bn-review` is now **read-only** —
+> it reviews and reports, it does not fix. The fix-and-verify path moved into **`/bn-work`**
+> (its `bn-delivery-lead` runs the full reviewer panel and a bounded review→fix→re-review
+> loop). Consequences for this harness:
+> - The **detection / false-positive** comparison against `/bn-review` is still valid.
+> - The **apply-vs-apply** arm is superseded: to compare applied-and-verified outcomes, the
+>   banyan arm must invoke **`/bn-work`** (not `/bn-review`), since `/bn-review` now correctly
+>   applies nothing. Running the harness as-is will show the banyan arm applying 0 fixes —
+>   that is the new expected `/bn-review` behavior, not a regression.
+> - `run-ab.ps1` still invokes `/bn-review base:<Base>`; it needs updating to target
+>   `/bn-work` for the apply arm before the next apply-vs-apply run.
+>
+> Treat the numbers in `results/` as a record of the old design until the harness is
+> re-pointed and re-run.
+
 This protocol produces HONEST, reproducible evidence on whether the lead-owned
 review subtree (`/bn-review`) is at least as good as the flat reviewer wave its
 personas are vendored from (`/ce-code-review`). It is the standing go/no-go gate

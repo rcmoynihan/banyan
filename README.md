@@ -101,7 +101,7 @@ In a `claude` session inside the repo you want to work on:
 /bn-grow <idea or feature/task description>
 ```
 
-`/bn-grow` runs the full pipeline — optional brainstorm intake for fuzzy ideas → research → spec stress when warranted → plan (judged) → deliver → review → ship gate → curation handoff — coordinating through a run ledger at `.banyan/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
+`/bn-grow` runs the full pipeline — optional brainstorm intake for fuzzy ideas → research → spec stress when warranted → plan (judged) → deliver (which runs the full reviewer panel and a bounded review→fix loop on its own integrated result) → ship gate → curation handoff — coordinating through a run ledger at `.banyan/runs/<run-id>/` that you can watch live. The pipeline never pushes; shipping is an explicit step you take at the end.
 
 Each stage is also independently invocable:
 
@@ -111,9 +111,9 @@ Each stage is also independently invocable:
 | `/bn-spec-stress` | Stress-test a requirements doc before planning: missing scenarios, hidden assumptions, acceptance gaps, and plan-affecting risks become a gate brief. |
 | `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying the documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
-| `/bn-review` | The flagship review subtree: reviews a diff, dedupes findings, and fixes-and-verifies them in place, returning an applied verdict (commits on a clean tree, never pushes). |
+| `/bn-review` | The flagship review subtree, **read-only**: reviews a diff, dedupes findings, and returns a findings report (it edits and commits nothing). To fix findings, address them yourself or run `/bn-work` — whose delivery lead runs this same panel and a bounded review→fix loop on its own work. |
 | `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: `bn-plan-lead` owns the generator/judge/checker panel and writes the durable plan. |
-| `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees plus a single integrator. |
+| `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees plus a single integrator, then run the full reviewer panel on the integrated result and fix its findings in a bounded review→fix→re-review loop (2 rounds; `--no-review` to skip). Commits per unit and per review round; never pushes. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel fresh-context investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description — the one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolvers fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
@@ -146,8 +146,9 @@ manifest with the artifact graph and handoff paths.
 
 The trunk classifies the input, opens a run ledger, runs brainstorm intake when the idea is
 still fuzzy, then dispatches the subtrees in sequence — research → spec stress when
-warranted → plan (judged) → deliver → review — with an explicit artifact gate between each
-stage. Failed gates trigger bounded recovery by the owning phase before anything is surfaced.
+warranted → plan (judged) → deliver (which now runs the full-panel review + bounded fix loop
+on its own work) — with an explicit artifact gate between each stage.
+Failed gates trigger bounded recovery by the owning phase before anything is surfaced.
 Watch the run live:
 
 ```
@@ -203,17 +204,21 @@ research subtree and return a distilled answer rather than raw research.
 ```
 /bn-review                     # the current branch against the default base
 /bn-review base:origin/main    # an explicit base ref
-/bn-review 1234                # a PR by number or URL (remote scope: report-only)
+/bn-review 1234                # a PR by number or URL (remote scope)
 ```
 
-Unlike a report-style reviewer, `/bn-review` resolves what it finds: each confirmed
-finding gets an owner that independently verifies, fixes, and re-tests it, and the lead
-returns an **applied verdict** — fixes committed on a clean tree, never pushed. Run it
-before opening a PR or as a final pass over `/bn-work` output. Effort scales with the
-diff: a trivial change gets an inline check; a large or sensitive one (auth, payments,
-migrations) gets the full warranted panel plus the adversarial reviewer. Repo-specific
-review rules belong in `AGENTS.md`, `CLAUDE.md`, or directory-scoped instruction files;
-`bn-project-standards-reviewer` audits those written rules during the panel run.
+`/bn-review` is **read-only**: it reviews and reports, it does not fix. The lead runs the
+warranted reviewer panel, dedupes the findings, and returns a **findings report** — an
+advisory verdict plus an actionable to-do list (`findings/merged.json`); it edits nothing
+and commits nothing. Run it before opening a PR, to audit someone else's branch or PR, or as
+a standalone read of `/bn-work` output. To *act* on the findings, address them yourself or
+run `/bn-work`, whose delivery lead runs this same panel on its own integrated work and
+drives a bounded review→fix→re-review loop (2 rounds) with `bn-finding-owner`s. Effort scales
+with the diff: a trivial change gets an inline check; a large or sensitive one (auth,
+payments, migrations) gets the full warranted panel plus the adversarial reviewer.
+Repo-specific review rules belong in `AGENTS.md`, `CLAUDE.md`, or directory-scoped
+instruction files; `bn-project-standards-reviewer` audits those written rules during the
+panel run.
 
 ### Debug a failure
 
@@ -309,7 +314,7 @@ it never edits the plugin itself — you review and apply.
 
 ## Evaluation
 
-The review subtree is benchmarked A/B against compound-engineering's `/ce-code-review` on a reproducible seeded-bug fixture (12 seeded bugs, published ground truth), replicated over an advertised and a fair de-advertised run: detection parity, with Banyan delivering applied-and-verified fixes (suite green, safe commit) from a ~7–8× smaller trunk footprint at comparable cost. The harness, protocol, and filled scorecard live in [`eval/review-ab/`](eval/review-ab/); the evaluation is rerunnable with `pwsh eval/review-ab/run-ab.ps1`.
+The review subtree is benchmarked A/B against compound-engineering's `/ce-code-review` on a reproducible seeded-bug fixture (12 seeded bugs, published ground truth), replicated over an advertised and a fair de-advertised run: detection parity, with Banyan delivering applied-and-verified fixes (suite green, safe commit) from a ~7–8× smaller trunk footprint at comparable cost. The harness, protocol, and filled scorecard live in [`eval/review-ab/`](eval/review-ab/); the evaluation is rerunnable with `pwsh eval/review-ab/run-ab.ps1`. **Note:** that benchmark predates making `/bn-review` read-only — fix-application has since moved into `/bn-work`'s delivery lead (the bounded review→fix loop), so the "applied-and-verified" arm now corresponds to `/bn-work`, and the A/B is pending a re-baseline.
 
 ## Repository layout
 

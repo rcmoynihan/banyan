@@ -1,17 +1,22 @@
 ---
 name: bn-work
 description: "Implement a durable plan or lightweight direct-work spec via a delivery subtree: a lead makes per-unit atomizer decisions, spawns worktree-isolated unit-leads that self-test and mini-review, and a single integrator merges in dependency order. Commits per unit; never pushes."
-argument-hint: "[path to .banyan/plans/*-plan.md | direct task/context | blank to discover the latest plan]"
+argument-hint: "[path to .banyan/plans/*-plan.md | direct task/context | blank to discover the latest plan] [--no-review]"
 ---
 
 # bn-work
 
 Thin trunk-side entry to the Banyan delivery subtree. This skill does a few cheap
-things -- resolve the delivery spec, run a pre-flight, open a run dir, build one
-envelope, and dispatch `bn-delivery-lead` -- then presents the result the lead writes.
-ALL the orchestration (per-unit atomizer decisions, worktree-isolated unit-leads,
-self-test, mini-review, dependency-ordered integration, harvesting) lives inside the
+things -- resolve the delivery spec, parse the `--no-review` flag, run a pre-flight, open a
+run dir, build one envelope, and dispatch `bn-delivery-lead` -- then presents the result the
+lead writes. ALL the orchestration (per-unit atomizer decisions, worktree-isolated
+unit-leads, self-test, mini-review, dependency-ordered integration, the post-integration
+**review→fix→re-review loop** over the full reviewer panel, and harvesting) lives inside the
 lead, not here. Keep this procedure small.
+
+By default the delivery lead runs the full reviewer suite on the integrated result and
+fixes its findings in a bounded loop (2 rounds). Pass `--no-review` to skip that loop (the
+per-unit mini-review still runs). `/bn-grow` always invokes this skill with review on.
 
 The trunk NEVER switches the user's branch and NEVER pushes or opens a PR: executing
 work is not permission to ship. The only writes this skill makes are the run dir, its
@@ -25,6 +30,12 @@ Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
 permission cliff, and §2.2 self-recovery). Skip any already in your context.
 
 ## Step 1: Resolve the delivery input
+
+First, parse an optional **`--no-review`** flag (also accept `--review=off`) from the
+argument and set `review_mode` (`on` by default, `off` when the flag is present). Strip the
+flag from the argument before resolving the delivery input. `review_mode` travels in the
+delivery envelope (Step 5) and gates the lead's post-integration review-fix loop; when
+`/bn-grow` calls this skill it leaves review on (does not pass `--no-review`).
 
 Resolve exactly one delivery input. There are two modes:
 
@@ -218,6 +229,7 @@ inputs:
   test_command:    <detected repo test command, or "none detected">
   repo_root:       <repo root>
   boundary_check_script: <absolute path from Step 3, or "missing">
+  review_mode:     <on | off>   # default on; --no-review sets off
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
@@ -230,18 +242,25 @@ boundaries:      NEVER push or open a PR -- push/PR is the trunk-level bn-ship s
                  parallel unit-leads work in disjoint git worktrees, merged by the
                  integrator.
 tool_guidance:   Read, Grep, Glob, Bash, Edit to read the delivery spec and implement
-                 ATOMIC units inline itself, and run the test command; Write to its own run artifacts.
-                 Agent spawns are limited to its allowlist -- `bn-unit-lead` (composite
-                 units, in worktrees) and `bn-integrator` (the single merge writer).
-                 Atomizer decisions are inline judgment, not a spawned agent; harvesting
-                 is not in this lead's roster.
+                 ATOMIC units inline itself, run the test command, and stage + commit the
+                 review-fix rounds; Write to its own run artifacts. Agent spawns are limited
+                 to its allowlist -- `bn-unit-lead` (composite units, in worktrees),
+                 `bn-integrator` (the single merge writer), `bn-review-lead` (read-only
+                 review per round, when review_mode=on), `bn-finding-owner` (fixers for the
+                 review findings), and the mandatory exit-path `bn-lesson-harvester`.
+                 Atomizer decisions are inline judgment, not a spawned agent.
 budget:
-  max_children:    6
+  max_children:    20
   depth_remaining: 3
 effort_class:    <lightweight | standard | deep>
 === END ENVELOPE ===
 ```
 
+- **`max_children: 20`** gives the lead headroom for the new post-integration review-fix
+  loop: across up to 2 rounds it spawns one `bn-review-lead` per round plus a wave of
+  `bn-finding-owner`s, on top of the unit-leads and the integrator. The lead still treats
+  the cap as hard — it batches owners and reports any squeeze rather than exceeding it. When
+  `review_mode` is `off`, the loop is skipped and the lead simply does not use that headroom.
 - **effort_class by spec size/risk:** direct mode always uses `lightweight`; durable
   specs with 1-2 trivial units -> `lightweight`; several units -> `standard`; many units,
   OR any spec with migrations / auth / payments -> `deep`.
@@ -271,6 +290,10 @@ the lead's final-message prose -- invariant 3) and present to the user:
 - **per-unit mini-review summary** -- the gist from each `findings/unit-*-review.json` and
   `findings/unit-*-spec-fidelity.json` (any residual findings the unit-leads could not
   resolve);
+- **full-panel review loop** -- from the report's `### Review (full panel)` section: whether
+  review ran (or was skipped via `--no-review` / unreviewable integration), how many rounds
+  ran, findings fixed vs residual per round, the `fix(review round N)` commits, and any
+  findings still unresolved after the 2-round cap (with their recovery owner);
 - **boundary findings** -- any OUT files reported by the lead or integrator, plus the
   lead's adjudication for each accepted violation or re-dispatch;
 - **branch / commit state** -- the per-unit branches and commits, and the integrated

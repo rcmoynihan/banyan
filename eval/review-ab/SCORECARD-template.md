@@ -1,5 +1,11 @@
 # A/B scorecard: `/bn-review` vs `/ce-code-review`
 
+> **⚠️ STALE — pending re-baseline.** `/bn-review` is now **read-only** (it reports, it does
+> not apply fixes). The apply path moved to `/bn-work`. The "applied/fixed" columns below
+> only make sense for an apply-capable arm — point the banyan arm at `/bn-work` for an
+> apply-vs-apply scorecard; `/bn-review` scores detection/false-positives only. See
+> `protocol.md` for the migration note.
+
 Fill this in from ONE results directory produced by `run-ab.ps1`
 (`eval/review-ab/results/<run-id>/`). Score against the rubric in
 `protocol.md` sections 4-5. Metric names here match `protocol.md` section 3.

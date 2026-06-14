@@ -40,7 +40,7 @@ Run-root **report** artifacts (one per lead/phase, written by the owning lead or
 single synthesized output, and read by the trunk / `/bn-grow` gates — invariant 3, artifacts over
 prose):
 
-- `review-verdict.md`     -- the review subtree's applied verdict (`bn-review-lead`).
+- `review-verdict.md`     -- the review subtree's read-only findings report (`bn-review-lead`; nothing applied).
 - `delivery-report.md`    -- the delivery subtree's outcome (`bn-delivery-lead`).
 - `curation-summary.md`   -- the curator's consolidation summary (`bn-knowledge-curator`).
 - `debug-diagnosis.md`    -- the debug subtree's diagnosis (`bn-debug-lead`, investigate mode).
@@ -221,7 +221,7 @@ Statuses: pending | in-progress | blocked | done | abandoned
 
 - 2026-06-10T14:02:11Z trunk: opened run; objective set
 - 2026-06-10T14:05:40Z bn-review-lead: envelope echoed to progress/bn-review-lead.md
-- 2026-06-10T14:31:09Z bn-review-lead: U1 done; 3 findings written, 2 fixed
+- 2026-06-10T14:31:09Z bn-review-lead: U1 done; 3 findings written (read-only report)
 
 ## Open questions
 

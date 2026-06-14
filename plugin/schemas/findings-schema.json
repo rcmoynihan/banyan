@@ -135,7 +135,7 @@
     },
     "verification_status": {
       "description": "Optional, set only by execution-grounded reviewers that drive the running app. Static reviewers omit it. Not the same field as the knowledge store's claim_type (tested|inspected|assumed) used for lesson staging -- two distinct object types, two distinct field names. A 'proven' dogfood finding that is later promoted into a lesson would be staged by a harvester as claim_type: tested, but that mapping is the knowledge cluster's job, not this schema's.",
-      "proven": "A reproduced failure: a driven user journey produced an observed wrong state, with a replayable repro and the observed output captured in evidence[]. Routes to a finding-owner and gates the applied verdict like a correctness finding of the same severity.",
+      "proven": "A reproduced failure: a driven user journey produced an observed wrong state, with a replayable repro and the observed output captured in evidence[]. Actionable: routes to a finding-owner (spawned by bn-delivery-lead during /bn-work's review-fix loop) and blocks a clean review verdict like a correctness finding of the same severity.",
       "concern": "A leg the verifier could not drive or test (external OAuth, real payment, email delivery). Recorded as file:line plus why-untestable. Advisory by construction (autofix_class: advisory, owner: human); never routed to an owner, never blocks the verdict."
     },
     "return_tiers": {

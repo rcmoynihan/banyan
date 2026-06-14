@@ -88,9 +88,12 @@ Who may spawn whom is encoded in each agent's `tools:` frontmatter via the `Agen
 **not** described in prose. A lead's allowlist *is* its team roster.
 
 ```yaml
-# bn-review-lead.md frontmatter (illustrative)
-tools: Read, Grep, Glob, Bash, Write, Agent(bn-correctness-reviewer, bn-testing-reviewer, bn-finding-owner)
+# bn-delivery-lead.md frontmatter (illustrative)
+tools: Read, Grep, Glob, Bash, Write, Edit, Agent(bn-unit-lead, bn-integrator, bn-review-lead, bn-finding-owner)
 ```
+
+(`bn-delivery-lead` spawns a read-only `bn-review-lead` for the panel and `bn-finding-owner`s
+to fix its findings — the review subtree itself is read-only and spawns no fixers.)
 
 Rules:
 

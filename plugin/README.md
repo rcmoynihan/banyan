@@ -36,14 +36,14 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 
 | Skill | What it does |
 | --- | --- |
-| `/bn-grow` | The full hands-off pipeline: optional brainstorm intake → research → spec stress when warranted → plan (judged) → deliver → review → ship gate → curation handoff, with bounded self-recovery at phase gates. |
+| `/bn-grow` | The full hands-off pipeline: optional brainstorm intake → research → spec stress when warranted → plan (judged) → deliver (full-panel review + bounded fix loop) → ship gate → curation handoff, with bounded self-recovery at phase gates. |
 | `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-spec-stress` or `/bn-plan`. |
 | `/bn-spec-stress` | Stress-test a requirements doc before planning: missing scenarios, hidden assumptions, acceptance gaps, and plan-affecting risks become a gate brief with explicit disposition buckets. |
 | `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
 | `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
-| `/bn-review` | The review subtree: reviews a diff, dedupes findings, fixes-and-verifies them in place, returns an applied verdict. |
+| `/bn-review` | The review subtree, **read-only**: reviews a diff, dedupes findings, returns a findings report (edits and commits nothing). Fix findings via `/bn-work` or by hand. |
 | `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: `bn-plan-lead` owns the generator/judge/checker panel and writes the durable plan. |
-| `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees and a single integrator. |
+| `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees and a single integrator, then run the full reviewer panel and a bounded review→fix→re-review loop (2 rounds; `--no-review` to skip). |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description. The one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolver agents fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
@@ -64,8 +64,10 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **Reviewer panel** — 7 always-on reviewers (correctness, testing, maintainability,
   YAGNI, project standards, agent-native, learnings) and 8 conditional reviewers
   (security, performance, API contract, data migration, reliability, adversarial, spec
-  fidelity, plus previous-comments for PR-mode reviews).
-  `bn-finding-owner` fixes-and-verifies one confirmed finding.
+  fidelity, plus previous-comments for PR-mode reviews). All read-only — `bn-review-lead`
+  produces findings, it does not fix.
+  `bn-finding-owner` fixes-and-verifies one confirmed finding — spawned by `bn-delivery-lead`
+  during `/bn-work`'s review→fix loop (not by the read-only review subtree).
 - **Researchers & investigators** — repo, best-practices, framework-docs, and web
   researchers (read-only leaves), `bn-thread-chaser` (recursive, depth-gated),
   `bn-deployment-verifier`, and `bn-hypothesis-investigator` (tests ONE debug

@@ -1,5 +1,14 @@
 # Review A/B scorecard — Banyan `/bn-review` vs compound-engineering `/ce-code-review`
 
+> **⚠️ HISTORICAL — describes the pre-refactor design.** These results were captured when
+> `/bn-review` reviewed *and* applied fixes (finding-owners + clean-tree commit). `/bn-review`
+> is now **read-only**; the apply-and-verify path moved to `/bn-work` (`bn-delivery-lead`'s
+> bounded review→fix loop). The detection / false-positive findings below still characterize
+> the reviewer panel, but the "applied + verified / committed" rows now correspond to
+> `/bn-work`, not `/bn-review`. A re-baseline pointing the apply arm at `/bn-work` is pending
+> (see `protocol.md`). The numbers below are NOT rewritten — they remain the honest record of
+> the prior design.
+
 **Date:** 2026-06-10/11 · **Target:** fixture-repo `seeded-bugs` vs `main` (12 seeded bugs / 7 categories / 3 P0)
 **Protocol:** `eval/review-ab/protocol.md` · **Both arms:** `claude -p` headless, default (apply-capable) mode, `--dangerously-skip-permissions`, a fresh isolated sandbox each, the in-sandbox `.claude/` excluded from git so the pre-review tree is genuinely clean.
 

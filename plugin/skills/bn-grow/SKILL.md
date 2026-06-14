@@ -1,6 +1,6 @@
 ---
 name: bn-grow
-description: "Hands-off end-to-end feature pipeline: open a run ledger, optionally run brainstorm intake for fuzzy ideas, then research -> spec stress -> plan (with a judge panel) -> deliver -> review, each owned by its own subtree, with explicit artifact gates and bounded self-recovery before user escalation. Finishes at a ship gate (push stays yours) and a background knowledge-curation dispatch. The trunk stays small -- it holds intent and reads artifacts, the subtrees do the work."
+description: "Hands-off end-to-end feature pipeline: open a run ledger, optionally run brainstorm intake for fuzzy ideas, then research -> spec stress -> plan (with a judge panel) -> deliver (which now runs the full reviewer panel and a bounded review->fix loop on its own integrated result), each owned by its own subtree, with explicit artifact gates and bounded self-recovery before user escalation. Finishes at a ship gate (push stays yours) and a background knowledge-curation dispatch. The trunk stays small -- it holds intent and reads artifacts, the subtrees do the work."
 argument-hint: "[idea | feature/task description]"
 ---
 
@@ -20,13 +20,16 @@ invariant 3 artifacts-over-prose, invariant 6 permission cliff, §2.2 self-recov
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md` (skip any already in your context). The phases you
 choreograph each have their own contract: `/bn-brainstorm`, `bn-research-lead` (the agent),
-`/bn-spec-stress`, `/bn-plan`, `/bn-work`, `/bn-review`. You invoke them; you do not
-reimplement them here.
+`/bn-spec-stress`, `/bn-plan`, `/bn-work`. You invoke them; you do not reimplement them
+here. There is no separate review phase: `/bn-work` runs the full reviewer panel and a
+bounded review→fix loop on its own integrated result (its delivery lead owns it), so review
+is part of deliver, not a phase you choreograph.
 
 ONE run ledger spans the whole grow. Every phase reuses the same run dir, so the ledger
 tells the full story end to end -- optional requirements intake, research brief, spec-stress
-brief when present, plan ref, delivery report, review verdict, and the log of gate decisions
-all live under one `.banyan/runs/<run-id>/`.
+brief when present, plan ref, delivery report (which now carries the full-panel review
+outcomes from deliver), and the log of gate decisions all live under one
+`.banyan/runs/<run-id>/`.
 
 This skill is hands-off by default. Do not ask the user or exit at the first failed gate.
 A failed gate is a recovery signal for the phase that owns it. Use the stage recovery
@@ -87,9 +90,12 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs grow-<slug>
   --unit "research|bn-research-lead|pending|.banyan/runs/<run-id>/briefs/research-brief.md" \
   --unit "spec-stress|trunk|pending|.banyan/runs/<run-id>/briefs/spec-stress.md" \
   --unit "plan|trunk|pending|.banyan/plans/<pending-plan-path>" \
-  --unit "deliver|bn-delivery-lead|pending|.banyan/runs/<run-id>/delivery-report.md" \
-  --unit "review|bn-review-lead|pending|.banyan/runs/<run-id>/review-verdict.md"
+  --unit "deliver|bn-delivery-lead|pending|.banyan/runs/<run-id>/delivery-report.md"
 ```
+
+The `deliver` row covers review too: `/bn-work`'s delivery lead runs the full reviewer panel
+and the review-fix loop, and records the outcome in `delivery-report.md`. There is no
+separate `review` row.
 
 - `<slug>` -> kebab-case from the feature (e.g. `grow-add-oauth-login`). The script emits
   JSON; capture `run_id`, `run_dir`, `ledger_path`, and `facts`.
@@ -99,8 +105,7 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs grow-<slug>
   seeds `## Objective`, `## Plan`, `## Facts / Context`, and the phase rows.
 
 This single run dir is reused by every phase below -- pass its run ID and run dir to
-`/bn-spec-stress`, `bn-plan-lead`, `/bn-work`, and `/bn-review` so they do NOT each open a
-fresh run.
+`/bn-spec-stress`, `bn-plan-lead`, and `/bn-work` so they do NOT each open a fresh run.
 
 ### Fuzzy intake (skill: /bn-brainstorm)
 
@@ -235,49 +240,42 @@ assumed requirements. Let the user steer if they want to. Do not block the pipel
 question tool -- if the user does not intervene, proceed to delivery. (Plan is `Status:
 draft`; delivery consumes it next.)
 
-## Phase 5 -- Deliver (skill: /bn-work)
+## Phase 5 -- Deliver, with review (skill: /bn-work, review on)
 
-Invoke the `/bn-work` flow on the plan from Phase 4, reusing THIS run dir. `/bn-work`
-dispatches `bn-delivery-lead`, which makes per-unit atomizer decisions, fans composite
-units out to worktree-isolated unit-leads that self-test and mini-review, and merges in
-dependency order via a single integrator. It commits per unit; it NEVER pushes.
+Invoke the `/bn-work` flow on the plan from Phase 4, reusing THIS run dir, **with review on
+(do NOT pass `--no-review`)**. `/bn-work` dispatches `bn-delivery-lead`, which makes per-unit
+atomizer decisions, fans composite units out to worktree-isolated unit-leads that self-test
+and mini-review, and merges in dependency order via a single integrator. **Then it runs the
+full reviewer panel on the integrated result and a bounded review→fix→re-review loop (2
+rounds) via a read-only `bn-review-lead` and `bn-finding-owner`s** — this is why `/bn-grow`
+no longer has a separate review phase. It commits per unit and commits the review fixes; it
+NEVER pushes.
 
-**GATE:** `.banyan/runs/<run-id>/delivery-report.md` exists, code actually changed, and the
-report says the units are done or names blocked units explicitly. READ the report (the
-file, not the lead's prose). If units are blocked, inspect the report's recovery section.
-When the blocker is recoverable by delivery ownership (boundary under-scope, shared-file
-assignment, worktree isolation fallback, a bounced unit with a concrete fix path), re-enter
-`/bn-work` once with the blocked-unit context and the same run dir. Do not proceed to review
-unless the report says all required units are done. If delivery remains blocked after the
-retry, write `residuals.md` with phase `deliver` and exit.
+**GATE:** `.banyan/runs/<run-id>/delivery-report.md` exists, code actually changed, the
+report says the units are done or names blocked units explicitly, **and the report's
+`### Review (full panel)` section is present** (review ran, or is explicitly recorded as
+unreviewable/skipped). READ the report (the file, not the lead's prose). If units are blocked
+or review left blocking residuals, inspect the report's recovery section. When the blocker is
+recoverable by delivery ownership (boundary under-scope, shared-file assignment, worktree
+isolation fallback, a bounced unit with a concrete fix path, or review residuals with a clear
+fix route), re-enter `/bn-work` once with the blocked-unit / residual context and the same
+run dir. Do not proceed to the ship gate unless the report says all required units are done
+and review residuals are acceptable. If delivery remains blocked after the retry, write
+`residuals.md` with phase `deliver` and exit.
 
-## Phase 6 -- Review (skill: /bn-review)
+## Phase 6 -- Ship gate (permission cliff, invariant 6)
 
-Invoke the `/bn-review` flow on the delivered changes (the integrated branch from
-Phase 5), reusing THIS run dir. `/bn-review` dispatches `bn-review-lead`, which selects
-the reviewer panel, dedupes findings, and fixes-and-verifies them in place, returning an
-applied verdict. It commits on a clean tree; it NEVER pushes.
+Review already happened inside Phase 5 (deliver). Present the **delivery report's
+`### Review (full panel)` section** to the user — rounds run, findings fixed vs residual,
+and the integrated suite status. **The pipeline NEVER pushes and NEVER opens a PR.** Push /
+PR is a SEPARATE, explicit `bn-ship` step the USER invokes after reading the record -- it is
+a trunk-level, foreground, permission-worthy action that stays the user's call (invariant
+6). State the delivery's actual commit status: units committed per branch plus the
+`fix(review round N)` commits on the integration branch. When the report carries
+`UNVERIFIED (no test command)`, say the result is not suite-green and the review fixes were
+applied without a passing suite. Do not push here under any circumstances.
 
-**GATE:** `.banyan/runs/<run-id>/review-verdict.md` exists and the test suite is green, OR the
-verdict explicitly carries `UNVERIFIED (no test command)`. READ the verdict (the file, not
-the lead's prose). If the verdict is missing, the suite is red, or material findings remain
-unaddressed with a clear fix/routing path, re-enter `/bn-review` once with the same run dir
-and the verdict's recovery metadata. If the result is still red or still carries unresolved
-blocking findings after that retry, write `residuals.md` with phase `review` and exit. If the
-gate passes via `UNVERIFIED (no test command)`, surface that marker to the user; never treat
-it as green.
-
-## Phase 7 -- Ship gate (permission cliff, invariant 6)
-
-Present the review verdict to the user. **The pipeline NEVER pushes and NEVER opens a
-PR.** Push / PR is a SEPARATE, explicit `bn-ship` step the USER invokes after reading the
-record -- it is a trunk-level, foreground, permission-worthy action that stays the user's
-call (invariant 6). State the review verdict's actual commit status: committed, applied
-uncommitted, report-only, or unverified. When the verdict carries
-`UNVERIFIED (no test command)`, say the review fixes are not committed by the review lead
-and the result is not suite-green. Do not push here under any circumstances.
-
-## Phase 8 -- Curate handoff (non-blocking)
+## Phase 7 -- Curate handoff (non-blocking)
 
 Prepare curation for this run's `.banyan/runs/<run-id>/lessons-staging/` candidates. The
 `bn-lesson-harvester` already fired at each subtree boundary throughout the grow, so
@@ -294,15 +292,15 @@ Use the lightest available handoff:
 Do not claim a background curator is running unless one was actually started. Curation
 consolidates knowledge files only and pushes nothing.
 
-## Phase 9 -- Present
+## Phase 8 -- Present
 
 Give the user a SHORT narrative: what was built, the phase outcomes (requirements intake
-when present -> research brief -> spec-stress gate when present -> plan -> delivery -> review
-verdict), any recovery attempts that materially changed the path, the ship gate (the verdict's
-commit status, NOT pushed -- ship is yours), and the curation handoff state
-(background started, or run `/bn-curate <run-id>`). Point at the ledger path
-`.banyan/runs/<run-id>/ledger.md` -- it tells the full story; the brief, plan, delivery
-report, and verdict all live under that run dir.
+when present -> research brief -> spec-stress gate when present -> plan -> delivery including
+the full-panel review loop), any recovery attempts that materially changed the path, the ship
+gate (the delivery report's commit + review status, NOT pushed -- ship is yours), and the
+curation handoff state (background started, or run `/bn-curate <run-id>`). Point at the
+ledger path `.banyan/runs/<run-id>/ledger.md` -- it tells the full story; the brief, plan,
+and delivery report (with its review section) all live under that run dir.
 
 **Trunk-stays-small target.** For a medium feature, the trunk should have spent a SMALL
 fraction of its context window on the whole grow -- target under 20%. The trunk holds the
@@ -325,9 +323,9 @@ If a gate is not met, recover before surfacing:
    for recovery.
 3. **Promote safe uncertainty** into explicit assumptions, `Plan Inputs`, accepted risks, or
    `[assumed]` R-IDs with confirm-by clauses.
-4. **Respect nested caps.** Delivery's per-unit retry cap and review's owner-recovery cap are
-   owned inside those leads; the grow trunk counts one re-entry into the phase, not every child
-   retry inside it.
+4. **Respect nested caps.** Delivery's per-unit retry cap and its 2-round review-fix loop cap
+   are both owned inside the delivery lead; the grow trunk counts one re-entry into the deliver
+   phase, not every child retry or review round inside it.
 5. **Exit only for unrecoverable state:** permission cliffs, no-safe-default product/business
    decisions, missing external authority, unsafe dirty-tree conflicts, or exhausted recovery.
 
