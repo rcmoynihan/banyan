@@ -7,16 +7,22 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 ## Core ideas
 
 - **Subtrees with contracts, not waves.** Lead agents (`bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`) own whole domains and orchestrate their own children; the main session stays a near-empty trunk that talks to the user.
+- **Leads answer; they don't just relay.** When a child hits a goal/intent question it can't resolve, it returns a bounded *ask* and leaves its full transcript on disk. The lead re-states the goal, answers from the ask alone — never reading the transcript — and a fresh continuation peer rehydrates from that transcript and proceeds. Questions resolve at the lowest competent layer; the human is the last rung, not the first.
 - **Fractal compounding.** Lessons are harvested at the leaves, where context is fresh, and consolidated by a background curator — compounding as metabolism, not a command you remember to run.
 - **The ledger is the ground truth.** Coordination happens through files (`.banyan/runs/<run-id>/`); final messages are verdicts plus paths.
 - **Delegation envelopes.** Every spawn carries an objective, an artifact path, boundaries, and a budget (children, model tier, remaining depth).
 - **The laws still hold.** Reads parallelize, writes serialize, one writer per file set, decompose on failure rather than eagerly.
 
-## Current nesting shape
+## How orchestration works
 
-Most workers are leaves. The current nesting advantage is that lead agents own
-their internal orchestration, while the trunk holds intent, gates, and user-facing
-decisions.
+Two pictures tell the whole story. The first is **the shape**: who owns what. The
+trunk holds intent, gates, and user-facing decisions; each lead owns a subtree and
+orchestrates its own children; most workers are leaves. The second is **the loop**:
+how a question travels. Every lead in the first picture is also an *answerer* — a
+child that hits a goal/intent question doesn't decide blindly or bounce straight to
+you; it consults the layer above, which resolves it from broader context.
+
+### The shape — subtrees with contracts
 
 ```mermaid
 flowchart TD
@@ -57,7 +63,59 @@ flowchart TD
   debug --> harvest
   harvest -. stages candidates .-> ledger
   ledger -. pending lessons .-> curator["bn-knowledge-curator<br/>sleep-time consolidation"]
+
+  consult["on a consult, ANY lead spawns:<br/>a continuation peer + bn-consult-extractor<br/>(see the loop below)"]
+  research -. consult loop .-> consult
+  delivery -. consult loop .-> consult
+  review -. consult loop .-> consult
 ```
+
+Solid arrows are spawns; dashed arrows are reads and writes through the ledger. Each
+lead fans its children out in parallel and is the single writer for its subtree's
+artifacts; the trunk only ever reads gate artifacts and talks to you.
+
+### The loop — questions resolve at the lowest competent layer
+
+The harness can't pause and resume a nested child, so the consult loop runs by
+**redispatch**: the asker terminates after writing a bounded ask, and a *fresh
+continuation peer* picks the work back up from the predecessor's transcript. The
+transcript flows **laterally** (asker → disk → continuation), the ask flows **up**,
+and the answer flows **down**. The lead is the hinge — and it never reads the
+transcript, so its context scales with the questions it answers, not with the work
+done beneath it.
+
+```mermaid
+sequenceDiagram
+  participant H as Parent / human
+  participant L as Answering lead
+  participant A as Asker (child v1)
+  participant D as Transcript on disk
+  participant C as Continuation (child v2)
+
+  L->>A: envelope — objective, boundaries, budget
+  Note over A: works on narrow context,<br/>hits a goal/intent question it can't resolve
+  A->>D: full transcript persists (keyed by agent id)
+  A-->>L: returns needs-answer + a bounded ask<br/>(question · recommendation · alternatives ·<br/>evidence · why-this-is-goal-intent)
+  Note over L: re-states the goal in its own words,<br/>checks the ask against it, then answers<br/>FROM THE ASK ALONE — never opening the transcript
+  alt lead can resolve from its own/broader context
+    L->>C: envelope — task + transcript pointer (opaque) + answer
+    D-->>C: rehydrate from predecessor transcript (raw text)
+    Note over C: writes an "answer-absorbed" note,<br/>treats the answer as newest authority, proceeds
+    opt continuation holds contradicting evidence
+      C-->>L: evidenced push-back, exactly once
+      L->>C: revised — or reaffirmed and final
+    end
+  else ask is too thin / needs one more fact
+    Note over L: spawns a disposable bn-consult-extractor<br/>to read the transcript and return ONE bounded fact
+  else no layer here can resolve it
+    L-->>H: climb the ladder — original ask preserved verbatim
+  end
+```
+
+In `/bn-grow` the ladder stops one rung below you: the topmost agent decides and
+records a rich residual rather than interrupting a hands-off run — except for a very
+narrow hard-stop class (an irreversible, high-blast-radius product call with no
+defensible default, or work blocked on access wholly outside the agent's reach).
 
 ## Requirements
 
