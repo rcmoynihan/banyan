@@ -15,107 +15,55 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 
 ## How orchestration works
 
-Two pictures tell the whole story. The first is **the shape**: who owns what. The
-trunk holds intent, gates, and user-facing decisions; each lead owns a subtree and
-orchestrates its own children; most workers are leaves. The second is **the loop**:
-how a question travels. Every lead in the first picture is also an *answerer* — a
-child that hits a goal/intent question doesn't decide blindly or bounce straight to
-you; it consults the layer above, which resolves it from broader context.
-
-### The shape — subtrees with contracts
+Two pictures carry the whole idea. **The shape** is who owns what: the trunk holds
+intent and talks to you, each lead owns a subtree and runs its own workers, and they
+coordinate through files instead of a crowded shared context.
 
 ```mermaid
 flowchart TD
-  trunk["Main session<br/>intent, gates, user decisions"]
-  ledger[(".banyan/runs/&lt;run-id&gt;<br/>ledger + artifacts")]
+  trunk["Trunk — the main session<br/>holds intent, talks to you"]
+  leadA["Lead<br/>owns a subtree"]
+  leadB["Lead<br/>owns a subtree"]
+  w1["workers"]
+  w2["workers"]
+  ledger[(".banyan ledger<br/>shared ground truth")]
 
-  trunk -. reads gate artifacts .-> ledger
-  trunk -->|"fuzzy intake"| brainstorm["/bn-brainstorm<br/>requirements intake"]
-  trunk -->|"one envelope"| research["bn-research-lead"]
-  trunk -->|"stress gate"| specstress["/bn-spec-stress<br/>requirements stress"]
-  trunk -->|"one envelope"| plan["bn-plan-lead<br/>durable plan"]
-  trunk -->|"one envelope"| delivery["bn-delivery-lead"]
-  trunk -->|"one envelope"| review["bn-review-lead"]
-  trunk -->|"one envelope"| debug["bn-debug-lead"]
-
-  research -->|"parallel briefs"| researchers["repo / learnings / docs / web researchers<br/>leaves"]
-  research -->|"only for unresolved threads"| chaser["bn-thread-chaser<br/>recursive investigator"]
-  chaser -->|"depth remains"| chaser2["bn-thread-chaser<br/>one more hop"]
-
-  specstress -->|"triggered lenses"| specstressors["scenario / assumption / threat stress reviewers<br/>leaves"]
-
-  plan -->|"parallel drafts"| generators["plan generators<br/>leaves"]
-  plan -->|"independent scores"| judges["plan judges<br/>leaves"]
-
-  delivery -->|"composite units"| unit["bn-unit-lead<br/>worktree unit owner"]
-  unit -->|"scoped check"| miniReview["bn-correctness-reviewer<br/>leaf mini-review"]
-  unit -->|"failure or context pressure"| subUnit["bn-unit-lead<br/>single recursive split"]
-  delivery -->|"merge gate"| integrator["bn-integrator<br/>single merge writer"]
-
-  review -->|"parallel findings"| reviewers["reviewer panel<br/>leaves"]
-  review -->|"disjoint file sets"| owners["bn-finding-owner<br/>verify/fix/retest leaves"]
-
-  debug -->|"parallel hypotheses"| investigators["bn-hypothesis-investigator<br/>leaves"]
-
-  research --> harvest["bn-lesson-harvester<br/>mandatory leaf"]
-  delivery --> harvest
-  review --> harvest
-  debug --> harvest
-  harvest -. stages candidates .-> ledger
-  ledger -. pending lessons .-> curator["bn-knowledge-curator<br/>sleep-time consolidation"]
-
-  consult["on a consult, ANY lead spawns:<br/>a continuation peer + bn-consult-extractor<br/>(see the loop below)"]
-  research -. consult loop .-> consult
-  delivery -. consult loop .-> consult
-  review -. consult loop .-> consult
+  trunk --> leadA
+  trunk --> leadB
+  leadA --> w1
+  leadB --> w2
+  trunk -. reads results .-> ledger
+  leadA -. writes artifacts .-> ledger
+  leadB -. writes artifacts .-> ledger
 ```
 
-Solid arrows are spawns; dashed arrows are reads and writes through the ledger. Each
-lead fans its children out in parallel and is the single writer for its subtree's
-artifacts; the trunk only ever reads gate artifacts and talks to you.
-
-### The loop — questions resolve at the lowest competent layer
-
-The harness can't pause and resume a nested child, so the consult loop runs by
-**redispatch**: the asker terminates after writing a bounded ask, and a *fresh
-continuation peer* picks the work back up from the predecessor's transcript. The
-transcript flows **laterally** (asker → disk → continuation), the ask flows **up**,
-and the answer flows **down**. The lead is the hinge — and it never reads the
-transcript, so its context scales with the questions it answers, not with the work
-done beneath it.
+**The loop** is the thesis: a lead is less a relay and more a *human driving the
+tool*. When a worker hits a question it shouldn't answer alone, it hands the lead a
+small, focused question and leaves its work behind on disk; the lead answers from its
+broader view, and a fresh worker picks the task up from where the last one stopped.
+Questions get resolved at the lowest layer that actually can — you're the last resort,
+not the first.
 
 ```mermaid
 sequenceDiagram
-  participant H as Parent / human
-  participant L as Answering lead
-  participant A as Asker (child v1)
-  participant D as Transcript on disk
-  participant C as Continuation (child v2)
+  participant L as Lead (the driver)
+  participant A as Worker
+  participant D as Work left on disk
+  participant C as Fresh worker
 
-  L->>A: envelope — objective, boundaries, budget
-  Note over A: works on narrow context,<br/>hits a goal/intent question it can't resolve
-  A->>D: full transcript persists (keyed by agent id)
-  A-->>L: returns needs-answer + a bounded ask<br/>(question · recommendation · alternatives ·<br/>evidence · why-this-is-goal-intent)
-  Note over L: re-states the goal in its own words,<br/>checks the ask against it, then answers<br/>FROM THE ASK ALONE — never opening the transcript
-  alt lead can resolve from its own/broader context
-    L->>C: envelope — task + transcript pointer (opaque) + answer
-    D-->>C: rehydrate from predecessor transcript (raw text)
-    Note over C: writes an "answer-absorbed" note,<br/>treats the answer as newest authority, proceeds
-    opt continuation holds contradicting evidence
-      C-->>L: evidenced push-back, exactly once
-      L->>C: revised — or reaffirmed and final
-    end
-  else ask is too thin / needs one more fact
-    Note over L: spawns a disposable bn-consult-extractor<br/>to read the transcript and return ONE bounded fact
-  else no layer here can resolve it
-    L-->>H: climb the ladder — original ask preserved verbatim
-  end
+  L->>A: here's the task
+  Note over A: hits a goal-level question<br/>it shouldn't decide alone
+  A-->>L: a small, focused question
+  A->>D: leaves its full context behind
+  Note over L: answers from the broader view<br/>(can dig deeper, or ask its own lead)
+  L->>C: the answer + a pointer to the work
+  D-->>C: picks up where the last worker stopped
+  Note over C: keeps going
 ```
 
-In `/bn-grow` the ladder stops one rung below you: the topmost agent decides and
-records a rich residual rather than interrupting a hands-off run — except for a very
-narrow hard-stop class (an irreversible, high-blast-radius product call with no
-defensible default, or work blocked on access wholly outside the agent's reach).
+The lead answers from the *question*, never by reading the worker's full context — so
+a lead's own context stays small no matter how much work happens beneath it. That's
+what lets the tree go deep.
 
 ## Requirements
 
