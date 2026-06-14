@@ -63,11 +63,10 @@ Nothing else. You do not decide overwrites — the trunk ran the manifest check 
 so the `mock/<slug>/` you build into is already cleared (fresh, or a matching in-place iteration).
 
 **Validate the slug before your first Write (hard precondition).** Re-assert `inputs.slug` against
-`^[a-z0-9]+(?:-[a-z0-9]+)*$` before you write anything. If it does not match (it contains `/`,
-`..`, a leading `/`, or is empty), do **not** write — every `mock/<slug>/` path would escape the
-mock tree or collapse to `mock/`. Return `blocked` naming the bad slug; never trust an unvalidated
-slug just because the envelope supplied it. (See the slug-containment precondition in
-`fidelity-doctrine.md`.)
+`^[a-z0-9]+(?:-[a-z0-9]+)*$` before you write anything. If it does not match, do **not** write:
+return `blocked` naming the bad slug; never trust an unvalidated slug just because the envelope
+supplied it (rationale: every `mock/<slug>/` path would escape the mock tree or collapse the
+cleanup — see `fidelity-doctrine.md` §Slug containment).
 
 ## What to build
 
@@ -92,8 +91,11 @@ slug just because the envelope supplied it. (See the slug-containment preconditi
 4. **Write the manifest** at `mock/<slug>/.banyan-mock.json` (JSON) with keys:
    `run_id`, `notes_path`, `source_input`, `source_kind`, `slug`, `iteration`, `created`,
    `last_updated`. Write `iteration` to **the value given in `inputs.iteration`** — the trunk
-   already computed it (`1` for a fresh build; `N+1` for an in-place iteration). Do **not** increment
-   it yourself; the trunk owns the increment. For a fresh build (`iteration: 1`),
+   already computed it (`1` for a fresh build; `N` for an in-place iteration). Do **not** increment
+   it yourself; the trunk owns the increment. **The manifest write is idempotent for a given
+   `inputs.iteration`:** always write `manifest.iteration = inputs.iteration`, never `prior + 1`,
+   so a Step 5 recovery re-spawn at the same iteration overwrites the partial manifest in place
+   instead of advancing the counter. For a fresh build (`iteration: 1`),
    `created` == `last_updated`. For an in-place iteration, bump `last_updated`, preserving `created`.
 
 5. **Write the self-describing README** at `mock/<slug>/README.md` with: a loud
@@ -102,9 +104,9 @@ slug just because the envelope supplied it. (See the slug-containment preconditi
    script** (2–3 concrete things to try, what to watch for, what is intentionally fake), a pointer
    to the durable notes path, and **cleanup instructions** (the exact `rm -rf mock/<slug>/` line,
    presented as the user's choice — you never run it). Only ever interpolate your
-   regex-validated `<slug>` into that `rm -rf` line; you validated it before your first Write, so
-   the cleanup string is safe by construction — never emit an `rm -rf` line built from an
-   unvalidated slug.
+   regex-validated `<slug>` (validated before your first Write) into that `rm -rf` line; never emit
+   an `rm -rf` line built from an unvalidated slug (rationale: `fidelity-doctrine.md`
+   §Slug containment).
 
 6. **Write the schema-conformant mock-notes** at your `artifact_path`, following
    `mock-notes-schema.md` exactly: input source, mock path, run command, chosen modality + omitted
@@ -112,8 +114,13 @@ slug just because the envelope supplied it. (See the slug-containment preconditi
    the **Mock Reality Boundary** block (hardcoded / fake / unrepresented / must-not-be-inferred),
    planning impact, suggested requirements patches (proposals only — propose-never-patch), and a
    populated **disposition table** classifying each finding (plus the plan-impact column
-   when the input was a plan path). For an in-place iteration, append a new `## Iteration N`
-   section (using the iteration number from `inputs.iteration`) — never rewrite a prior iteration.
+   when the input was a plan path). The append-vs-fresh decision follows `inputs.iteration`, which
+   the trunk already reconciled against the notes' actual `## Iteration` headings: for
+   `inputs.iteration: 1` write a fresh `# Mock notes: <slug>` / `## Iteration 1` (REPLACING any
+   stale same-path notes); for `inputs.iteration > 1` append a new `## Iteration N` section to the
+   existing notes (using the iteration number from `inputs.iteration`) — never rewrite a prior
+   iteration. The trunk guarantees `inputs.iteration > 1` only when the selected notes file already
+   holds iterations `1..N-1`, so you never append an orphan heading onto an empty file.
 
 ### Per-medium run/open command
 

@@ -52,6 +52,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and live depth-2 nested-spawn, allowlist, and nested user-question probes. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
+| `/bn-mock` | Turn an idea, requirements doc, or plan into a deliberately-fake, semi-functional mock under a disposable `mock/<slug>/` so design holes surface before an MVP; routes findings back through the owning skills (propose-never-patch). |
 
 ## Agents
 
@@ -61,6 +62,9 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **Delivery workers** — `bn-unit-lead` (one implementation unit in an isolated
   worktree: implement → test-fix → mini-review pair → commit), `bn-integrator` (single
   writer for the merge; runs the full suite; never pushes).
+- **Mock leaf** — `bn-mock-builder` builds a deliberately-fake, semi-functional mock
+  under a disposable `mock/<slug>/` so design holes surface before an MVP; routes
+  findings back through the owning skills (propose-never-patch).
 - **Reviewer panel** — 7 always-on reviewers (correctness, testing, maintainability,
   YAGNI, project standards, agent-native, learnings) and 8 conditional reviewers
   (security, performance, API contract, data migration, reliability, adversarial, spec
