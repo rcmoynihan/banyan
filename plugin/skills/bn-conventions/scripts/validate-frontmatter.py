@@ -67,6 +67,29 @@ def is_curated_solution(doc_path: Path) -> bool:
     return in_store and "lessons-staging" not in parts
 
 
+def is_in_validator_scope(target: Path) -> bool:
+    """Report whether target sits in this validator's scope.
+
+    This tool checks ONLY YAML parser-safety of frontmatter under .banyan/solutions/
+    (curated docs) and lessons-staging/ (candidates the curator validates before
+    promotion). Pointed anywhere else it still parses, so it can manufacture false
+    confidence (e.g. exiting 0 on plugin/agents/ as if it had verified name==stem or
+    Agent(...) allowlists, which it never inspects). Callers use this to warn.
+
+    Args:
+        target: File or directory the CLI was given.
+
+    Returns:
+        True when the resolved path is inside .banyan/solutions/ or a lessons-staging/ area.
+    """
+    parts = target.resolve().parts
+    in_store = any(
+        parts[i] == ".banyan" and parts[i + 1] == SOLUTIONS_DIR_NAME
+        for i in range(len(parts) - 1)
+    )
+    return in_store or "lessons-staging" in parts
+
+
 def validate_file(doc_path: Path) -> int:
     """Validate one markdown file's YAML frontmatter parser safety.
 
@@ -170,6 +193,13 @@ def main(argv: list[str]) -> int:
         usage_fail(f"usage: {Path(argv[0]).name} <doc-path-or-dir>")
 
     target = Path(argv[1])
+    if target.exists() and not is_in_validator_scope(target):
+        sys.stderr.write(
+            "validate-frontmatter: NOTE -- this tool checks ONLY .banyan/solutions "
+            "(and lessons-staging) YAML parser-safety. It does NOT verify agent "
+            "name==stem or that Agent(...) allowlists parse; use /bn-doctor Check 2 "
+            f"for those. Target is outside that scope: {target}\n"
+        )
     if target.is_file():
         return validate_file(target)
 
