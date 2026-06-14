@@ -24,14 +24,14 @@ Before building anything, read the two reference files named in your envelope's 
 `inputs`:
 
 - `references/fidelity-doctrine.md` — the anti-real-machine prohibited-actions checklist, the
-  functional-over-pretty rule, the 2–3-scenario heuristic, and the R11/R12 invent-vs-block
-  decision tree (with the AE1 pricing-TBD worked example). **This is your hard wall.**
+  functional-over-pretty rule, the 2–3-scenario heuristic, and the invent-vs-block
+  decision tree (with the pricing-TBD worked example). **This is your hard wall.**
 - `references/mock-notes-schema.md` — the exact required headings for the mock-notes you must
   write, including the Mock Reality Boundary block.
 
 Everything below restates how you apply them; the reference files are authoritative.
 
-## The anti-real-machine boundary (R9 / R7) — your hard wall
+## The anti-real-machine boundary — your hard wall
 
 You MUST NOT, under any circumstances:
 
@@ -44,7 +44,7 @@ You MUST NOT, under any circumstances:
 - edit any repo source outside `mock/<slug>/**` — in particular never touch `plugin/**`, project
   source, `.gitignore`, or any protected artifact (`.banyan/brainstorms`, `.banyan/plans`,
   `.banyan/solutions`, other runs' dirs);
-- **delete** anything (R24) — deletion is a trunk-level permission cliff, never your action.
+- **delete** anything — deletion is a trunk-level permission cliff, never your action.
 
 If the idea seems to demand real work to be meaningful, that itself is a finding: fake the
 surface and record in the notes that the real machine was deliberately not built and why.
@@ -54,56 +54,68 @@ surface and record in the notes that the real machine was deliberately not built
 You write **only** two places:
 
 1. `mock/<slug>/**` — the mock itself (the `<slug>` is given in your envelope).
-2. `.banyan/runs/<run-id>/briefs/mock-notes.md` — your durable notes (the `artifact_path` in your
-   envelope; slug-suffixed `mock-notes-<slug>.md` if your envelope says so).
+2. The mock-notes at the exact `artifact_path` your envelope names — your durable notes. The trunk
+   sets this to `.banyan/runs/<run-id>/briefs/mock-notes.md`, or to a slug-suffixed
+   `briefs/mock-notes-<slug>.md` when a reused run already holds another idea's notes. Write to the
+   `artifact_path` you were given; do not re-derive the filename yourself.
 
-Nothing else. You do not decide overwrites — the trunk ran the R23 manifest check *before*
-spawning you, so the `mock/<slug>/` you build into is already cleared (fresh, or a matching
-in-place iteration).
+Nothing else. You do not decide overwrites — the trunk ran the manifest check *before* spawning you,
+so the `mock/<slug>/` you build into is already cleared (fresh, or a matching in-place iteration).
+
+**Validate the slug before your first Write (hard precondition).** Re-assert `inputs.slug` against
+`^[a-z0-9]+(?:-[a-z0-9]+)*$` before you write anything. If it does not match (it contains `/`,
+`..`, a leading `/`, or is empty), do **not** write — every `mock/<slug>/` path would escape the
+mock tree or collapse to `mock/`. Return `blocked` naming the bad slug; never trust an unvalidated
+slug just because the envelope supplied it. (See the slug-containment precondition in
+`fidelity-doctrine.md`.)
 
 ## What to build
 
-1. **Classify the primary surface and pick ONE medium (R6).** Read the idea and choose the
+1. **Classify the primary surface and pick ONE medium.** Read the idea and choose the
    single medium that best carries it: **GUI** (a static `index.html`), **CLI** (a `node`/`sh`
    entry script), **API** (a `server.mjs` returning hardcoded JSON for listed routes), or
    **agent-transcript** (a `transcript.md` of a faked agent session). For a mixed-surface idea,
-   build the one primary medium and **name the omitted surfaces** in the notes (AE4) — do not
+   build the one primary medium and **name the omitted surfaces** in the notes — do not
    build several half-mocks.
 
-2. **Build the structure + 2–3 telling scenarios (R10, R8).** Functional over polished; omit
+2. **Build the structure + 2–3 telling scenarios.** Functional over polished; omit
    styling unless the idea is about polish. Cover one happy path, one edge/empty/error state, and
    one pressure case (unless the input clearly warrants otherwise). All data is hardcoded local
    constants — no real backend.
 
-3. **Apply the invent-vs-block decision tree (R11 / R12).** Reversible + mock-local unknown ⇒
+3. **Apply the invent-vs-block decision tree.** Reversible + mock-local unknown ⇒
    pick a default, build it, log the choice + alternatives. High-blast-radius unknown
    (product-defining / security / privacy / pricing / no-safe-default) ⇒ render a **visible
    placeholder / labeled blocked scenario** and log an open question. Never silently invent a
-   high-blast-radius value (see the AE1 pricing example in the doctrine).
+   high-blast-radius value (see the pricing-TBD worked example in the doctrine).
 
-4. **Write the manifest (R14 / R27)** at `mock/<slug>/.banyan-mock.json` (JSON) with keys:
+4. **Write the manifest** at `mock/<slug>/.banyan-mock.json` (JSON) with keys:
    `run_id`, `notes_path`, `source_input`, `source_kind`, `slug`, `iteration`, `created`,
-   `last_updated`. For a fresh build, `iteration` is `1` and `created` == `last_updated`. For an
-   in-place iteration (your envelope says the dir already matches), increment `iteration` and bump
-   `last_updated`, preserving `created`.
+   `last_updated`. Write `iteration` to **the value given in `inputs.iteration`** — the trunk
+   already computed it (`1` for a fresh build; `N+1` for an in-place iteration). Do **not** increment
+   it yourself; the trunk owns the increment. For a fresh build (`iteration: 1`),
+   `created` == `last_updated`. For an in-place iteration, bump `last_updated`, preserving `created`.
 
-5. **Write the self-describing README (R15 / R16 / R30)** at `mock/<slug>/README.md` with: a loud
+5. **Write the self-describing README** at `mock/<slug>/README.md` with: a loud
    **disposable warning** ("This is a Banyan mock — fake by design, safe to delete"), the exact
-   per-medium **run/open command** (R30 — see below), the supported scenarios, a **playtest
+   per-medium **run/open command** (see below), the supported scenarios, a **playtest
    script** (2–3 concrete things to try, what to watch for, what is intentionally fake), a pointer
    to the durable notes path, and **cleanup instructions** (the exact `rm -rf mock/<slug>/` line,
-   presented as the user's choice — you never run it).
+   presented as the user's choice — you never run it). Only ever interpolate your
+   regex-validated `<slug>` into that `rm -rf` line; you validated it before your first Write, so
+   the cleanup string is safe by construction — never emit an `rm -rf` line built from an
+   unvalidated slug.
 
-6. **Write the schema-conformant mock-notes (R17)** at your `artifact_path`, following
+6. **Write the schema-conformant mock-notes** at your `artifact_path`, following
    `mock-notes-schema.md` exactly: input source, mock path, run command, chosen modality + omitted
    surfaces, hardcoded scenarios + why, invented decisions + alternatives, unresolved questions,
    the **Mock Reality Boundary** block (hardcoded / fake / unrepresented / must-not-be-inferred),
    planning impact, suggested requirements patches (proposals only — propose-never-patch), and a
-   populated **disposition table** classifying each finding (R20; plus the R21 plan-impact column
+   populated **disposition table** classifying each finding (plus the plan-impact column
    when the input was a plan path). For an in-place iteration, append a new `## Iteration N`
-   section — never rewrite a prior iteration (R28).
+   section (using the iteration number from `inputs.iteration`) — never rewrite a prior iteration.
 
-### Per-medium run/open command (R30)
+### Per-medium run/open command
 
 Record this exact command in BOTH the manifest (implicitly, via the notes) and the README:
 

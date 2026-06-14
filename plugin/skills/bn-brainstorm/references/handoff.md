@@ -50,9 +50,9 @@ of a path); an unresolved `Resolve Before Planning` section hides **Stress requi
    remain (the "direct-to-work gate").
 4. **See it first / mock it with `/bn-mock`** — Build a deliberately-fake, semi-functional
    mock under `mock/<slug>/` so design holes surface before planning or building. Shown
-   standalone (offered whether or not a requirements document exists, since `/bn-mock` accepts
-   free text — R2). Because this menu is skipped entirely under the `/bn-grow` intake guard at
-   the top of this file, the mock option is never surfaced inside `/bn-grow` intake (R5).
+   standalone — offered whether or not a requirements document exists, since `/bn-mock` accepts
+   free text. Because this menu is skipped entirely under the `/bn-grow` intake guard at
+   the top of this file, the mock option is never surfaced inside `/bn-grow` intake.
 5. **Keep refining** — More clarifying questions or another approach pass; return to the
    appropriate phase.
 6. **Done for now** — Print the closing summary and stop.
