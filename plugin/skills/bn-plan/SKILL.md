@@ -112,3 +112,12 @@ If `Verdict: ready`, present a short summary:
 
 Do not paste the plan body. The durable plan file is the artifact `/bn-work` or `/bn-grow`
 consumes next.
+
+After presenting the summary, offer one optional, non-default touchpoint (via
+`AskUserQuestion`): **see it first / mock it** — invoke `/bn-mock <plan-path>` reusing the same
+run (R4) to build a deliberately-fake mock of the plan before `/bn-work`, so design holes
+surface first. Keep it a single optional offer so the thin-dispatcher character of `/bn-plan`
+is preserved; when declined, the existing "the plan is the artifact `/bn-work` consumes next"
+flow is unchanged. Mock findings off a plan path carry the R21 plan-impact classification, so a
+"replan before work" finding loops back into `/bn-plan`. Do not add a standing menu and do not
+alter the `needs-user` / `blocked` branches.
