@@ -115,7 +115,6 @@ Each stage is also independently invocable:
 | `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: `bn-plan-lead` owns the generator/judge/checker panel and writes the durable plan. |
 | `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees plus a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel fresh-context investigators, confirm the causal chain, then fix test-first on your say-so. |
-| `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description — the one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolvers fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
 | `/bn-curate` | Consolidate harvested lessons into `.banyan/solutions/` (sleep-time compute; receives the `/bn-grow` curation handoff). |
@@ -236,7 +235,6 @@ every debugging session.
 ### Ship it
 
 ```
-/bn-commit            # a well-crafted local commit (never pushes)
 /bn-ship              # commit -> push -> PR, with a value-first description
 /bn-ship 1234         # rewrite an existing PR's description
 ```
@@ -244,8 +242,8 @@ every debugging session.
 `/bn-ship` is **the one place in Banyan allowed to push or open a PR** — trunk-level,
 foreground, with you present; every subtree stops at the permission cliff and reports
 instead. It handles branch safety (stale base, unpushed commits, dirty trees), builds
-commits per `/bn-commit`'s doctrine, and writes PR descriptions that explain what the
-diff cannot show. Use it after `/bn-grow`'s ship gate, after a standalone `/bn-review`,
+well-crafted commits (repo conventions, logical grouping, named-file staging), and writes
+PR descriptions that explain what the diff cannot show. Use it after `/bn-grow`'s ship gate, after a standalone `/bn-review`,
 or any time the work is ready to leave your machine.
 
 ### Resolve PR feedback
@@ -316,7 +314,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 ## Repository layout
 
 ```
-plugin/        the Claude Code plugin (46 agents, 17 skills, schemas, AGENTS.md contract)
+plugin/        the Claude Code plugin (46 agents, 16 skills, schemas, AGENTS.md contract)
 docs/          founding brainstorms, decision records, harness changelog
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation

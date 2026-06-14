@@ -1,27 +1,16 @@
-# Edit log — lifecycle skills (bn-commit, bn-ship)
+# Edit log — lifecycle skill (bn-ship)
 
-Two trunk-level lifecycle skills ported from `plugins/compound-engineering/skills/`.
+The trunk-level lifecycle skill bn-ship, ported from `plugins/compound-engineering/skills/`.
 The git/PR workflow doctrine is preserved; the edits remove multi-platform plumbing,
-swap the evidence-capture dispatch for a direct user question, and anchor the skills to
+swap the evidence-capture dispatch for a direct user question, and anchor the skill to
 Banyan's permission cliff (invariant 6).
 
+A sibling `bn-commit` skill (ported from `ce-commit`) previously held the shared commit
+doctrine and was referenced by bn-ship. It was removed as low-value — committing is
+something an agent does without a procedure — and bn-ship's commit steps were made
+self-contained (the doctrine they pointed at was already inlined in their own prose).
+
 ---
-
-## bn-commit/SKILL.md (<- skills/ce-commit/SKILL.md)
-
-- **Frontmatter:** `name` -> `bn-commit`; added `argument-hint` (Banyan skill contract);
-  description quoted.
-- **Platform stripping:** removed the "On platforms other than Claude Code" routing and
-  the entire "Context fallback" section; the multi-platform blocking-question-tool
-  enumeration (Codex/Gemini/Pi) collapsed to `AskUserQuestion`. The `!`-prefixed
-  dynamic-context blocks are kept.
-- **Banyan framing paragraph added:** trunk-level/foreground, zero spawns, no run
-  ledger; commit in scope, push belongs to `/bn-ship`; never invoked inside a subtree
-  (subtree commits are owned by `bn-review-lead`/`bn-integrator`); names this skill the
-  shared commit doctrine `/bn-ship` references.
-- **Step 5:** added the closing do-not-push pointer to `/bn-ship`.
-- Workflow Steps 1-4 (context, convention priority, fix-over-feat default, file-level
-  logical commits, named-file staging, heredoc commit) preserved verbatim-in-spirit.
 
 ## bn-ship/SKILL.md (<- skills/ce-commit-push-pr/SKILL.md)
 
@@ -30,12 +19,14 @@ Banyan's permission cliff (invariant 6).
 - **New "The permission cliff" section:** bn-ship is the ONE place in Banyan allowed to
   push or open a PR; trunk/foreground only; stops and reports if running where prompts
   auto-deny; zero spawns, no run ledger.
-- **Platform stripping:** same as bn-commit ("Asking the user" reduced to
-  `AskUserQuestion`; context fallback removed; `!` blocks kept).
-- **Step 2 + Step 3 commit doctrine de-duplicated:** convention matching and logical
-  commits now point at `${CLAUDE_PLUGIN_ROOT}/skills/bn-commit/SKILL.md` Steps 2-4
-  instead of restating them; ship-specific parts (branch-creation flow trigger,
-  `git push -u origin HEAD`, clean-tree no-op) kept inline.
+- **Platform stripping:** "Asking the user" reduced to `AskUserQuestion`; context
+  fallback removed; `!` blocks kept.
+- **Step 2 + Step 3 commit doctrine inlined:** convention matching (project instructions
+  > recent commits > conventional default, `fix:` over `feat:`) and logical commits
+  (file-level grouping, named-file staging, heredoc message, never `.banyan/**`) stated
+  inline; ship-specific parts (branch-creation flow trigger, `git push -u origin HEAD`,
+  clean-tree no-op) kept inline. (Originally these pointed at the now-removed
+  `bn-commit/SKILL.md` Steps 2-4.)
 - **Step 4 evidence decision:** the `ce-demo-reel` capture dispatch removed. Kept the
   two short-circuits (user-supplied evidence; non-observable authored change skips
   silently); otherwise asks the user via `AskUserQuestion` to provide a URL/markdown

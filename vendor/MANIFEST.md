@@ -63,7 +63,6 @@ path within the pinned compound-engineering checkout.
 | plugin/agents/bn-web-researcher.md | plugins/compound-engineering/agents/ce-web-researcher.md | researcher |
 | plugin/agents/bn-deployment-verifier.md | plugins/compound-engineering/agents/ce-deployment-verification-agent.md | researcher |
 | plugin/skills/bn-conventions/scripts/validate-frontmatter.py | plugins/compound-engineering/skills/ce-compound/scripts/validate-frontmatter.py | persistence |
-| plugin/skills/bn-commit/SKILL.md | plugins/compound-engineering/skills/ce-commit/SKILL.md | lifecycle |
 | plugin/skills/bn-ship/SKILL.md | plugins/compound-engineering/skills/ce-commit-push-pr/SKILL.md | lifecycle |
 | plugin/skills/bn-ship/references/branch-creation.md | plugins/compound-engineering/skills/ce-commit-push-pr/references/branch-creation.md | lifecycle |
 | plugin/skills/bn-ship/references/pr-description-writing.md | plugins/compound-engineering/skills/ce-commit-push-pr/references/pr-description-writing.md | lifecycle |
@@ -112,7 +111,7 @@ this wave is in flight.
 | [`edits/agents-conditional.md`](./edits/agents-conditional.md) | The 6 conditional reviewers: security, performance, api-contract, data-migration, reliability, adversarial. |
 | [`edits/agents-researchers.md`](./edits/agents-researchers.md) | The 5 researcher/utility agents: repo-researcher, best-practices-researcher, framework-docs-researcher, web-researcher, deployment-verifier. |
 | [`edits/persistence.md`](./edits/persistence.md) | The persistence layer: solution-frontmatter.yaml + findings-schema.json (verbatim) and validate-frontmatter.py (ported — directory-walk plumbing edit). |
-| [`edits/lifecycle.md`](./edits/lifecycle.md) | The lifecycle skills: bn-commit and bn-ship (+ its two references). |
+| [`edits/lifecycle.md`](./edits/lifecycle.md) | The lifecycle skill bn-ship (+ its two references). |
 | [`edits/pr-feedback.md`](./edits/pr-feedback.md) | The PR-feedback assets: bn-resolve-pr (SKILL + 2 references; the 4 scripts are verbatim) and the resolver / previous-comments agents. |
 | [`edits/brainstorm.md`](./edits/brainstorm.md) | The brainstorm skill: bn-brainstorm SKILL + 5 references (html-rendering not vendored). |
 | [`edits/debug.md`](./edits/debug.md) | The debug doctrine references (verbatim — zero edits recorded) and the note on why ce-debug/SKILL.md itself is not vendored. |

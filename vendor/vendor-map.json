@@ -124,12 +124,6 @@
       "group": "persistence"
     },
     {
-      "local": "plugin/skills/bn-commit/SKILL.md",
-      "upstream": "plugins/compound-engineering/skills/ce-commit/SKILL.md",
-      "mode": "ported",
-      "group": "lifecycle"
-    },
-    {
       "local": "plugin/skills/bn-ship/SKILL.md",
       "upstream": "plugins/compound-engineering/skills/ce-commit-push-pr/SKILL.md",
       "mode": "ported",

@@ -107,7 +107,7 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
   -Status`); `ported` files are Banyan-owned, and every substantive edit to one gets a
   one-line entry in its group's edit log under `vendor/edits/`.
 - **Component counts are stated in prose.** `README.md` and `plugin/README.md` both claim
-  agent/skill counts (currently 46 agents, 17 skills); adding or removing a component
+  agent/skill counts (currently 46 agents, 16 skills); adding or removing a component
   means updating both.
 - **Frontmatter and naming rules for `plugin/` components live in `plugin/AGENTS.md` §3**, and
   `plugin/skills/bn-conventions/scripts/validate-frontmatter.py` checks **only** `.banyan/solutions/`

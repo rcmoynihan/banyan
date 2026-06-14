@@ -15,7 +15,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
   agents/                      one agent per file: bn-*.md (46 agents)
-  skills/                      one skill per directory: bn-*/SKILL.md (17 skills)
+  skills/                      one skill per directory: bn-*/SKILL.md (16 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
                                boundary check + its tests, frontmatter validator)
@@ -43,7 +43,6 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: `bn-plan-lead` owns the generator/judge/checker panel and writes the durable plan. |
 | `/bn-work` | Execute a durable plan or lightweight direct-work spec via worktree-isolated unit subtrees and a single integrator. |
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel investigators, confirm the causal chain, then fix test-first on your say-so. |
-| `/bn-commit` | A well-crafted commit from the working tree (repo conventions, logical grouping, named-file staging). Never pushes. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description. The one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolver agents fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
 | `/bn-curate` | Consolidate harvested lessons into `.banyan/solutions/`. |

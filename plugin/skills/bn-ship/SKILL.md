@@ -80,10 +80,9 @@ between new-PR and existing-PR application.
 
 ## Step 2: Determine conventions
 
-Match repo style for commit messages and PR titles per the commit doctrine in
-`${CLAUDE_PLUGIN_ROOT}/skills/bn-commit/SKILL.md` Step 2 (project instructions in
-context > recent commits > conventional commits as default; `fix:` over `feat:` when
-ambiguous). The user may override.
+Match repo style for commit messages and PR titles: project instructions in context >
+recent commits > conventional commits as default; `fix:` over `feat:` when ambiguous.
+The user may override.
 
 ## Step 3: Commit and push
 
@@ -92,11 +91,10 @@ commits on local `<base>`, and uncommitted changes that collide with the fresh r
 base. Read `references/branch-creation.md` and follow its decision flow before
 continuing.
 
-Build the commits per the commit doctrine in
-`${CLAUDE_PLUGIN_ROOT}/skills/bn-commit/SKILL.md` Steps 3-4: scan for naturally distinct
-concerns and split into 2-3 logical commits at file level only when the separation is
-obvious; stage specific files by name (**never `git add -A` or `git add .`**); commit
-with a heredoc message. Never stage or commit `.banyan/**`.
+Build the commits: scan for naturally distinct concerns and split into 2-3 logical
+commits at file level only when the separation is obvious; stage specific files by name
+(**never `git add -A` or `git add .`**); commit with a heredoc message. Never stage or
+commit `.banyan/**`.
 
 Then push:
 
