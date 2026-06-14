@@ -20,6 +20,8 @@ plugin/
                                knowledge-store specs) + scripts/ (run scaffolder,
                                boundary check + its tests, frontmatter validator)
   schemas/                     shared schema files (findings, solution frontmatter)
+  hooks/                       hooks.json + node scripts: trunk-level doctrine reminders
+                               (best-effort, never block a prompt; see AGENTS.md §2.4)
   AGENTS.md                    Banyan's standing conventions contract
   README.md                    this file
 ```

@@ -1,0 +1,16 @@
+{
+  "description": "Banyan trunk-level doctrine reminders, injected at the moment of action. UserPromptSubmit fires the invoked-procedure consent reminder (AGENTS.md §2.4) only when the user explicitly invokes a heavy Banyan skill; it is best-effort and never blocks the prompt.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/invoked-procedure-consent.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

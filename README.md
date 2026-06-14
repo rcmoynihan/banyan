@@ -314,7 +314,7 @@ The review subtree is benchmarked A/B against compound-engineering's `/ce-code-r
 ## Repository layout
 
 ```
-plugin/        the Claude Code plugin (46 agents, 16 skills, schemas, AGENTS.md contract)
+plugin/        the Claude Code plugin (46 agents, 16 skills, schemas, hooks, AGENTS.md contract)
 docs/          founding brainstorms, decision records, harness changelog
 eval/          the /bn-review vs /ce-code-review A/B evaluation harness and results
 scripts/       dev loop: fixture init, dev install, smoke test, vendoring, validation

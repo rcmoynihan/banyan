@@ -86,6 +86,11 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
 - **Plugin agent and skill definitions cache at session start.** Edits to
   `plugin/agents/*.md` or `plugin/skills/*/SKILL.md` do not propagate into an already-open
   session that loaded them; restart or reload the session to test prompt changes.
+- **Hook changes need an explicit reload.** Edits to `plugin/hooks/hooks.json` are not picked
+  up by a running session; run `/reload-plugins` (or restart) after changing hook wiring. The
+  hook scripts themselves are plain node and can be exercised directly by piping a sample
+  `UserPromptSubmit` JSON payload to `node plugin/hooks/<script>.mjs` — that is how the
+  invoked-procedure-consent hook's match/exit-0 behavior is verified without a live session.
 - **The marketplace-installed copy can be stale relative to the working tree.** When
   behavior observed in a session contradicts the repo source, diff the installed copy
   (under `~/.claude/plugins/`) against `plugin/` before debugging the prompt itself.
