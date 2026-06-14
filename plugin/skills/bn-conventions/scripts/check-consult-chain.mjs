@@ -51,6 +51,8 @@ const FINDING = {
   ANSWER_INVALID: 'answer-schema-invalid',
   PREDECESSOR_DANGLING: 'predecessor-dangling',
   PREDECESSOR_ON_ROOT: 'predecessor-on-root-entry',
+  PREDECESSOR_NOT_DIRECT: 'predecessor-not-direct',
+  ENTRY_MISSING_PREDECESSOR: 'entry-missing-predecessor',
   CONTINUATION_MISSING_ANSWER: 'continuation-missing-answer-id',
   ANSWER_DANGLING: 'acted-on-answer-dangling',
   ANSWER_ASK_DANGLING: 'answer-ask-dangling',
@@ -109,15 +111,53 @@ export function check(chain, { asks = {}, answers = {} } = {}) {
     const hasPredecessor =
       entry?.predecessor_agent_id !== undefined && entry?.predecessor_agent_id !== null;
 
-    // predecessor link: must resolve to an EARLIER entry's agent id.
-    if (i === 0 && hasPredecessor) {
+    // predecessor link semantics for a LINEAR continuation chain (R17/R23):
+    //   - exactly one root: the first entry (and only the first) has no predecessor;
+    //   - every later entry MUST name a predecessor (a non-root entry without one is
+    //     a second root inside one logical unit — the chain is no longer a single
+    //     connected line, breaking reconstructability, R23);
+    //   - a continuation reads its DIRECT predecessor only (R17): the predecessor
+    //     must be the immediately-preceding entry's physical_agent_id, so naming a
+    //     grandparent (or any non-adjacent earlier id) is rejected — it would skip
+    //     a real link in the chain.
+    if (i === 0) {
+      if (hasPredecessor) {
+        findings.push({
+          code: FINDING.PREDECESSOR_ON_ROOT,
+          where,
+          detail: 'first chain entry must not name a predecessor',
+        });
+      }
+    } else if (!hasPredecessor) {
       findings.push({
-        code: FINDING.PREDECESSOR_ON_ROOT,
+        code: FINDING.ENTRY_MISSING_PREDECESSOR,
         where,
-        detail: 'first chain entry must not name a predecessor',
+        detail: 'a non-root chain entry must name its direct predecessor (one connected chain from a single root)',
       });
+    } else if (!idsSoFar.has(entry.predecessor_agent_id)) {
+      findings.push({
+        code: FINDING.PREDECESSOR_DANGLING,
+        where,
+        detail: `predecessor_agent_id ${entry.predecessor_agent_id} names no earlier entry`,
+      });
+    } else {
+      // The predecessor resolves to an earlier entry; enforce DIRECTNESS — it must
+      // be the immediately-preceding entry, not a skipped-over ancestor (R17).
+      const directId = entries[i - 1]?.physical_agent_id;
+      if (entry.predecessor_agent_id !== directId) {
+        findings.push({
+          code: FINDING.PREDECESSOR_NOT_DIRECT,
+          where,
+          detail:
+            `predecessor_agent_id ${entry.predecessor_agent_id} is not the direct ` +
+            `predecessor ${directId}; a continuation reads only its immediate predecessor (R17)`,
+        });
+      }
     }
-    if (hasPredecessor && !idsSoFar.has(entry.predecessor_agent_id)) {
+    // Keep the dangling-on-root case for a first entry that names an unknown
+    // predecessor (the PREDECESSOR_ON_ROOT finding above already flags the root
+    // case; a forward/unknown reference is reported by the dangling check below).
+    if (i === 0 && hasPredecessor && !idsSoFar.has(entry.predecessor_agent_id)) {
       findings.push({
         code: FINDING.PREDECESSOR_DANGLING,
         where,
@@ -209,7 +249,7 @@ export function loadRun(runDir) {
   };
 }
 
-function readJsonDir(dir) {
+export function readJsonDir(dir) {
   const out = [];
   let names = [];
   try {

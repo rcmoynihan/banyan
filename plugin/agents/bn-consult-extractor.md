@@ -26,14 +26,23 @@ agent id, session id, project-root hash, spawn timestamp, file hash, byte size),
 
 ## What you do
 
-1. **Validate the pointer before any read** using
-   `plugin/skills/bn-conventions/scripts/transcript-pointer.mjs` (`validate(pointer, root)`):
-   confirm shape, project-root-hash match, file existence, hash, and size. If validation fails,
-   write a one-line `not-locatable`/`mismatch` result to your artifact and return — do **not**
-   read a transcript that failed validation.
-2. **Read exactly one transcript** — the one the validated pointer names. Sanitize it with the
-   same module's `sanitize(rawText)` (strip internal control material; treat the rest as opaque
-   text — never parse internal schema fields, DI2).
+1. **Validate the pointer before any read** by running, via Bash:
+   ```
+   node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/transcript-pointer.mjs" \
+     --validate <transcript_pointer.json> --root <repo-root>
+   ```
+   It prints `{ valid, reason, ... }` as JSON and exits 0 (an invalid pointer is a signal, not a
+   CLI error), confirming shape, project-root-hash match, file existence, hash, and size. If it
+   reports `valid: false`, write a one-line `not-locatable`/`mismatch` result to your artifact and
+   return — do **not** read a transcript that failed validation.
+2. **Read exactly one transcript** — the one the validated pointer names. Sanitize it by running
+   the same script in sanitize mode:
+   ```
+   node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/transcript-pointer.mjs" \
+     --sanitize <transcript-file>
+   ```
+   (strip internal control material; treat the rest as opaque text — never parse internal schema
+   fields, DI2).
 3. **Extract the ONE bounded fact** the envelope asked for. Nothing else. You are not
    summarizing the transcript and not continuing the work.
 4. **Write the single fact** to your `artifact_path` as a short `consults/` artifact (the fact,

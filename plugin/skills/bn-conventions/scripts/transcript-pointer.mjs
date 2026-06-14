@@ -62,6 +62,30 @@ export function hashProjectRoot(root) {
   return crypto.createHash('sha256').update(normalized, 'utf8').digest('hex');
 }
 
+// Is `child` the same path as, or a descendant of, `parent`? Compares
+// realpath-resolved absolute paths so a symlink cannot smuggle a file from
+// outside the boundary back in. Returns false on any resolution failure (fail
+// closed). Both inputs must already be absolute.
+function isWithin(parent, child) {
+  let realParent;
+  let realChild;
+  try {
+    realParent = fs.realpathSync(parent);
+  } catch {
+    // The parent boundary itself does not resolve; cannot prove containment.
+    realParent = path.resolve(parent);
+  }
+  try {
+    realChild = fs.realpathSync(child);
+  } catch {
+    // The file (or a path segment) does not resolve via realpath; fall back to a
+    // lexical resolve so a not-yet-existing file is still boundary-checked.
+    realChild = path.resolve(child);
+  }
+  const rel = path.relative(realParent, realChild);
+  return rel === '' || (!rel.startsWith('..') && !path.isAbsolute(rel));
+}
+
 // SHA-256 of a file's raw bytes. Returns null if the file cannot be read; the
 // caller turns that into a `located`/`file-unreadable` mismatch rather than
 // throwing.
@@ -165,6 +189,18 @@ export function validate(pointer, root, { sessionPath } = {}) {
   });
   if (!resolved.path) {
     mismatches.push({ field: 'agent_id', reason: `unresolvable-path:${resolved.reason}` });
+    return { ok: false, located: false, mismatches };
+  }
+
+  // --- 3a. Location binding: the capability claims a SPECIFIC predecessor's
+  //         transcript, so location — not just content — must be bound. The
+  //         resolved transcript file MUST live under the validated project root
+  //         (realpath-resolved, so a symlink cannot point at a same-bytes file
+  //         outside the tree). Without this, an out-of-band sessionPath can
+  //         redirect validation to any same-bytes file anywhere on disk and it
+  //         would still validate (the content hash alone is insufficient).
+  if (!isWithin(root, resolved.path)) {
+    mismatches.push({ field: 'session_id', reason: 'transcript-outside-project-root' });
     return { ok: false, located: false, mismatches };
   }
 

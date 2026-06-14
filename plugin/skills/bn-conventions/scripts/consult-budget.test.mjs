@@ -114,6 +114,70 @@ test('an explicit near_duplicate_question_count counter overrides a question lis
   assert.equal(result.dimension, 'near_duplicate_question_count');
 });
 
+test('an explicit count of 0 alongside a real history uses the larger derived count (fails toward tripping)', () => {
+  // A caller that defaults near_duplicate_question_count to 0 while ALSO attaching
+  // the raw thrash history must not silently disable the meter -- the derived
+  // count wins when it is larger. (AE6 thrash: 4 reworders -> derived 3.)
+  const counters = {
+    near_duplicate_question_count: 0,
+    questions: [
+      'Should I use the Postgres adapter or the MySQL adapter for the store?',
+      'For the store, which adapter -- Postgres or MySQL -- should I pick?',
+      'Again: do we want the Postgres adapter or the MySQL adapter for the store?',
+      'Just to confirm, is it the MySQL adapter or the Postgres adapter for the store?',
+    ],
+  };
+  const result = evaluate(counters);
+  assert.equal(result.counters.near_duplicate_question_count, 3);
+  assert.equal(result.trip, true);
+  assert.equal(result.dimension, 'near_duplicate_question_count');
+});
+
+test('an explicit count larger than the derived history is honored (max of the two)', () => {
+  const result = evaluate({
+    near_duplicate_question_count: 5,
+    questions: ['only one question'],
+  });
+  assert.equal(result.counters.near_duplicate_question_count, 5);
+});
+
+test('a permissive config override cannot disable the breaker (caps clamp downward only)', () => {
+  // A fully-thrashed unit with a wildly permissive config -- caps raised to
+  // astronomically high values and the hard ceiling raised too -- must still trip.
+  // The override is allowed to make the meter STRICTER, never looser.
+  const fullyThrashed = {
+    respawn_count: 1000,
+    cumulative_tokens: 99_000_000,
+    repeated_reread_count: 9999,
+    no_progress_diff_count: 9999,
+    near_duplicate_question_count: 9999,
+    transcript_ancestry_depth: 9999,
+    total_transcript_bytes: 99_000_000,
+  };
+  const permissive = {
+    caps: {
+      respawn_count: 1e9,
+      cumulative_tokens: 1e12,
+      repeated_reread_count: 1e9,
+      no_progress_diff_count: 1e9,
+      near_duplicate_question_count: 1e9,
+      transcript_ancestry_depth: 1e9,
+      total_transcript_bytes: 1e12,
+    },
+    hard_ceiling: 1e9,
+  };
+  const result = evaluate(fullyThrashed, permissive);
+  assert.equal(result.trip, true);
+});
+
+test('a config override may LOWER a cap to trip earlier', () => {
+  // Lowering respawn_count's cap to 2 must let respawn_count:2 trip even though
+  // the default cap is 6 -- stricter overrides are honored.
+  const result = evaluate({ respawn_count: 2 }, { caps: { respawn_count: 2 } });
+  assert.equal(result.trip, true);
+  assert.equal(result.dimension, 'respawn_count');
+});
+
 test('respawn count over its cap trips on the respawn dimension', () => {
   const result = evaluate({ respawn_count: DEFAULT_CONFIG.caps.respawn_count });
   assert.equal(result.trip, true);

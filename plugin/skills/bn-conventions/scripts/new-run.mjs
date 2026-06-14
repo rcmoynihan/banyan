@@ -17,12 +17,16 @@ const SUBDIRS = [
   'briefs',
   'lessons-staging',
   // Consult-loop artifact families (U6/R23): every run houses its asks, answers,
-  // continuation chains, and abort records from scaffold time so no consult
-  // artifact is ever un-housed (un-auditable). `consults/metrics` (U13/R29) houses
-  // the per-run consult metric roll-up derived mechanically from the audit artifacts.
+  // continuation chains, absorbed-answer notes, and abort records from scaffold
+  // time so no consult artifact is ever un-housed (un-auditable). `consults/absorbed`
+  // is the single concrete home for a continuation's answer-absorbed note (R10
+  // fresh-witness proof), so the artifact lands at one well-known path rather than
+  // being scattered. `consults/metrics` (U13/R29) houses the per-run consult metric
+  // roll-up derived mechanically from the audit artifacts.
   'consults/asks',
   'consults/answers',
   'consults/chains',
+  'consults/absorbed',
   'consults/aborts',
   'consults/metrics',
 ];

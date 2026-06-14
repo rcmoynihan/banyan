@@ -179,6 +179,81 @@ test('a forward predecessor reference (names a later entry) is flagged', () => {
   assert.ok(result.findings.some((f) => f.code === FINDING.PREDECESSOR_DANGLING && f.where === '$.entries[0]'));
 });
 
+test('a grandparent predecessor (skipping the direct parent) is flagged as not-direct (R17)', () => {
+  // A->B->C where C names grandparent A, skipping its real direct predecessor B.
+  // R17 requires a continuation read ONLY its immediate predecessor.
+  const c = chain({
+    entries: [
+      {
+        physical_agent_id: 'agent-abc',
+        input_ask_id: 'ask-1',
+        produced_artifact: 'consults/asks/ask-1.json',
+        files_touched: [],
+        transcript_pointer: pointer(),
+        outcome: 'asked',
+      },
+      {
+        physical_agent_id: 'agent-def',
+        predecessor_agent_id: 'agent-abc',
+        acted_on_answer_id: 'ans-1',
+        produced_artifact: 'briefs/b1.md',
+        files_touched: [],
+        transcript_pointer: pointer({ agent_id: 'agent-def' }),
+        outcome: 'answered-absorbed',
+      },
+      {
+        physical_agent_id: 'agent-ghi',
+        predecessor_agent_id: 'agent-abc', // grandparent, NOT the direct parent agent-def
+        acted_on_answer_id: 'ans-1',
+        produced_artifact: 'briefs/b2.md',
+        files_touched: [],
+        transcript_pointer: pointer({ agent_id: 'agent-ghi' }),
+        outcome: 'completed',
+      },
+    ],
+  });
+  const result = check(c, { asks: [ask()], answers: [answer()] });
+  assert.equal(result.ok, false);
+  assert.ok(
+    result.findings.some(
+      (f) => f.code === FINDING.PREDECESSOR_NOT_DIRECT && f.where === '$.entries[2]',
+    ),
+    JSON.stringify(result.findings),
+  );
+});
+
+test('a non-root entry with no predecessor is flagged as a second root (R23)', () => {
+  // Two entries where the second carries no predecessor: a second root inside one
+  // logical unit, so the chain is not a single connected line from one root.
+  const c = chain({
+    entries: [
+      {
+        physical_agent_id: 'agent-abc',
+        produced_artifact: 'consults/asks/ask-1.json',
+        files_touched: [],
+        transcript_pointer: pointer(),
+        outcome: 'completed',
+      },
+      {
+        physical_agent_id: 'agent-def',
+        // no predecessor_agent_id — orphan continuation
+        produced_artifact: 'briefs/b.md',
+        files_touched: [],
+        transcript_pointer: pointer({ agent_id: 'agent-def' }),
+        outcome: 'completed',
+      },
+    ],
+  });
+  const result = check(c, { asks: [ask()], answers: [answer()] });
+  assert.equal(result.ok, false);
+  assert.ok(
+    result.findings.some(
+      (f) => f.code === FINDING.ENTRY_MISSING_PREDECESSOR && f.where === '$.entries[1]',
+    ),
+    JSON.stringify(result.findings),
+  );
+});
+
 test('a duplicate physical_agent_id is flagged', () => {
   const c = chain();
   c.entries[1].physical_agent_id = 'agent-abc';

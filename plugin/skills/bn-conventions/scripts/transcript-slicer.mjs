@@ -129,6 +129,79 @@ export function classifyBlock(blockText) {
 }
 
 // ---------------------------------------------------------------------------
+// JSONL record classification — the REAL production transcript shape.
+// ---------------------------------------------------------------------------
+//
+// The plugin's transcripts are JSONL: one complete JSON record per line, with no
+// `[[banyan:...]]` markers and no blank-line block structure. The marker
+// vocabulary above is a human-readable convenience that no producer emits, so on
+// a real transcript the block path is a no-op (R16/AE3 would be inert). To make
+// the slicer honestly operate on the real input we classify each LINE as an
+// opaque JSONL record and treat a parseable, re-derivable record as a truncation
+// candidate by byte size — exactly as DI2 prescribes (the record is opaque text;
+// we never read an internal field as load-bearing for keep/drop EXCEPT the
+// minimal, explicit "is this an ask/decision/reasoning event?" guard so decision
+// authority is never truncated).
+
+// A line is a re-derivable JSONL tool/observation record (truncation candidate)
+// iff it parses as a complete JSON object AND does not carry ask/decision/answer
+// or reasoning authority. We inspect only the small, explicit set of keys that
+// mark decision authority; everything else about the record stays opaque.
+const JSONL_AUTHORITY_KEYS = new Set(['ask', 'decision', 'answer', 'reasoning']);
+const JSONL_AUTHORITY_TYPES = new Set(['ask', 'decision', 'answer', 'reasoning']);
+
+function isAuthorityRecord(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  for (const key of Object.keys(obj)) {
+    if (JSONL_AUTHORITY_KEYS.has(key.toLowerCase())) return true;
+  }
+  if (typeof obj.type === 'string' && JSONL_AUTHORITY_TYPES.has(obj.type.toLowerCase())) {
+    return true;
+  }
+  if (typeof obj.event === 'string' && JSONL_AUTHORITY_TYPES.has(obj.event.toLowerCase())) {
+    return true;
+  }
+  return false;
+}
+
+// classifyJsonlLine(line) -> 'trunc:jsonl-record' | 'keep'. A line that parses as
+// a JSON object and carries no decision authority is a re-derivable record we may
+// truncate; anything else (non-JSON prose, an authority record) is kept.
+export function classifyJsonlLine(line) {
+  const trimmed = line.trim();
+  if (trimmed === '' || (trimmed[0] !== '{' && trimmed[0] !== '[')) {
+    return 'keep';
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    return 'keep';
+  }
+  if (parsed === null || typeof parsed !== 'object') return 'keep';
+  if (isAuthorityRecord(parsed)) return 'keep';
+  return 'trunc:jsonl-record';
+}
+
+// A short, stable label for a JSONL record's manifest entry, derived from its
+// `type` (or `event`) field when present. Deterministic; falls back to a generic.
+function jsonlRecordLabel(line) {
+  try {
+    const obj = JSON.parse(line.trim());
+    if (obj && typeof obj === 'object') {
+      const raw = obj.type ?? obj.event;
+      if (typeof raw === 'string') {
+        const safe = raw.replace(/[^A-Za-z0-9._-]/g, '');
+        if (safe.length > 0) return safe;
+      }
+    }
+  } catch {
+    // fall through to the generic label
+  }
+  return 'jsonl-record';
+}
+
+// ---------------------------------------------------------------------------
 // Byte helpers — the budget is in BYTES (UTF-8), so all sizing uses byteLength,
 // not string .length, to stay correct for multibyte content.
 // ---------------------------------------------------------------------------
@@ -211,6 +284,11 @@ function joinBlocks(blocks) {
 //
 // manifest = {
 //   sliced:        boolean,         // whether any truncation happened
+//   budget_met:    boolean,         // final_bytes <= budget_bytes — the caller's
+//                                   //   fit signal: false means the result STILL
+//                                   //   exceeds budget (nothing safe was left to
+//                                   //   drop), so the caller must fail closed
+//                                   //   rather than load an over-budget transcript.
 //   budget_bytes:  number,
 //   original_bytes: number,
 //   final_bytes:   number,
@@ -220,8 +298,8 @@ function joinBlocks(blocks) {
 // Determinism guarantees:
 //   - Truncation candidates are ordered (bytes DESC, then block index ASC) — a
 //     total order, so the greedy choice is reproducible.
-//   - Classification is pure regex; the truncation marker is a fixed template.
-//   - Output preserves original block order; only candidate bodies change.
+//   - Classification is pure regex / pure JSON-parse; the marker is a fixed template.
+//   - Output preserves original block and line order; only candidate bodies change.
 export function slice(text, opts = {}) {
   if (typeof text !== 'string') {
     throw new TypeError('slice expects transcript text as a string');
@@ -238,6 +316,7 @@ export function slice(text, opts = {}) {
       text,
       manifest: {
         sliced: false,
+        budget_met: true,
         budget_bytes: budget,
         original_bytes: originalBytes,
         final_bytes: originalBytes,
@@ -313,6 +392,16 @@ export function slice(text, opts = {}) {
     });
   }
 
+  // --- JSONL record pass ----------------------------------------------------
+  // If still over budget after the marker-block pass, truncate the largest
+  // re-derivable JSONL records (the real production transcript shape: one JSON
+  // record per line, no markers). Each candidate is a single line that parses as
+  // a non-authority JSON object. Without this pass the slicer is a NO-OP on real
+  // transcripts (R16/AE3 inert) even though it is over budget.
+  if (currentBytes > budget) {
+    currentBytes = sliceJsonlRecords(blocks, budget, currentBytes, dropped);
+  }
+
   // Manifest entries follow truncation order (largest-first). Sort by block
   // index ascending for a stable, readable audit record that matches transcript
   // order regardless of which blocks were chosen.
@@ -325,12 +414,83 @@ export function slice(text, opts = {}) {
     text: outText,
     manifest: {
       sliced: dropped.length > 0,
+      // The honest fit signal: even after truncating everything safe to drop, the
+      // result may still exceed budget (an all-incompressible transcript). The
+      // caller must gate on this — load only when budget_met is true.
+      budget_met: finalBytes <= budget,
       budget_bytes: budget,
       original_bytes: originalBytes,
       final_bytes: finalBytes,
       dropped,
     },
   };
+}
+
+// Truncate the largest re-derivable JSONL record lines (largest-first, stable)
+// across all blocks until under budget or no candidates remain. Mutates block
+// bodies in place and appends manifest entries to `dropped`. Returns the updated
+// running byte total. Determinism: candidate order is (bytes DESC, block index
+// ASC, line index ASC) — a total order; the replacement marker is a fixed
+// template; only candidate lines change.
+function sliceJsonlRecords(blocks, budget, startingBytes, dropped) {
+  // Gather every truncatable JSONL record line with a stable address.
+  const candidates = [];
+  for (let bi = 0; bi < blocks.length; bi += 1) {
+    const lines = blocks[bi].body.split('\n');
+    for (let li = 0; li < lines.length; li += 1) {
+      const line = lines[li];
+      if (classifyJsonlLine(line) !== 'trunc:jsonl-record') continue;
+      const bytes = byteLen(line);
+      if (bytes <= TOOL_BLOCK_MIN_TRUNCATE_BYTES) continue;
+      candidates.push({ block: bi, line: li, bytes, label: jsonlRecordLabel(line) });
+    }
+  }
+  candidates.sort(
+    (a, b) => (b.bytes - a.bytes) || (a.block - b.block) || (a.line - b.line),
+  );
+
+  let currentBytes = startingBytes;
+  // Group selected truncations by block so each block body is rebuilt once.
+  const perBlockReplacements = new Map(); // block index -> Map(lineIndex -> replacement line)
+
+  for (const cand of candidates) {
+    if (currentBytes <= budget) break;
+    const blockLines = blocks[cand.block].body.split('\n');
+    const original = blockLines[cand.line];
+    const head = headBytes(original, TOOL_BLOCK_HEAD_BYTES);
+    const marker =
+      `[[banyan:truncated record=${cand.block}:${cand.line} label="${cand.label}" ` +
+      `original_bytes=${cand.bytes} re-derivable]]`;
+    // Keep the truncated record on a SINGLE line (head + marker) so the JSONL
+    // line count and record boundaries are preserved for the next reader.
+    const replacement = head.length > 0 ? `${head} ${marker}` : marker;
+    const before = cand.bytes;
+    const after = byteLen(replacement);
+
+    if (!perBlockReplacements.has(cand.block)) perBlockReplacements.set(cand.block, new Map());
+    perBlockReplacements.get(cand.block).set(cand.line, replacement);
+
+    currentBytes -= before - after;
+    dropped.push({
+      block: cand.block,
+      label: cand.label,
+      original_bytes: before,
+      kept_bytes: after,
+      dropped_bytes: before - after,
+    });
+  }
+
+  // Rebuild each touched block body once, preserving line order and the newline
+  // separators between records.
+  for (const [bi, lineMap] of perBlockReplacements) {
+    const blockLines = blocks[bi].body.split('\n');
+    for (const [li, replacement] of lineMap) {
+      blockLines[li] = replacement;
+    }
+    blocks[bi].body = blockLines.join('\n');
+  }
+
+  return currentBytes;
 }
 
 // ---------------------------------------------------------------------------

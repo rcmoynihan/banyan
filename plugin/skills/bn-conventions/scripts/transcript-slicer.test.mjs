@@ -133,6 +133,67 @@ test('under-budget transcript is returned unchanged, byte-for-byte', () => {
 });
 
 // ---------------------------------------------------------------------------
+// Real JSONL transcripts — the production input shape (R16/AE3, M3)
+// ---------------------------------------------------------------------------
+
+test('a realistic over-budget JSONL transcript IS reduced (no marker vocabulary required)', () => {
+  // The production transcript is JSONL: one JSON record per line, NO
+  // [[banyan:...]] markers and NO blank-line blocks. The slicer must still
+  // truncate the largest re-derivable records and land under budget. (Before the
+  // M3 fix this path was a NO-OP — dropped 0 — even when wildly over budget.)
+  const records = [];
+  for (let i = 0; i < 50; i += 1) {
+    records.push(JSON.stringify({ type: 'tool_result', id: i, content: filler(2000) }));
+  }
+  const text = records.join('\n');
+  // window 15000 * 0.5 * 4 = 30000 byte budget — reachable by truncating records.
+  const budget = budgetBytes({ windowTokens: 15000, budgetFraction: 0.5 });
+  assert.ok(byteLen(text) > budget, 'fixture must be over budget');
+
+  const { text: out, manifest } = slice(text, { windowTokens: 15000, budgetFraction: 0.5 });
+
+  assert.equal(manifest.sliced, true, 'the JSONL transcript must be truncated, not a no-op');
+  assert.ok(manifest.dropped.length > 0);
+  assert.ok(byteLen(out) < byteLen(text), 'output must be smaller than the input');
+  assert.equal(manifest.budget_met, true, 'output must land under budget');
+  assert.ok(byteLen(out) <= manifest.budget_bytes);
+  assert.equal(manifest.final_bytes, byteLen(out));
+  // The line count (record boundaries) is preserved — each truncated record stays
+  // a single line so the next reader still sees one record per line.
+  assert.equal(out.split('\n').length, text.split('\n').length);
+  // A re-derivable record marker is present.
+  assert.match(out, /\[\[banyan:truncated record=\d+:\d+ label="[^"]*" original_bytes=\d+ re-derivable\]\]/);
+});
+
+test('a JSONL ask/decision record is never truncated (decision authority preserved)', () => {
+  const authority = JSON.stringify({ type: 'ask', ask_id: 'a1', question: 'which adapter?', pad: filler(3000) });
+  const bigToolRecord = JSON.stringify({ type: 'tool_result', id: 1, content: filler(6000) });
+  const text = [authority, bigToolRecord].join('\n');
+  const { text: out, manifest } = slice(text, { windowTokens: 1, budgetFraction: 1 });
+  // The authority record survives byte-for-byte; the tool record is truncated.
+  assert.ok(out.includes(authority), 'the ask record must survive intact');
+  assert.equal(manifest.dropped.length, 1);
+});
+
+test('an all-incompressible transcript reports budget_met:false (honest unmet budget)', () => {
+  // A single huge non-JSON line: nothing safe to drop. The slicer must NOT lie —
+  // it returns budget_met:false so the caller can fail closed instead of loading
+  // an over-budget transcript.
+  const blob = filler(50000);
+  const { manifest } = slice(blob, { windowTokens: 1, budgetFraction: 1 });
+  assert.equal(manifest.sliced, false);
+  assert.equal(manifest.budget_met, false);
+  assert.ok(manifest.final_bytes > manifest.budget_bytes);
+});
+
+test('budget_met is true on the under-budget no-op path', () => {
+  const text = transcript(REASONING_BLOCK, ASK_BLOCK);
+  const { manifest } = slice(text, { windowTokens: 100_000, budgetFraction: 1 });
+  assert.equal(manifest.sliced, false);
+  assert.equal(manifest.budget_met, true);
+});
+
+// ---------------------------------------------------------------------------
 // Determinism — the whole point (R16 non-LLM)
 // ---------------------------------------------------------------------------
 

@@ -187,6 +187,82 @@ test('a size mismatch is terminal and does not also report a hash-mismatch', (t)
 });
 
 // ---------------------------------------------------------------------------
+// validate(): location binding (M10) — content match is necessary but not
+// sufficient; the file must live under the validated project root.
+// ---------------------------------------------------------------------------
+
+test('an out-of-project sessionPath pointing at a same-bytes file is rejected (location binding)', (t) => {
+  // A pointer legitimately minted for the project root must NOT validate when an
+  // out-of-band sessionPath redirects resolution to an identical-bytes file in an
+  // UNRELATED directory. Content hash alone is insufficient — location is bound.
+  const projectRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'banyan-tp-proj-')));
+  const evilRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'banyan-tp-evil-')));
+  t.after(() => fs.rmSync(projectRoot, { recursive: true, force: true }));
+  t.after(() => fs.rmSync(evilRoot, { recursive: true, force: true }));
+
+  const agentId = 'agent-loc-1';
+  const buf = Buffer.from(SAMPLE_TRANSCRIPT, 'utf8');
+  // Write IDENTICAL bytes in both the project and the evil session.
+  for (const root of [projectRoot, evilRoot]) {
+    const dir = path.join(root, 'subagents');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `agent-${agentId}.jsonl`), buf);
+  }
+
+  const pointer = {
+    agent_id: agentId,
+    session_id: 'session-abc',
+    project_root_hash: hashProjectRoot(projectRoot),
+    spawn_timestamp: '2026-06-13T12:00:00.000Z',
+    file_hash: crypto.createHash('sha256').update(buf).digest('hex'),
+    byte_size: buf.length,
+  };
+
+  // Legit resolution (sessionPath under the project root) validates.
+  const legit = validate(pointer, projectRoot, { sessionPath: projectRoot });
+  assert.equal(legit.ok, true, JSON.stringify(legit.mismatches));
+
+  // The redirect to an out-of-project location is rejected even though the bytes
+  // match — the capability binds WHERE the transcript lives, not just its content.
+  const redirected = validate(pointer, projectRoot, { sessionPath: evilRoot });
+  assert.equal(redirected.ok, false);
+  assert.deepEqual(reasonsFor(redirected, 'session_id'), ['transcript-outside-project-root']);
+});
+
+test('a symlink escape to a same-bytes file outside the project root is rejected', (t) => {
+  // The project transcript is a symlink to an identical-bytes file in an unrelated
+  // dir. realpath resolution must defeat the link so validation fails closed.
+  const projectRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'banyan-tp-sproj-')));
+  const evilRoot = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'banyan-tp-sevil-')));
+  t.after(() => fs.rmSync(projectRoot, { recursive: true, force: true }));
+  t.after(() => fs.rmSync(evilRoot, { recursive: true, force: true }));
+
+  const agentId = 'agent-loc-2';
+  const buf = Buffer.from(SAMPLE_TRANSCRIPT, 'utf8');
+  const evilDir = path.join(evilRoot, 'subagents');
+  fs.mkdirSync(evilDir, { recursive: true });
+  const evilFile = path.join(evilDir, `agent-${agentId}.jsonl`);
+  fs.writeFileSync(evilFile, buf);
+
+  const projDir = path.join(projectRoot, 'subagents');
+  fs.mkdirSync(projDir, { recursive: true });
+  fs.symlinkSync(evilFile, path.join(projDir, `agent-${agentId}.jsonl`));
+
+  const pointer = {
+    agent_id: agentId,
+    session_id: 'session-abc',
+    project_root_hash: hashProjectRoot(projectRoot),
+    spawn_timestamp: '2026-06-13T12:00:00.000Z',
+    file_hash: crypto.createHash('sha256').update(buf).digest('hex'),
+    byte_size: buf.length,
+  };
+
+  const result = validate(pointer, projectRoot, { sessionPath: projectRoot });
+  assert.equal(result.ok, false);
+  assert.deepEqual(reasonsFor(result, 'session_id'), ['transcript-outside-project-root']);
+});
+
+// ---------------------------------------------------------------------------
 // sanitize(): strips internal control material, preserves content byte-for-byte
 // ---------------------------------------------------------------------------
 

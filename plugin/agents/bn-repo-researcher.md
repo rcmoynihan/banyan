@@ -316,24 +316,37 @@ policy: `references/consult-protocol.md`):
 
 1. **Honor the run's locked resume mode** (read `resume_mode` from your envelope, set from the
    ledger `## Facts / Context` per `references/resume-protocol.md` — you do **not** re-probe).
-   - **transcript mode:** validate the `transcript_pointer` first with
-     `plugin/skills/bn-conventions/scripts/transcript-pointer.mjs` (`validate`), then load the
-     **direct predecessor's** transcript **whole, as raw text** (R15/R17), sanitizing with the
-     same module's `sanitize`. You read **only** the one pointer in your envelope — you have no
+   - **transcript mode:** validate the `transcript_pointer` first by running, via Bash:
+     ```
+     node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/transcript-pointer.mjs" \
+       --validate <transcript_pointer.json> --root <repo-root>
+     ```
+     It prints `{ valid, reason, ... }` as JSON and exits 0 (an invalid pointer is a signal, not
+     a CLI error). **Only when it reports `valid: true`** load the **direct predecessor's**
+     transcript **whole, as raw text** (R15/R17), sanitizing it with the same script's
+     `--sanitize <file>` mode. You read **only** the one pointer in your envelope — you have no
      path to a grandchild transcript (R17 / AE4).
    - **checkpoint mode:** rehydrate from the predecessor's self-contained checkpoint state
      instead (the contract in `references/resume-protocol.md`); do not attempt a transcript read.
 2. **If the transcript exceeds your OWN measured context budget**, run the deterministic slicer
-   `plugin/skills/bn-conventions/scripts/transcript-slicer.mjs` (`slice(text, {budgetFraction,
-   windowTokens})`) against **your** measured budget — keep reasoning + ask/decision events,
-   truncate large re-derivable tool output, keep the drop manifest. **The parent is never
-   involved in this** (R16) — oversized handling is yours alone.
+   against **your** measured budget, via Bash:
+   ```
+   node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/transcript-slicer.mjs" \
+     <transcript-file> [--budget-fraction <f>] [--window-tokens <n>]
+   ```
+   It prints the sliced text to stdout and a manifest to stderr (`sliced`, `budget_bytes`,
+   `original_bytes`, `final_bytes`, `dropped[]`, and the `budget_met`/`over_budget` signal). The
+   slicer keeps reasoning + ask/decision events and truncates large re-derivable tool output.
+   **Fail closed:** if the manifest reports the slice still does **not** fit your budget
+   (`over_budget` / `budget_met: false`), do **not** blindly proceed — degrade to checkpoint-mode
+   rehydration from the predecessor's checkpoint state, or, if you cannot, return `blocked` with
+   the reason. **The parent is never involved in this** (R16) — oversized handling is yours alone.
 3. **Absorb the answer as newer authority (R10).** Read `answer_ref`
    (`consults/answers/<answer_id>.json`); treat it as **newer authority** than any pre-question
-   reasoning in the transcript. Write a short **`consults/.../answer-absorbed-<id>`** artifact:
-   the restated answer + the **plan delta** (what changes in your approach because of it). This
-   is the fresh-witness proof object — it shows you absorbed the answer rather than re-deriving
-   from amnesia.
+   reasoning in the transcript. Write a short **`consults/absorbed/answer-absorbed-<id>.json`**
+   artifact: the restated answer + the **plan delta** (what changes in your approach because of
+   it). This is the fresh-witness proof object — it shows you absorbed the answer rather than
+   re-deriving from amnesia.
 4. **Append your chain entry** to the run's `consult-chain` (per
    `schemas/consult-chain.schema.json`): your `physical_agent_id`, the `predecessor_agent_id`,
    the `input_ask_id`, the `acted_on_answer_id`, the artifact you produce, and the files you

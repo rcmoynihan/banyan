@@ -297,7 +297,17 @@ it could not resolve), drive the consult state machine:
 1. **Read ONLY the bounded ask** at `consults/asks/<ask_id>.json`. **Never open, read, or
    summarize the asker's transcript** (DI1 / R11 / R13 — your context scales with the questions
    you answer, never with the work below you). The transcript pointer in the ask is **opaque** to
-   you; you pass it through unread.
+   you; you pass it through unread. **Before binding, mechanically validate the ask** by running,
+   via Bash:
+   ```
+   node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-consult-artifacts.mjs" \
+     --ask consults/asks/<ask_id>.json
+   ```
+   It prints a JSON result and exits non-zero when the ask is schema-invalid (missing
+   `classification_proof`, thin `evidence[]`, no `would_change`, etc.). **Reject a schema-invalid
+   or thin ask mechanically** — `requested-more-evidence` or `rejected-as-local` per the result —
+   rather than answering on a malformed record (this is the executable R14/R24 gate, not eyeballed
+   prose).
 2. **Goal-recheck first (R8).** Re-state the current research goal in your own words and check
    the question against it. Record that restatement in the answer.
 3. **Weigh the ask and pick a disposition:**
@@ -331,10 +341,35 @@ You never add a `bn-continuation` type. Its envelope `inputs` carry:
 
 The continuation rehydrates from the predecessor laterally and absorbs the answer — that
 behavior lives in the asker agent body's continuation section (DI3), not here. Your job is only
-to answer from the ask and respawn with the right envelope. The consult/redispatch budget is
-**independent** of `max_children`/`depth_remaining` (R22) — track consult thrash via the
-per-logical-unit meter (`references/consult-budget.md`), and abort a thrashing logical unit to
-`blocked` with a `consults/aborts/` record rather than respawning without end.
+to answer from the ask and respawn with the right envelope.
+
+**Evaluate the consult meter before every respawn (R21/R22 — executable, not eyeballed).** The
+consult/redispatch budget is **independent** of `max_children`/`depth_remaining` (R22). You
+maintain a per-logical-unit counters JSON (respawn count, cumulative tokens, repeated file
+re-reads, no-progress diff, near-duplicate questions, transcript ancestry/bytes) keyed by the
+logical unit — write it alongside the chain index under the run dir (e.g.
+`consults/chains/<logical-unit>.counters.json`) and update it as each physical child returns.
+**Before spawning each continuation**, run the meter, via Bash:
+```
+node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/consult-budget.mjs" \
+  evaluate --counters consults/chains/<logical-unit>.counters.json
+```
+It prints `{ trip, dimension, ceiling_hit, score, counters }`. **When it reports `trip: true`
+(any dimension cap or `ceiling_hit`), do not respawn** — **abort the logical unit to `blocked`**
+and write a reconstructable `consults/aborts/<id>.json` record citing the tripped `dimension`,
+rather than respawning without end (this is the deterministic meter doing the R21/R22 judgment,
+not prose). Only when `trip: false` do you spawn the continuation.
+
+**Fold and check the chain.** As each physical child returns, fold its per-child entry into the
+logical unit's `consults/chains/<logical-unit>.json` (single-writer; ledger.md Writer rules),
+then verify the chain is reconstructable (R23) by running, via Bash:
+```
+node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/check-consult-chain.mjs" \
+  --run <run-dir>
+```
+It exits non-zero and reports any dangling link (an ask/answer/predecessor/artifact reference
+that does not resolve on disk); resolve a flagged break before treating the logical unit as
+complete.
 
 **Evidenced push-back — read the conflict before re-answering (R6/R5).** A continuation may push
 back on your answer **exactly once**, attaching contradicting evidence. When you receive a

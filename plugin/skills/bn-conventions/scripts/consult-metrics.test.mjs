@@ -151,17 +151,61 @@ test('reopened settled decision: two entries acting on the same answer id', () =
   assert.equal(s.fresh_witness_count, 0);
 });
 
+test('reopened settled decision fires on a REWORDED re-ask, not just an exact duplicate', () => {
+  // Two asks in one unit that are reworders of the same question (near-duplicate
+  // by the canonical fingerprint) must count as reopening a settled decision --
+  // the weaker exact-string check missed this.
+  const run = {
+    asks: [
+      ask('a1', 'U1', 'A', 'Should I use the Postgres adapter or the MySQL adapter for the store?'),
+      ask('a2', 'U1', 'A', 'For the store, which adapter -- Postgres or MySQL -- should I pick?'),
+    ],
+    answers: [answer('ans1', 'a1', 'A', 'answered-from-ask', 'local', 'answered')],
+    chains: [],
+    aborts: [],
+  };
+  const s = rollUp(run);
+  assert.equal(s.per_unit[0].reopened_settled_decision, true);
+});
+
+test('two genuinely different asks in a unit do NOT count as reopened', () => {
+  const run = {
+    asks: [
+      ask('a1', 'U1', 'A', 'Should I use the Postgres adapter or the MySQL adapter for the store?'),
+      ask('a2', 'U1', 'A', 'What retry budget should the network client use on timeout?'),
+    ],
+    answers: [answer('ans1', 'a1', 'A', 'answered-from-ask', 'local', 'answered')],
+    chains: [],
+    aborts: [],
+  };
+  const s = rollUp(run);
+  assert.equal(s.per_unit[0].reopened_settled_decision, false);
+});
+
 test('repeated predecessor exploration from a no-progress abort', () => {
   const run = {
     asks: [ask('a1', 'U1', 'A', 'q')],
     answers: [answer('ans1', 'a1', 'A', 'answered-from-ask', 'local', 'answered')],
     chains: [],
-    aborts: [{ logical_unit: 'U1', tripped_dimension: 'no-progress', counter_values: { cumulative_tokens: 4200 } }],
+    // tripped_dimension uses the canonical abort_record enum the real producer
+    // (consult-budget buildAbortRecord) emits -- schema-valid, not a phantom shape.
+    aborts: [{ logical_unit: 'U1', tripped_dimension: 'no_progress_diff_count', counter_values: { cumulative_tokens: 4200 } }],
   };
   const s = rollUp(run);
   assert.equal(s.per_unit[0].repeated_predecessor_exploration, true);
   assert.equal(s.fresh_amnesia_count, 1);
   assert.equal(s.total_consult_tokens, 4200);
+});
+
+test('repeated predecessor exploration from a repeated-reread abort', () => {
+  const run = {
+    asks: [ask('a1', 'U1', 'A', 'q')],
+    answers: [answer('ans1', 'a1', 'A', 'answered-from-ask', 'local', 'answered')],
+    chains: [],
+    aborts: [{ logical_unit: 'U1', tripped_dimension: 'repeated_reread_count', counter_values: { cumulative_tokens: 0 } }],
+  };
+  const s = rollUp(run);
+  assert.equal(s.per_unit[0].repeated_predecessor_exploration, true);
 });
 
 test('human interruption: human-level scope', () => {
@@ -187,11 +231,13 @@ test('latency is last answered_at minus first ask created_at', () => {
 });
 
 test('token budget overrun flag', () => {
+  // Tokens are tallied from an abort record's counter_values.cumulative_tokens
+  // (the only schema-valid token source on disk), NOT a phantom per-entry field.
   const run = {
     asks: [ask('a1', 'U1', 'A', 'q')],
     answers: [answer('ans1', 'a1', 'A', 'answered-from-ask', 'local', 'answered')],
-    chains: [chain('U1', [{ physical_agent_id: 'p1', acted_on_answer_id: 'ans1', outcome: 'answered-absorbed', consult_tokens: 5000 }])],
-    aborts: [],
+    chains: [chain('U1', [{ physical_agent_id: 'p1', acted_on_answer_id: 'ans1', outcome: 'answered-absorbed' }])],
+    aborts: [{ logical_unit: 'U1', tripped_dimension: 'cumulative_tokens', counter_values: { cumulative_tokens: 5000 } }],
   };
   const over = rollUp(run, { budgetTokens: 1000 });
   assert.equal(over.token_budget_overrun, true);

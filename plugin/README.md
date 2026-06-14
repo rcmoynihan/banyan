@@ -14,7 +14,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (45 agents)
+  agents/                      one agent per file: bn-*.md (46 agents)
   skills/                      one skill per directory: bn-*/SKILL.md (17 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
@@ -84,6 +84,10 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **Compounding loop** — `bn-lesson-harvester` (the bounded leaf every lead spawns
   before returning) and `bn-knowledge-curator` (consolidates staged lessons into
   `.banyan/solutions/`).
+- **Consult loop** — `bn-consult-extractor` is the disposable read-only single-fact
+  extractor an answering lead spawns when a bounded consult ask is insufficient: it
+  reads exactly one predecessor transcript and returns one bounded fact to a `consults/`
+  artifact, then ends; it spawns nothing and never continues the task.
 - **`bn-harness-engineer`** — mines run ledgers and transcripts for recurring harness
   failures and writes proposals to `.banyan/harness-proposals/`; never self-applies.
 - **Doctor probes** — `bn-probe` + `bn-probe-leaf` (the probe pair `/bn-doctor` uses

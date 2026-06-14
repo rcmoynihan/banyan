@@ -363,16 +363,26 @@ the run-locked resume mode in `references/resume-protocol.md`; the consult budge
   asker's own transcript), and the asker returns `needs-answer` (or `blocked` for a hard blocker,
   R2), leaving its transcript on disk. Local-implementation choices stay local — do not over-ask.
 - **As answerer:** on a `needs-answer` verdict, read **only** the bounded ask (never the
-  transcript — DI1/R11/R13), **goal-recheck first** (restate the plan goal in your own words,
-  R8), pick a disposition (`answered` / `rejected-as-local` / `requested-more-evidence` /
-  `escalated` to the trunk, R3/R14), spawn `bn-consult-extractor` for one bounded fact if the ask
-  is insufficient (R12), and write a schema-valid `consults/answers/<answer_id>.json` with
-  `basis`/`decision_owner`/`scope` (R24).
+  transcript — DI1/R11/R13). **Before binding, validate the ask mechanically:** run
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-consult-artifacts.mjs" --ask consults/asks/<ask_id>.json`
+  and **reject a schema-invalid/thin ask** (non-zero exit) as `requested-more-evidence` /
+  `rejected-as-local` rather than answering on a malformed record (executable R14/R24). Then
+  **goal-recheck first** (restate the plan goal in your own words, R8), pick a disposition
+  (`answered` / `rejected-as-local` / `requested-more-evidence` / `escalated` to the trunk,
+  R3/R14), spawn `bn-consult-extractor` for one bounded fact if the ask is insufficient (R12), and
+  write a schema-valid `consults/answers/<answer_id>.json` with `basis`/`decision_owner`/`scope`
+  (R24).
 - **As continuation driver:** respawn the **existing asker type** (same-type respawn, DI3 — never
   a `bn-continuation` type) with the original task + the **unread** `transcript_pointer` +
   `answer_ref` + `resume_mode`. The continuation rehydrates laterally and absorbs the answer.
-- **Budget & finality:** the consult budget is **independent** of `max_children`/`depth_remaining`
-  (R22); abort a thrashing logical unit to `blocked` with a `consults/aborts/` record. A
-  continuation may push back **once** with attached evidence; you read the conflict before
-  re-answering; a reaffirmed answer (`disposition: reaffirmed`) is final for that evidence set
-  (R6/R5).
+- **Budget & finality (executable, not eyeballed):** the consult budget is **independent** of
+  `max_children`/`depth_remaining` (R22). Maintain a per-logical-unit counters JSON beside the
+  chain index (e.g. `consults/chains/<logical-unit>.counters.json`); **before every respawn** run
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/consult-budget.mjs" evaluate --counters consults/chains/<logical-unit>.counters.json`
+  and, on `trip: true` (any dimension cap or `ceiling_hit`), **abort the logical unit to `blocked`**
+  with a `consults/aborts/<id>.json` record instead of respawning (R21/R22). After folding each
+  per-child entry into `consults/chains/<logical-unit>.json`, verify reconstructability with
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/check-consult-chain.mjs" --run <run-dir>`
+  (R23, non-zero on a dangling link). A continuation may push back **once** with attached evidence;
+  you read the conflict before re-answering; a reaffirmed answer (`disposition: reaffirmed`) is
+  final for that evidence set (R6/R5). See the protocol's "Executable enforcement" section.

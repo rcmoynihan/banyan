@@ -136,13 +136,17 @@ artifacts under a `consults/` subtree of the run dir, seeded from scaffold time 
 ```
 .banyan/runs/<run-id>/
   consults/
-    asks/<ask_id>.json        # bounded asks written by askers (schemas/consult-ask.schema.json)
-    answers/<answer_id>.json   # answers written by answering leads (schemas/consult-answer.schema.json)
-    chains/<logical-unit>.json # continuation-chain index per logical unit (schemas/consult-chain.schema.json)
-    aborts/<id>.json           # thrash/cost abort records (U5; rides the existing blocked path)
+    asks/<ask_id>.json            # bounded asks written by askers (schemas/consult-ask.schema.json)
+    answers/<answer_id>.json       # answers written by answering leads (schemas/consult-answer.schema.json)
+    chains/<logical-unit>.json     # continuation-chain index per logical unit (schemas/consult-chain.schema.json)
+    absorbed/answer-absorbed-<id>.json # continuation's answer-absorbed note: restated answer + plan delta (R10 fresh-witness proof; a produced_artifact in consult-chain.schema.json)
+    aborts/<id>.json               # thrash/cost abort records (U5; rides the existing blocked path)
+    metrics/                       # per-run consult metric roll-up (U13/R29 writes here)
 ```
 
-(The `consults/metrics/` subdir is added by the deferred U13, not at U6 scaffold time.)
+(`consults/metrics/` is seeded at scaffold time alongside `asks/`, `answers/`, `chains/`,
+`absorbed/`, and `aborts/`; the deferred U13 roll-up (R29) only *writes into* that
+already-scaffolded dir, it does not create it.)
 
 **The three artifact families:**
 

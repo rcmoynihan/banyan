@@ -175,15 +175,20 @@ export function countNearDuplicateQuestions(questions, threshold) {
 // counters object. This lets a caller pass either a pre-counted number or the raw
 // question history and have the meter fingerprint it.
 function resolveNearDuplicateCount(counters, config) {
-  if (typeof counters.near_duplicate_question_count === 'number') {
-    return sanitizeCounter(counters.near_duplicate_question_count);
+  const hasExplicit = typeof counters.near_duplicate_question_count === 'number';
+  const hasHistory = Array.isArray(counters.questions);
+  const explicit = hasExplicit ? sanitizeCounter(counters.near_duplicate_question_count) : 0;
+  const derived = hasHistory
+    ? countNearDuplicateQuestions(counters.questions, config.near_duplicate_similarity_threshold)
+    : 0;
+  // When BOTH an explicit count and a raw history are present, a circuit-breaker
+  // must fail TOWARD tripping: take the larger so a caller that defaults the field
+  // to 0 while attaching a real thrash history cannot silently disable the meter.
+  if (hasExplicit && hasHistory) {
+    return Math.max(explicit, derived);
   }
-  if (Array.isArray(counters.questions)) {
-    return countNearDuplicateQuestions(
-      counters.questions,
-      config.near_duplicate_similarity_threshold,
-    );
-  }
+  if (hasExplicit) return explicit;
+  if (hasHistory) return derived;
   return 0;
 }
 
@@ -205,14 +210,40 @@ function counterValue(dimension, counters, config) {
 
 // Merge a partial user config over the defaults (shallow per nested object) so a
 // caller can override just one cap or weight without restating the whole config.
+//
+// The backstop is "unconditional": a caller may make it STRICTER (lower a cap or
+// the hard ceiling) but never LOOSER. Each merged cap is clamped to
+// min(userCap, defaultCap) and the hard ceiling to min(userCeiling, default), so
+// a permissive override cannot widen the meter into never tripping. A non-finite
+// or non-positive override is rejected (falls back to the default) rather than
+// poisoning the clamp.
+function clampCap(userValue, defaultValue) {
+  if (typeof userValue !== 'number' || !Number.isFinite(userValue) || userValue <= 0) {
+    return defaultValue;
+  }
+  return Math.min(userValue, defaultValue);
+}
+
 function resolveConfig(config) {
   const base = DEFAULT_CONFIG;
   if (!config || typeof config !== 'object') return base;
+
+  const userCaps = config.caps && typeof config.caps === 'object' ? config.caps : {};
+  const caps = {};
+  for (const dimension of DIMENSIONS) {
+    caps[dimension] = clampCap(userCaps[dimension], base.caps[dimension]);
+  }
+
+  const userCeiling = config.hard_ceiling;
+  const hardCeiling =
+    typeof userCeiling === 'number' && Number.isFinite(userCeiling) && userCeiling >= 0
+      ? Math.min(userCeiling, base.hard_ceiling)
+      : base.hard_ceiling;
+
   return {
-    caps: { ...base.caps, ...(config.caps || {}) },
+    caps,
     weights: { ...base.weights, ...(config.weights || {}) },
-    hard_ceiling:
-      typeof config.hard_ceiling === 'number' ? config.hard_ceiling : base.hard_ceiling,
+    hard_ceiling: hardCeiling,
     near_duplicate_similarity_threshold:
       typeof config.near_duplicate_similarity_threshold === 'number'
         ? config.near_duplicate_similarity_threshold

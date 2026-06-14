@@ -108,8 +108,8 @@ artifacts.
      │  • if the transcript exceeds its OWN measured budget, run the        │
      │    deterministic slicer (U4) — parent never involved (R16).          │
      │  • treat the answer as NEWER authority than pre-question reasoning    │
-     │    (R10); write consults/.../answer-absorbed-<id> (restated answer + │
-     │    plan delta — the fresh-witness proof object).                     │
+     │    (R10); write consults/absorbed/answer-absorbed-<id>.json           │
+     │    (restated answer + plan delta — the fresh-witness proof object).   │
      │  • append its chain entry (consult-chain, R23).                      │
      │                                                                      │
      ├── proceeds ────────────────────────────────────► completes / done   │
@@ -206,13 +206,38 @@ U3). Continuations honor the locked mode read from the ledger.
 
 ## Artifacts and reconstructability (R23)
 
-Asks, answers, and the continuation chain are **first-class ledger artifacts**, housed under the run
-dir from scaffold time (`consults/asks`, `consults/answers`, `consults/chains`, `consults/aborts` —
+Asks, answers, the continuation chain, absorbed-answer notes, and abort records are **first-class
+ledger artifacts**, housed under the run dir from scaffold time (`consults/asks`,
+`consults/answers`, `consults/chains`, `consults/absorbed`, `consults/aborts`, `consults/metrics` —
 seeded by `scripts/new-run.mjs`). One logical unit is a chain of physical children; **each child
 links to its input ask, the answer id it acted on, the artifact it produced, and the files it
 touched** (the `consult-chain` schema). Run state is reconstructable from files alone — proven
 executably by `scripts/check-consult-chain.mjs`, which flags any dangling link. The chain index is
 folded by the **owning lead/trunk only** (one writer; see ledger.md Writer rules).
+
+## Executable enforcement (the engines the answerer actually runs)
+
+The deterministic, LLM-free engines are wired into the **answering lead's** drive loop (not left as
+prose to eyeball). An answering lead, via Bash:
+
+- **validates an incoming ask before binding** —
+  `scripts/validate-consult-artifacts.mjs --ask <consults/asks/<ask_id>.json>` (also `--answer` /
+  `--chain`); a schema-invalid or thin ask is rejected mechanically (R14/R24), exit non-zero.
+- **evaluates the consult meter before every respawn** —
+  `scripts/consult-budget.mjs evaluate --counters <consults/chains/<logical-unit>.counters.json>`,
+  which returns `{ trip, dimension, ceiling_hit, score, counters }`. On `trip: true` the logical
+  unit **aborts to `blocked`** with a `consults/aborts/<id>.json` record (R21/R22) instead of
+  respawning. The lead maintains the per-logical-unit counters JSON next to the chain index and
+  updates it as each physical child returns.
+- **checks the chain for dangling links** after folding each entry —
+  `scripts/check-consult-chain.mjs --run <run-dir>` (R23), exit non-zero on any unresolved
+  ask/answer/predecessor/artifact reference.
+
+Continuations run the transcript engines themselves (lateral, never via the lead):
+`scripts/transcript-pointer.mjs --validate <pointer.json> --root <dir>` (and `--sanitize <file>`),
+and `scripts/transcript-slicer.mjs <file> [--budget-fraction <f>] [--window-tokens <n>]` against
+their own measured budget, **failing closed** (degrade to checkpoint rehydration or `blocked`) when
+the slice manifest reports it still does not fit.
 
 ## In one line
 

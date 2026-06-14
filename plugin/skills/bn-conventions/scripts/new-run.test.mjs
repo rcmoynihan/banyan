@@ -79,8 +79,12 @@ test('creates the consult artifact subdirs at scaffold time (U6/R23)', (t) => {
     'consults/asks',
     'consults/answers',
     'consults/chains',
+    // consults/absorbed is the concrete home for a continuation's answer-absorbed
+    // note (R10 fresh-witness proof), seeded at scaffold time so it never scatters.
+    'consults/absorbed',
     'consults/aborts',
-    // consults/metrics is added by U13 (R29 metric roll-up).
+    // consults/metrics is seeded at scaffold time; the U13 roll-up (R29) writes
+    // into the already-scaffolded dir.
     'consults/metrics',
   ]) {
     const dir = path.join(result.run_dir, sub);

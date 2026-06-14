@@ -284,10 +284,14 @@ the run-locked resume mode in `references/resume-protocol.md`; the consult budge
 - **As answerer:** when a `bn-hypothesis-investigator` returns `needs-answer: <ask_id> -> <path>`
   (a goal/intent question — e.g. which behavior counts as "correct" for an ambiguous bug, or which
   of two repro interpretations the run intends), read **only** the bounded ask (never the
-  investigator's transcript — DI1/R11/R13), **goal-recheck first** (R8), pick a disposition
-  (`answered` / `rejected-as-local` / `requested-more-evidence` / `escalated` upward, R3/R14),
-  spawn `bn-consult-extractor` for one bounded fact if the ask is insufficient (R12), and write a
-  schema-valid `consults/answers/<answer_id>.json` with `basis`/`decision_owner`/`scope` (R24).
+  investigator's transcript — DI1/R11/R13). **Before binding, validate the ask mechanically:** run
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-consult-artifacts.mjs" --ask consults/asks/<ask_id>.json`
+  and **reject a schema-invalid/thin ask** (non-zero exit) as `requested-more-evidence` /
+  `rejected-as-local` rather than answering on a malformed record (executable R14/R24). Then
+  **goal-recheck first** (R8), pick a disposition (`answered` / `rejected-as-local` /
+  `requested-more-evidence` / `escalated` upward, R3/R14), spawn `bn-consult-extractor` for one
+  bounded fact if the ask is insufficient (R12), and write a schema-valid
+  `consults/answers/<answer_id>.json` with `basis`/`decision_owner`/`scope` (R24).
 - **As continuation driver:** respawn the **existing asker type** (`bn-hypothesis-investigator`,
   already in your allowlist; same-type respawn, DI3 — never a `bn-continuation` type) with the
   original task + the **unread** `transcript_pointer` + `answer_ref` + `resume_mode`. The
@@ -296,6 +300,13 @@ the run-locked resume mode in `references/resume-protocol.md`; the consult budge
   `transcript_pointer` to your own transcript and returns `needs-answer` to your parent/trunk;
   local diagnostic/fix choices stay with you (do not over-ask). A hard blocker rides the existing
   `blocked` path, ungated (R2).
-- **Budget & finality:** the consult budget is **independent** of `max_children`/`depth_remaining`
-  (R22); abort a thrashing logical unit to `blocked` with a `consults/aborts/` record. One
-  evidenced push-back, then comply with a reaffirmed answer (R6/R5).
+- **Budget & finality (executable, not eyeballed):** the consult budget is **independent** of
+  `max_children`/`depth_remaining` (R22). Maintain a per-logical-unit counters JSON beside the
+  chain index (e.g. `consults/chains/<logical-unit>.counters.json`); **before every respawn** run
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/consult-budget.mjs" evaluate --counters consults/chains/<logical-unit>.counters.json`
+  and, on `trip: true` (any dimension cap or `ceiling_hit`), **abort the logical unit to `blocked`**
+  with a `consults/aborts/<id>.json` record instead of respawning (R21/R22). After folding each
+  per-child entry into `consults/chains/<logical-unit>.json`, verify reconstructability with
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/check-consult-chain.mjs" --run <run-dir>`
+  (R23, non-zero on a dangling link). One evidenced push-back, then comply with a reaffirmed
+  answer (R6/R5). See the protocol's "Executable enforcement" section.

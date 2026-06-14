@@ -19,42 +19,25 @@ import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
 
+import { loadRun as loadChainRun, readJsonDir } from './check-consult-chain.mjs';
+import { countNearDuplicateQuestions } from './consult-budget.mjs';
+
 function fail(msg) {
   process.stderr.write(`consult-metrics: ${msg}\n`);
   process.exit(2);
 }
 
 // --- artifact loading -------------------------------------------------------
-
-function readJsonDir(dir) {
-  let names;
-  try {
-    names = fs.readdirSync(dir);
-  } catch {
-    return []; // a missing family is empty, not an error (degrade, don't break)
-  }
-  const out = [];
-  for (const name of names) {
-    if (!name.endsWith('.json')) continue;
-    const full = path.join(dir, name);
-    try {
-      out.push({ file: name, obj: JSON.parse(fs.readFileSync(full, 'utf8')) });
-    } catch (err) {
-      fail(`could not parse ${full}: ${err.message}`);
-    }
-  }
-  out.sort((a, b) => (a.file < b.file ? -1 : a.file > b.file ? 1 : 0));
-  return out;
-}
+//
+// The asks/answers/chains readers are check-consult-chain's loadRun (single
+// definition, single error-handling policy). consult-metrics needs the aborts
+// family on top, which the chain checker does not load, so we layer that one
+// read here using the same shared readJsonDir.
 
 function loadRun(runDir) {
-  const consults = path.join(runDir, 'consults');
-  return {
-    asks: readJsonDir(path.join(consults, 'asks')).map((e) => e.obj),
-    answers: readJsonDir(path.join(consults, 'answers')).map((e) => e.obj),
-    chains: readJsonDir(path.join(consults, 'chains')).map((e) => e.obj),
-    aborts: readJsonDir(path.join(consults, 'aborts')).map((e) => e.obj),
-  };
+  const { asks, answers, chains } = loadChainRun(runDir);
+  const aborts = readJsonDir(path.join(runDir, 'consults', 'aborts'));
+  return { asks, answers, chains, aborts };
 }
 
 // --- mechanical derivation --------------------------------------------------
@@ -125,22 +108,25 @@ function deriveUnitMetric(u, { askById }) {
   }
 
   // reopened_settled_decision: two distinct chain entries acting on the SAME answer id,
-  // OR an ask whose question duplicates an earlier resolved ask in the unit.
+  // OR an ask whose question re-asks an earlier resolved ask in the unit. Re-ask
+  // detection uses the canonical near-duplicate fingerprint (consult-budget), so a
+  // REWORDED re-ask counts, not only a byte-identical string -- one definition of
+  // "duplicate question" shared with the thrash meter.
   const actedOn = entries.map((e) => e.acted_on_answer_id).filter(Boolean);
+  const questions = u.asks.map((a) => a.question).filter((q) => typeof q === 'string');
   const reopened =
     new Set(actedOn).size !== actedOn.length ||
-    hasDuplicateQuestion(u.asks);
+    countNearDuplicateQuestions(questions) > 0;
 
-  // repeated_predecessor_exploration: an abort tripped on a re-read / no-progress dimension.
+  // repeated_predecessor_exploration: an abort tripped on a re-read / no-progress
+  // dimension. The dimension names are the canonical abort_record enum values
+  // (consult-budget.schema.json) -- the ONLY producer, buildAbortRecord, emits
+  // exactly these; matching anything else is dead on real data.
   const repeated = u.aborts.some(
     (ab) =>
-      ab.tripped_dimension === 'repeated_reread' ||
-      ab.tripped_dimension === 'no_progress_diff' ||
-      ab.tripped_dimension === 'no-progress',
+      ab.tripped_dimension === 'repeated_reread_count' ||
+      ab.tripped_dimension === 'no_progress_diff_count',
   );
-
-  // any abort that surfaced upward counts as a human interruption too.
-  if (u.aborts.some((ab) => ab.surfaced_to_human === true)) humanInterruption = true;
 
   return {
     logical_unit: u.logical_unit,
@@ -149,7 +135,7 @@ function deriveUnitMetric(u, { askById }) {
     contradiction_caught: contradictionCaught,
     reopened_settled_decision: reopened,
     repeated_predecessor_exploration: repeated,
-    consult_tokens: sumTokens(entries, u.aborts),
+    consult_tokens: sumTokens(u.aborts),
     consult_latency_ms: latency(u.asks, u.answers),
     human_interruption: humanInterruption,
   };
@@ -159,20 +145,13 @@ function normalize(v) {
   return typeof v === 'string' ? v.trim().toLowerCase() : v;
 }
 
-function hasDuplicateQuestion(asks) {
-  const seen = new Set();
-  for (const a of asks) {
-    const q = normalize(a.question);
-    if (q == null) continue;
-    if (seen.has(q)) return true;
-    seen.add(q);
-  }
-  return false;
-}
-
-function sumTokens(entries, aborts) {
+// Per-unit token tally. The ONLY schema-valid token source on disk is an abort
+// record's counter_values.cumulative_tokens (consult-budget.schema.json);
+// consult-chain entries carry NO token field (the chain schema is
+// additionalProperties:false), so a per-entry read would always be 0 on real
+// data. Source the tally solely from the field a producer actually emits.
+function sumTokens(aborts) {
   let total = 0;
-  for (const e of entries) if (Number.isFinite(e.consult_tokens)) total += e.consult_tokens;
   for (const ab of aborts) {
     const t = ab.counter_values?.cumulative_tokens;
     if (Number.isFinite(t)) total += t;

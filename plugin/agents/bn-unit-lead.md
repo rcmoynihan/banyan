@@ -238,12 +238,18 @@ run-locked resume mode in `references/resume-protocol.md`; the consult budget in
 - **As continuation:** when your envelope carries `transcript_pointer` + `answer_ref` +
   `resume_mode` (+ `unit_base_ref`/worktree for delivery), you are a same-type respawn (DI3).
   Re-attach to the predecessor's worktree at `unit_base_ref`, honor the locked resume mode, then
-  in transcript mode validate the pointer (`scripts/transcript-pointer.mjs`) and load the
-  **direct predecessor's** transcript whole-as-text (R15/R17), running
-  `scripts/transcript-slicer.mjs` against **your own** measured budget if oversized (parent never
-  involved, R16); in checkpoint mode rehydrate from the predecessor's checkpoint state. Absorb the
-  `answer_ref` as newer authority (R10), write an `answer-absorbed` artifact + your
-  `consult-chain` entry (R23), then continue implementing the unit.
+  in transcript mode validate the pointer with
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/transcript-pointer.mjs" --validate <pointer.json> --root <repo-root>`
+  (proceed only on `valid: true`; sanitize with the same script's `--sanitize <file>` mode) and
+  load the **direct predecessor's** transcript whole-as-text (R15/R17). If it exceeds **your own**
+  measured budget, slice it with
+  `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/transcript-slicer.mjs" <transcript-file> [--budget-fraction <f>] [--window-tokens <n>]`
+  (parent never involved, R16); **fail closed** — if the manifest reports the slice still does not
+  fit (`over_budget` / `budget_met: false`), degrade to checkpoint-mode rehydration or return
+  `blocked`, never blindly proceed. In checkpoint mode rehydrate from the predecessor's checkpoint
+  state. Absorb the `answer_ref` as newer authority (R10), write a
+  `consults/absorbed/answer-absorbed-<id>.json` artifact + your `consult-chain` entry (R23), then
+  continue implementing the unit.
 - **As answerer:** if a child you spawned (a split `bn-unit-lead` or a reviewer) consults you,
   read **only** the bounded ask (never its transcript — DI1), goal-recheck first (R8), answer with
   `basis`/`decision_owner`/`scope` (R24) or escalate to your delivery-lead (R3); spawn
