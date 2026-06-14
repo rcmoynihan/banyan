@@ -15,19 +15,22 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 
 ## How orchestration works
 
-Two pictures carry the whole idea. **The shape** is who owns what: the trunk holds
-intent and talks to you, each lead owns a subtree and runs its own workers, and they
-coordinate through files instead of a crowded shared context.
+You talk to **one** thing — the trunk. You hand it a goal (`/bn-grow ...`) and read
+the result; everything else happens below the waterline. **The shape** is who owns
+what underneath: each lead owns a subtree and runs its own workers, and they
+coordinate through files instead of one crowded shared context.
 
 ```mermaid
 flowchart TD
-  trunk["Trunk — the main session<br/>holds intent, talks to you"]
+  human(["You"])
+  trunk["Trunk — the main session<br/>holds your intent"]
   leadA["Lead<br/>owns a subtree"]
   leadB["Lead<br/>owns a subtree"]
   w1["workers"]
   w2["workers"]
   ledger[(".banyan ledger<br/>shared ground truth")]
 
+  human <-->|"a goal in, results out"| trunk
   trunk --> leadA
   trunk --> leadB
   leadA --> w1
@@ -37,33 +40,36 @@ flowchart TD
   leadB -. writes artifacts .-> ledger
 ```
 
-**The loop** is the thesis: a lead is less a relay and more a *human driving the
-tool*. When a worker hits a question it shouldn't answer alone, it hands the lead a
-small, focused question and leaves its work behind on disk; the lead answers from its
-broader view, and a fresh worker picks the task up from where the last one stopped.
-Questions get resolved at the lowest layer that actually can — you're the last resort,
-not the first.
+So why does that beat one agent doing everything? **The loop.** A lead acts less like
+a relay and more like a *human driving the tool*: when a worker hits a question it
+shouldn't answer alone, it hands the lead a small, focused question and leaves its
+work behind; the lead answers from its broader view, and a fresh worker picks up where
+the last one stopped. Questions resolve at the lowest layer that actually can — so
+**you sit at the top of that ladder and are reached only as a last resort.**
 
 ```mermaid
 sequenceDiagram
+  participant H as You
   participant L as Lead (the driver)
   participant A as Worker
-  participant D as Work left on disk
   participant C as Fresh worker
 
-  L->>A: here's the task
-  Note over A: hits a goal-level question<br/>it shouldn't decide alone
-  A-->>L: a small, focused question
-  A->>D: leaves its full context behind
-  Note over L: answers from the broader view<br/>(can dig deeper, or ask its own lead)
+  H->>L: your goal — one instruction
+  L->>A: a piece of the work
+  Note over A: hits a goal-level question<br/>it shouldn't answer alone
+  A-->>L: a small, focused question<br/>(its work is left behind on disk)
+  Note over L: answers from the broader view —<br/>the question stops here, not at you
   L->>C: the answer + a pointer to the work
-  D-->>C: picks up where the last worker stopped
-  Note over C: keeps going
+  Note over C: picks up where the last worker stopped
+  C-->>L: done
+  L-->>H: result
+  Note over H,A: you're consulted only when no layer below can decide
 ```
 
 The lead answers from the *question*, never by reading the worker's full context — so
-a lead's own context stays small no matter how much work happens beneath it. That's
-what lets the tree go deep.
+a lead's own context stays small no matter how much work happens beneath it. That, plus
+keeping you off the critical path, is what lets the tree go deep without overwhelming
+anyone — you or the model.
 
 ## Requirements
 
