@@ -14,8 +14,8 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (47 agents)
-  skills/                      one skill per directory: bn-*/SKILL.md (17 skills)
+  agents/                      one agent per file: bn-*.md (48 agents)
+  skills/                      one skill per directory: bn-*/SKILL.md (18 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
                                boundary check + its tests, frontmatter validator)
@@ -53,6 +53,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and live depth-2 nested-spawn, allowlist, and nested user-question probes. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 | `/bn-mock` | Turn an idea, requirements doc, or plan into a deliberately-fake, semi-functional mock under a disposable `mock/<slug>/` so design holes surface before an MVP; routes findings back through the owning skills (propose-never-patch). |
+| `/bn-poc` | Prove whether an idea's central IP/capability can actually work by building its core machine *for real* into a disposable `poc/<slug>/` within a user-confirmed scope, returning a humble feasibility verdict (`confirmed` / `confirmed-with-caveats` / `could-not-confirm`); routes the verdict back through the owning skills (propose-never-patch). |
 
 ## Agents
 
@@ -65,6 +66,12 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **Mock leaf** — `bn-mock-builder` builds a deliberately-fake, semi-functional mock
   under a disposable `mock/<slug>/` so design holes surface before an MVP; routes
   findings back through the owning skills (propose-never-patch).
+- **PoC leaf** — `bn-poc-builder` is the first Banyan leaf that runs real, networked,
+  dependency-installing code: it builds an idea's core machine *for real* into a
+  disposable `poc/<slug>/` within a user-confirmed scope, captures reproducible
+  evidence, runs a post-run git-status self-check (downgrade-and-disclose, not abort),
+  and returns a humble feasibility verdict; routes it back through the owning skills
+  (propose-never-patch).
 - **Reviewer panel** — 7 always-on reviewers (correctness, testing, maintainability,
   YAGNI, project standards, agent-native, learnings) and 8 conditional reviewers
   (security, performance, API contract, data migration, reliability, adversarial, spec
