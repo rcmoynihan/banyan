@@ -1,6 +1,6 @@
 ---
 name: bn-ask
-description: "Grounded codebase Q&A. Use when the user asks how this repo works, where behavior lives, whether a hypothesis about the code is true, what limitations or unknowns exist, or wants orientation in unfamiliar code. Read-only; answers with evidence, confidence, and explicit uncertainty. Escalates to Banyan's research subtree only when a quick scan cannot answer."
+description: "Grounded codebase Q&A via a dedicated research subtree. Use when the user asks how this repo works, where behavior lives, whether a hypothesis about the code is true, what limitations or unknowns exist, or wants orientation in unfamiliar code. Read-only; always opens a run and dispatches researchers plus an answer-checker, then answers with evidence, confidence, and explicit uncertainty. For a throwaway question, ask in plain chat instead."
 argument-hint: "[question or hypothesis about the codebase]"
 ---
 
@@ -8,10 +8,17 @@ argument-hint: "[question or hypothesis about the codebase]"
 
 Answer codebase questions with evidence and honest uncertainty. This is a read-only,
 trunk-level skill for understanding existing behavior, confirming or refuting hypotheses,
-finding where behavior lives, and naming known limitations. It does not edit code, commit,
-push, open issues, or write durable artifacts unless the question needs a research subtree.
+finding where behavior lives, and naming known limitations. It is **deep by design**: every
+question opens a run and dispatches a grounded-Q&A subtree (`bn-ask-lead`, which gathers
+evidence via researchers and verifies the answer with `bn-ask-checker`). There is no fast
+path — if you only need a throwaway answer, ask in plain chat rather than invoking this skill.
+This skill does not edit code, commit, push, or open issues.
 
-Read `references/answer-contract.md` before composing the user-facing answer.
+This skill is a **thin dispatcher**: it captures the question, opens the run, hands one
+envelope to `bn-ask-lead`, reads the lead's answer brief, and relays it. The lead owns
+classification, the research panel, the answer draft, the answer-checker, and synthesis.
+
+Read `references/answer-contract.md` before relaying the user-facing answer.
 
 ## Question
 
@@ -20,45 +27,20 @@ Read `references/answer-contract.md` before composing the user-facing answer.
 If the question is empty, ask the user for the codebase question or hypothesis to check.
 Do not proceed until the question is clear enough to investigate.
 
-## Step 1 - Classify the Question
+## Step 1 - Classify effort by breadth
 
-Classify the request by the answer it needs:
+The lead scales the research panel and decides whether to run the answer-checker from this
+`effort_class`, so set it deliberately:
 
-- **Pinpoint** - where something lives, what calls something, which files define a behavior.
-- **Mechanism** - how a subsystem, command, request path, or workflow works.
-- **Hypothesis** - whether the user's claim about the code is true.
-- **Limitation** - what the code cannot do, where assumptions are brittle, or what remains
-  unsupported.
-- **Orientation** - a concise map of an unfamiliar area.
-- **External dependency** - a question whose answer depends on framework, library, API, or
-  ecosystem behavior outside the repo.
+- **lightweight** - one subsystem, one known pattern, or one hypothesis with a small search
+  surface. The lead runs shallow research and skips the answer-checker.
+- **standard** - several repo areas, or repo evidence plus institutional learnings or
+  official docs. The lead runs the normal panel and the answer-checker.
+- **deep** - broad orientation, multi-subsystem behavior, contradiction resolution, or repo
+  evidence plus official docs plus web context. The lead runs the full warranted panel,
+  chases threads, and runs the answer-checker.
 
-Prefer the narrowest classification that answers the user. If the request mixes multiple
-types, answer the primary question first and call out secondary questions separately.
-
-## Step 2 - Fast Path by Default
-
-Use the fast path when the answer is likely reachable from a bounded repo scan:
-
-1. Read already-loaded project instructions and vocabulary from context.
-2. Search with `rg`, `Glob`, or native search tools before opening files.
-3. Read the smallest source set that can answer the question.
-4. For absence claims, search the relevant scope before saying something is missing.
-5. For dependency behavior, read local manifests first to identify the package and version.
-
-Do not open a run ledger or spawn agents for narrow questions. Answer directly in chat
-using the answer contract.
-
-## Step 3 - Escalate When the Fast Path Is Not Enough
-
-Escalate to the research subtree when any of these hold:
-
-- The question spans multiple subsystems or a large unfamiliar area.
-- The answer needs institutional learnings from `.banyan/solutions/`.
-- The answer depends on official docs, version-specific framework behavior, or current
-  external information.
-- The first scan finds contradictory evidence.
-- The answer would require enough raw reading to crowd the trunk context.
+## Step 2 - Open the run and dispatch bn-ask-lead
 
 Before opening a run, read (skip any already in your context):
 
@@ -73,55 +55,46 @@ node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs ask-<slug> 
   --root <repo-root> \
   --objective "<answer the user's codebase question with sourced evidence>" \
   --plan-ref "none -- codebase question" \
-  --unit "ask|bn-research-lead|in-progress|.banyan/runs/<run-id>/briefs/ask-answer.md" \
+  --unit "ask|bn-ask-lead|in-progress|.banyan/runs/<run-id>/briefs/ask-answer.md" \
   --actor trunk
 ```
 
 Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts`. The script
 seeds the objective, plan ref, unit row, facts, and opening log line.
 
-Spawn `bn-research-lead` foreground with this envelope:
+Spawn `bn-ask-lead` foreground with this envelope:
 
 ```text
 === BANYAN ENVELOPE ===
 objective:       Answer the user's codebase question with sourced findings, confidence,
                  and explicit unknowns: <question>.
 artifact_path:   .banyan/runs/<run-id>/briefs/ask-answer.md
-output_format:   Markdown brief: Direct answer / Evidence / Confidence / Unknowns /
-                 Sources. Keep it distilled; no raw dumps.
+output_format:   Answer-contract-shaped Markdown brief: direct answer first, sourced
+                 Evidence, Confidence, Unknowns. Keep it distilled; no raw dumps.
 inputs:
-  question_type: <pinpoint | mechanism | hypothesis | limitation | orientation | external dependency>
   question:      <the user's question>
-  fast_scan:     <brief summary of any trunk scan already performed, or "none">
+  effort_class:  <lightweight | standard | deep>
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md
-boundaries:      Read-only research. Do NOT edit source, switch branches, commit/push,
+boundaries:      Read-only Q&A. Do NOT edit source, switch branches, commit/push,
                  open issues, or touch .banyan/brainstorms, .banyan/plans, .banyan/solutions,
                  .banyan/runs except this run's own artifacts.
-tool_guidance:   Read/Grep/Glob/Bash for repo investigation; use framework docs or web
-                 only when the question needs external evidence. Agent(...) for the
-                 warranted researchers and thread chaser per bn-research-lead.
+tool_guidance:   Agent(bn-research-lead) for evidence-gathering, Agent(bn-ask-checker) to
+                 verify the answer (standard/deep), Agent(bn-lesson-harvester) to finalize.
+                 Read/Grep/Glob/Bash for the lead's own grounding.
 budget:
-  max_children:    6
-  depth_remaining: 3
+  max_children:    8
+  depth_remaining: 4
 effort_class:    <lightweight | standard | deep>
 === END ENVELOPE ===
 ```
 
-Classify effort by breadth:
-
-- **lightweight** - one subsystem, one known pattern, or one hypothesis with a small search
-  surface.
-- **standard** - several repo areas, or repo evidence plus institutional learnings or
-  official docs.
-- **deep** - broad orientation, multi-subsystem behavior, contradiction resolution, or
-  repo evidence plus official docs plus web context.
-
 Read `.banyan/runs/<run-id>/briefs/ask-answer.md` when the lead returns. Do not rely on the
-lead's final-message prose for load-bearing facts.
+lead's final-message prose for load-bearing facts. If the lead returns `needs-user`, surface
+its blocker and recovery metadata to the user rather than guessing.
 
-## Step 4 - Answer the User
+## Step 3 - Answer the User
 
 Use `references/answer-contract.md` for the response shape. The answer must:
 

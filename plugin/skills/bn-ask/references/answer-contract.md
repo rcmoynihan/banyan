@@ -12,6 +12,9 @@ trust, not for exhaustiveness.
 - For absence claims, name the search scope and terms.
 - For "how it works" answers, trace the real path from entry point to consequence when the
   code makes that path available.
+- Every load-bearing citation is re-run by `bn-ask-checker` before the answer is finalized,
+  so a `Confirmed` verdict means a citation survived that re-run — not that behavior was
+  inferred from names or structure.
 
 ## Confidence Labels
 
@@ -93,4 +96,3 @@ Confidence: <label>. <One short reason.>
 - Use "I did not find..." only with a search scope.
 - Say "I did not verify runtime behavior" when no test, command, or execution path was run.
 - Do not propose code changes unless the user asks for recommendations.
-- Do not write a durable markdown artifact for a fast-path answer.

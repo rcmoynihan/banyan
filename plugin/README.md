@@ -14,7 +14,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (48 agents)
+  agents/                      one agent per file: bn-*.md (50 agents)
   skills/                      one skill per directory: bn-*/SKILL.md (18 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
@@ -39,7 +39,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-grow` | The full hands-off pipeline: optional brainstorm intake → research → spec stress when warranted → plan (judged) → deliver (full-panel review + bounded fix loop) → ship gate → curation handoff, with bounded self-recovery at phase gates. |
 | `/bn-brainstorm` | Collaborative requirements dialogue (scope tiers, rigor probes, synthesis gate) producing a requirements doc that hands off to `/bn-spec-stress` or `/bn-plan`. |
 | `/bn-spec-stress` | Stress-test a requirements doc before planning: missing scenarios, hidden assumptions, acceptance gaps, and plan-affecting risks become a gate brief with explicit disposition buckets. |
-| `/bn-ask` | Grounded codebase Q&A: answers repo questions, checks hypotheses, explains limitations, and escalates to the research subtree only when needed. |
+| `/bn-ask` | Grounded codebase Q&A via a dedicated subtree: researchers gather evidence, the lead drafts an answer, `bn-ask-checker` re-runs every citation, and the lead revises and writes one verified answer brief. No fast path. |
 | `/bn-onboard` | Onboard an existing repo by classifying its documentation corpus, gating linked derivatives, bootstrapping curator knowledge, drafting instructions, and emitting a manifest. |
 | `/bn-review` | The review subtree, **read-only**: reviews a diff, dedupes findings, returns a findings report (edits and commits nothing). Fix findings via `/bn-work` or by hand. |
 | `/bn-plan` | A plan from a requirements doc, research brief, spec-stress brief, or task: `bn-plan-lead` owns the generator/judge/checker panel and writes the durable plan. |
@@ -58,8 +58,8 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 ## Agents
 
 - **Leads** — `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`,
-  `bn-debug-lead`, and `bn-plan-lead`: each owns a subtree end-to-end and returns a
-  verdict plus artifact paths. Their `Agent(...)` allowlists are their team rosters.
+  `bn-debug-lead`, `bn-plan-lead`, and `bn-ask-lead`: each owns a subtree end-to-end and
+  returns a verdict plus artifact paths. Their `Agent(...)` allowlists are their team rosters.
 - **Delivery workers** — `bn-unit-lead` (one implementation unit in an isolated
   worktree: implement → test-fix → mini-review pair → commit), `bn-integrator` (single
   writer for the merge; runs the full suite; never pushes).

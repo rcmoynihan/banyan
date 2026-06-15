@@ -294,7 +294,7 @@ A **lead** is an agent that owns a subtree end-to-end and returns a verdict, not
   harvest, then return.
 
 The core leads are `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`,
-`bn-debug-lead`, and `bn-plan-lead`. The main session stays a near-empty **trunk** that talks
+`bn-debug-lead`, `bn-plan-lead`, and `bn-ask-lead`. The main session stays a near-empty **trunk** that talks
 to the user, holds intent, reads gate artifacts, and dispatches owning leads.
 
 ---
