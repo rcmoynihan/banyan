@@ -90,7 +90,7 @@ README/manifest.
 ### Caveats + open risks
 - <caveats and open risks, including a slot for the post-run detection self-check caveat: any
   working-tree mutation outside `poc/<slug>/` (and the run's own notes) detected by
-  `git status --porcelain`, named explicitly, with the resulting verdict downgrade — or "none">
+  `git status --porcelain --ignored`, named explicitly, with the resulting verdict downgrade — or "none">
 
 ### Proven approach for reconstruction
 - **Algorithm / approach:** <what actually worked, in enough detail to rebuild from scratch>

@@ -194,20 +194,36 @@ escape the poc tree or collapse the cleanup — see `fidelity-doctrine.md` §Slu
    parameters / corners cut), what it would take to go further, and a populated **two-axis
    disposition table** (verdict × has-owning-artifact, with `poc-only` as a routing mode). The
    append-vs-fresh decision follows `inputs.iteration`, which the trunk already reconciled against
-   the notes' actual `## Iteration` headings: for `inputs.iteration: 1` write a fresh
-   `# PoC notes: <slug>` / `## Iteration 1` (REPLACING any stale same-path notes); for
-   `inputs.iteration > 1` append a new `## Iteration N` section to the existing notes (using the
-   iteration number from `inputs.iteration`) — never rewrite a prior iteration. The trunk guarantees
-   `inputs.iteration > 1` only when the selected notes file already holds iterations `1..N-1`, so
-   you never append an orphan heading onto an empty file.
+   the notes' actual `## Iteration` headings, and the notes write — like the manifest write
+   (step 6) — is **idempotent for a given `inputs.iteration`**, in exactly three modes:
+   - **`inputs.iteration: 1`** — write a fresh `# PoC notes: <slug>` / `## Iteration 1`, REPLACING
+     any stale same-path notes.
+   - **`inputs.iteration > 1` and NO `## Iteration N` block for the bound iteration exists yet**
+     (the normal in-place iteration) — append a new `## Iteration N` section to the existing notes
+     (using the iteration number from `inputs.iteration`); never rewrite a PRIOR iteration `1..N-1`.
+   - **`inputs.iteration > 1` and a `## Iteration N` block for the bound iteration ALREADY exists**
+     (a same-iteration recovery re-spawn — the Step-5 verdict-consistency recovery re-spawns you at
+     the SAME bound iteration after your notes for N already succeeded) — REPLACE that existing
+     `## Iteration N` block in place rather than appending a SECOND one. This keeps the notes write
+     idempotent for `inputs.iteration` exactly as the manifest write is, so a recovery re-spawn never
+     duplicates the `## Iteration N` heading or corrupts the append-only history (a duplicate heading
+     would poison the trunk's latest-iteration verdict parse and the next-iteration "highest
+     `## Iteration <k>` + 1" derivation). You still never rewrite a prior iteration `1..N-1` — only
+     the bound iteration N's own block is replaceable.
+
+   The trunk guarantees `inputs.iteration > 1` only when the selected notes file already holds
+   iterations `1..N-1`, so you never append an orphan heading onto an empty file.
 
    **Write order is load-bearing: the notes are written LAST (step 8), after the manifest (step 6)
    and README (step 7).** The notes are the gate artifact, so writing them last means their presence
    is the trunk's signal that the manifest/README were already written with THIS iteration's
    verdict. The verdict in all three MUST agree; if a transient error left the manifest/README
    carrying a prior iteration's stale verdict while the notes succeeded, the trunk's Step-5
-   verdict-consistency check catches the mismatch and re-spawns you (same iteration, idempotent
-   manifest write) to re-assert agreement — so never leave the notes' verdict disagreeing with the
+   verdict-consistency check catches the mismatch and re-spawns you (same iteration, with BOTH the
+   manifest write and the notes write idempotent for that `inputs.iteration` — the manifest
+   overwrites in place and the notes REPLACE the already-present `## Iteration N` block per step 8's
+   third mode, so the re-spawn duplicates neither the manifest counter nor the `## Iteration N`
+   heading) to re-assert agreement — so never leave the notes' verdict disagreeing with the
    manifest/README you wrote moments earlier.
 
 ## Return

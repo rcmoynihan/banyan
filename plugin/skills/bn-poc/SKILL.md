@@ -212,11 +212,13 @@ confirmed re-run must not leave a stale `could-not-confirm` in the README/manife
 SUCCESSFUL notes read, also confirm `poc/<slug>/.banyan-poc.json` and `poc/<slug>/README.md` exist
 and their `verdict` matches the notes' **latest-iteration** verdict. On a missing or mismatched
 verdict-bearing artifact, treat it as an **artifact failure** and recover under the SAME
-artifact-failure budget (max 1, re-using the bound iteration — the builder's manifest write is
-idempotent for a given `inputs.iteration`, so the re-spawn overwrites the stale verdict in place
-rather than advancing the counter); if it still mismatches after that one recovery, report `blocked`
-naming the inconsistent artifact and the stale-vs-latest verdicts — do not route a stale verdict
-forward to the handoff.
+artifact-failure budget (max 1, re-using the bound iteration — BOTH the builder's manifest write
+AND its notes write are idempotent for a given `inputs.iteration`, so the re-spawn overwrites the
+stale verdict in place rather than advancing the counter, and REPLACES the already-present
+`## Iteration N` notes block rather than appending a duplicate heading — see `bn-poc-builder.md`
+step 8's same-iteration recovery mode); if it still mismatches after that one recovery, report
+`blocked` naming the inconsistent artifact and the stale-vs-latest verdicts — do not route a stale
+verdict forward to the handoff.
 
 **The recovery re-spawn RE-USES the iteration bound in Step 3 — it does not re-run the
 overwrite-safety gate and does not re-derive `iteration`.** The builder may persist the manifest
@@ -225,23 +227,33 @@ the recovery re-derived `iteration` from that manifest it would read the bumped 
 `N+1`, skipping an iteration. Bind `inputs.iteration` once (like the notes path) and pass the SAME
 value to the recovery re-spawn. The builder's manifest write is idempotent for a given
 `inputs.iteration` (it writes `manifest.iteration = inputs.iteration`, never `prior + 1`), so a
-re-spawn at the same iteration overwrites the partial manifest in place rather than advancing it.
+re-spawn at the same iteration overwrites the partial manifest in place rather than advancing it;
+the builder's notes write is idempotent the same way (when a `## Iteration N` block for the bound
+iteration already exists it REPLACES that block rather than appending a second one), so the
+re-spawn never duplicates the `## Iteration N` heading either.
 
 **Mid-build out-of-scope cliff re-touch.** When the builder returns **partial/blocked** notes
 because the crux needed something outside the confirmed scope (an un-named install/host/data
 source, a credential, spend, or a budget mis-size), this is not a failure — it is the cliff working.
 Re-confirm an **expanded scope** with the user (Step 3b again, the same `AskUserQuestion` +
 fallback) and re-spawn under a **bounded count** (max 2 out-of-scope re-touch re-spawns; the budget
-debit is decided at the re-touch). Do not autonomously expand the scope yourself. **If a debit would
-leave zero budget**, do not re-spawn — route to the budget wall: return `could-not-confirm` and
-record the wall hit (what it would take to get further), per §5 of `fidelity-doctrine.md`.
+debit is decided at the re-touch). Do not autonomously expand the scope yourself. **Debit semantics
+(symmetric with the artifact-failure budget's after-output terminal): re-spawn while budget remains;
+debit one per re-touch; when the budget reaches zero after a debit, the NEXT cliff routes to the
+budget wall.** So `max 2` yields a full TWO out-of-scope re-spawns (2→1 fires, 1→0 fires), and only
+the THIRD cliff routes to the wall — `max N` => N re-spawns, then the terminal — never one fewer
+than the stated count. At the budget wall, return `could-not-confirm` and record the wall hit (what
+it would take to get further), per §5 of `fidelity-doctrine.md`.
 
 **The two re-spawn budgets are INDEPENDENT counters — do not conflate them.** They count different
 failure classes and are tracked separately:
 
 - **Artifact-failure recovery: max 1** (the "recover ONCE" above) — a notes-missing/malformed
-  re-spawn at the same bound iteration.
-- **Out-of-scope re-touch: max 2** — a scope-expansion re-spawn after a mid-build cliff.
+  re-spawn at the same bound iteration; the terminal fires AFTER evaluating that one re-spawn's
+  output (a full 1 re-spawn for max 1).
+- **Out-of-scope re-touch: max 2** — a scope-expansion re-spawn after a mid-build cliff; symmetric
+  with the artifact-failure budget, `max 2` yields a full TWO re-spawns and the budget wall fires on
+  the THIRD cliff (max N => N re-spawns, then the terminal), never one fewer than stated.
 
 A **mixed** failure sequence (e.g. an out-of-scope re-touch whose re-spawn then returns a malformed
 notes artifact) may consume BOTH budgets — they do not share a pool and neither caps the other. Each
@@ -268,10 +280,11 @@ The trunk handles each of these named launch states explicitly:
   genuinely resisted) from an **environmental-inconclusive** outcome (network timeout, partial
   install, null signal) that routes to "retry with infra," not "pivot the idea".
 - **re-spawn-after-partial** — a bounded re-spawn re-using the bound iteration, under whichever of
-  the **two independent budgets** applies (Step 5): an **out-of-scope-cliff re-touch (max 2)** OR an
-  **artifact-failure recovery (max 1, "recover ONCE")** — they are separate counters, not a shared
-  `max 2` pool, and a mixed sequence may consume both. When either budget is exhausted, take that
-  budget's terminal (artifact-failure ⇒ `blocked`; out-of-scope/budget ⇒ the budget-wall
+  the **two independent budgets** applies (Step 5): an **out-of-scope-cliff re-touch (max 2 — a full
+  two re-spawns, the wall on the third cliff)** OR an **artifact-failure recovery (max 1, "recover
+  ONCE" — a full one re-spawn, terminal evaluated after its output)** — they are separate counters,
+  not a shared `max 2` pool, and a mixed sequence may consume both. When either budget is exhausted,
+  take that budget's terminal (artifact-failure ⇒ `blocked`; out-of-scope/budget ⇒ the budget-wall
   `could-not-confirm`).
 
 ## Step 6 — Run the handoff (propose, never patch)
