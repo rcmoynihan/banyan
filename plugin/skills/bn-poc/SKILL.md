@@ -83,10 +83,16 @@ spawn**:
   confirm overwrite or pick a new slug. In a runtime without that tool, stop and surface the
   path/mismatch and wait for an explicit answer in chat; never auto-overwrite or auto-suffix. This
   is a permission cliff — never overwrite silently, never auto-suffix. Spawn only after the gate
-  clears. **A confirmed overwrite is a FRESH build (`iteration: 1`) that REPLACES `poc/<slug>/`** —
-  it is *not* an in-place iteration even though the slug is unchanged. **On a refusal, fire the
-  named overwrite-refused terminal** from `overwrite-safety.md`: clean abort with the refusal noted
-  in the ledger, OR an offer to re-slug — never a silent fall-through into a build.
+  clears. **A confirmed overwrite is a FRESH build (`iteration: 1`)** — it is *not* an in-place
+  iteration even though the slug is unchanged. **No actor auto-clears the dir** (the builder never
+  deletes and overwrites only same-named paths; the trunk's only deletion is the user-run cleanup
+  cliff), so for "fresh build" to be honest the trunk surfaces a **clear-first step** on
+  confirmation: the user runs `rm -rf poc/<slug>/` (the slug-validated command, user-consented)
+  BEFORE the build proceeds, and the builder is spawned only after the dir is cleared — otherwise
+  foreign files would survive intermingled with the new PoC (see `overwrite-safety.md`). The trunk
+  never runs `rm -rf` itself. **On a refusal — to overwrite OR to clear** — fire the named
+  overwrite-refused terminal from `overwrite-safety.md`: clean abort with the refusal noted in the
+  ledger, OR an offer to re-slug — never a silent fall-through into a build into the foreign dir.
 
 ## Step 3a — Select the poc-notes path (avoid clobbering on a reused run)
 
@@ -198,6 +204,20 @@ builder's prose (invariant 3). If it is missing or malformed, recover ONCE by re
 builder with a precise artifact-failure note; if the second attempt also fails, report `blocked`
 with the run path and the next safe action — do not fabricate the notes.
 
+**Verdict-consistency check (widen the recovery trigger beyond notes-only).** The builder writes the
+manifest (step 6) and README (step 7) BEFORE the load-bearing notes (step 8), so a notes write that
+succeeds can still sit beside a manifest/README left carrying the PRIOR iteration's STALE verdict
+after a transient mid-write error — which `poc-notes-schema.md` explicitly forbids ("a later
+confirmed re-run must not leave a stale `could-not-confirm` in the README/manifest"). So after a
+SUCCESSFUL notes read, also confirm `poc/<slug>/.banyan-poc.json` and `poc/<slug>/README.md` exist
+and their `verdict` matches the notes' **latest-iteration** verdict. On a missing or mismatched
+verdict-bearing artifact, treat it as an **artifact failure** and recover under the SAME
+artifact-failure budget (max 1, re-using the bound iteration — the builder's manifest write is
+idempotent for a given `inputs.iteration`, so the re-spawn overwrites the stale verdict in place
+rather than advancing the counter); if it still mismatches after that one recovery, report `blocked`
+naming the inconsistent artifact and the stale-vs-latest verdicts — do not route a stale verdict
+forward to the handoff.
+
 **The recovery re-spawn RE-USES the iteration bound in Step 3 — it does not re-run the
 overwrite-safety gate and does not re-derive `iteration`.** The builder may persist the manifest
 (`iteration: N`) before the notes, so a notes-write failure can leave a bumped manifest behind; if
@@ -211,8 +231,22 @@ re-spawn at the same iteration overwrites the partial manifest in place rather t
 because the crux needed something outside the confirmed scope (an un-named install/host/data
 source, a credential, spend, or a budget mis-size), this is not a failure — it is the cliff working.
 Re-confirm an **expanded scope** with the user (Step 3b again, the same `AskUserQuestion` +
-fallback) and re-spawn under a **bounded count** (max 2 re-spawns; the budget debit is decided at
-the re-touch). Do not autonomously expand the scope yourself.
+fallback) and re-spawn under a **bounded count** (max 2 out-of-scope re-touch re-spawns; the budget
+debit is decided at the re-touch). Do not autonomously expand the scope yourself. **If a debit would
+leave zero budget**, do not re-spawn — route to the budget wall: return `could-not-confirm` and
+record the wall hit (what it would take to get further), per §5 of `fidelity-doctrine.md`.
+
+**The two re-spawn budgets are INDEPENDENT counters — do not conflate them.** They count different
+failure classes and are tracked separately:
+
+- **Artifact-failure recovery: max 1** (the "recover ONCE" above) — a notes-missing/malformed
+  re-spawn at the same bound iteration.
+- **Out-of-scope re-touch: max 2** — a scope-expansion re-spawn after a mid-build cliff.
+
+A **mixed** failure sequence (e.g. an out-of-scope re-touch whose re-spawn then returns a malformed
+notes artifact) may consume BOTH budgets — they do not share a pool and neither caps the other. Each
+is bounded on its own; when either is exhausted, take that budget's terminal (artifact-failure
+exhausted ⇒ `blocked`; out-of-scope/budget exhausted ⇒ the budget wall, `could-not-confirm`).
 
 Then print the single reproducible **spike run command** from the notes (the exact command that
 reproduces the crux run), so the user can re-run the spike.
@@ -222,8 +256,9 @@ reproduces the crux run), so the user can re-run the spike.
 The trunk handles each of these named launch states explicitly:
 
 - **fresh-slug** — `poc/<slug>/` absent ⇒ fresh build, `iteration: 1`.
-- **overwrite-confirmed** — foreign/mismatched dir, user confirmed overwrite ⇒ fresh build that
-  REPLACES the dir, `iteration: 1`.
+- **overwrite-confirmed** — foreign/mismatched dir, user confirmed overwrite ⇒ the user clears the
+  dir first (`rm -rf poc/<slug>/`, user-consented; no actor auto-deletes), THEN a fresh build,
+  `iteration: 1`. A confirm-overwrite-but-decline-to-clear routes to the overwrite-refused terminal.
 - **overwrite-refused** — user refused ⇒ the named overwrite-refused terminal (clean abort with
   the refusal noted, or re-slug); never a silent build.
 - **mid-build-out-of-scope-cliff** — builder hit a need outside the confirmed scope ⇒ partial/
@@ -232,8 +267,12 @@ The trunk handles each of these named launch states explicitly:
   builder returns partial notes; distinguish a feasibility **could-not-confirm** (the crux
   genuinely resisted) from an **environmental-inconclusive** outcome (network timeout, partial
   install, null signal) that routes to "retry with infra," not "pivot the idea".
-- **re-spawn-after-partial** — a bounded (max 2) re-spawn after an out-of-scope cliff or a
-  recovered artifact failure, re-using the bound iteration.
+- **re-spawn-after-partial** — a bounded re-spawn re-using the bound iteration, under whichever of
+  the **two independent budgets** applies (Step 5): an **out-of-scope-cliff re-touch (max 2)** OR an
+  **artifact-failure recovery (max 1, "recover ONCE")** — they are separate counters, not a shared
+  `max 2` pool, and a mixed sequence may consume both. When either budget is exhausted, take that
+  budget's terminal (artifact-failure ⇒ `blocked`; out-of-scope/budget ⇒ the budget-wall
+  `could-not-confirm`).
 
 ## Step 6 — Run the handoff (propose, never patch)
 
@@ -258,7 +297,12 @@ plan-impact axis: a plan-sourced `could-not-confirm` HALTS the plan and routes t
   `.gitignore`, never forcing it. In a runtime without that tool, stop and surface the offer and
   wait for an explicit answer in chat; never silently skip the `.gitignore` offer and never add it
   without consent. The trunk owns this single edit if the user accepts; the builder never touches
-  `.gitignore`.
+  `.gitignore`. **Note the detection tradeoff when offering:** adding `poc/` to `.gitignore` hides
+  sibling escapes (`poc/evil/`, `poc/.cache/`) from a plain `git status --porcelain`; the builder's
+  self-check uses `git status --porcelain --ignored` precisely so the post-run leg stays able to see
+  them (`fidelity-doctrine.md` §6). Egress and a revert-before-snapshot remain the disclosed
+  undetected residual either way — accepting the offer does not widen that residual once `--ignored`
+  is used.
 
 ## Notes
 

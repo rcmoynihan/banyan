@@ -86,7 +86,9 @@ write boundary in §1. It holds **only if `<slug>` is a validated slug.** Theref
 Note this is sharper for a PoC than for a mock: a mock only writes files into `mock/<slug>/`, but a
 PoC also *executes code* whose own writes are expected (not guaranteed) to stay in `poc/<slug>/`.
 The slug-validated write confinement is one of the four containment legs in §6, paired with the
-post-run detection self-check that catches what the confinement cannot prevent.
+post-run detection self-check that catches the **subset** of escapes it can see (persistent,
+tracked, non-reverted mutations outside `poc/<slug>/`) — NOT everything the confinement cannot
+prevent. Its scope and named blind spots are stated in §6.
 
 ## 4. In-scope-vs-stop-and-ask decision tree — what to do with an unknown
 
@@ -155,10 +157,30 @@ sandbox:
 4. **The up-front confirmed scope** — §2/§3: a concrete named list of packages/hosts/data, the
    sole autonomous floor.
 
-Plus the **post-run detection self-check** (the enforcement-by-detection leg, specified in
-`bn-poc-builder.md`): after the build, run `git status --porcelain` against a pre-build snapshot;
-if the tree changed outside `poc/<slug>/` (and the run's own notes), record the out-of-poc
-mutation as an explicit caveat naming the changed paths and **downgrade the verdict** —
+Plus the **post-run detection self-check** (a *partial* detection leg, specified in
+`bn-poc-builder.md`): after the build, run `git status --porcelain --ignored` against a pre-build
+snapshot; if the tree changed outside `poc/<slug>/` (and the run's own notes), record the
+out-of-poc mutation as an explicit caveat naming the changed paths and **downgrade the verdict** —
 **downgrade-and-disclose, NOT abort** (a PoC's whole point is to have run; this is the deliberate
-contrast with `bn-dogfood-verifier`'s abort-on-dirty). This self-check is how the boundary is
-*enforced by detection* once execution has already escaped what doctrine could prevent.
+contrast with `bn-dogfood-verifier`'s abort-on-dirty).
+
+**Be honest about what this leg does and does not catch — it is a narrow-scope detector, not
+enforcement.** It detects ONLY *persistent, non-reverted mutations to paths outside `poc/<slug>/`*.
+It does **NOT** and **cannot** detect:
+
+- **(a) data egress / exfiltration** — an outbound upload leaves zero working-tree trace, so it is
+  categorically invisible to any git-status diff;
+- **(b) a mutation reverted/deleted before the post-run snapshot** — code that writes then restores
+  or removes a path before the self-check runs leaves a clean diff;
+- **(c) writes into gitignored paths** — plain `git status --porcelain` omits gitignored files,
+  which would hide `.banyan/**` protected-state writes AND, once Step 7's offer to add `poc/` to
+  `.gitignore` is accepted, any write to a *sibling* of the slug dir (`poc/evil/`, `poc/.cache/`).
+  **The snapshot and self-check therefore use `git status --porcelain --ignored`** (step 0 and
+  step 4 of `bn-poc-builder.md`) so in-`poc/` sibling escapes — the self-inflicted `.gitignore`
+  case — stay visible; egress (a) and revert-before-check (b) remain undetectable by any
+  working-tree diff.
+
+These three remain part of the **accepted, disclosed no-sandbox residual**: the self-check narrows
+the undetected surface, it does not close it. This leg is how the boundary is *partially observed
+by detection* once execution has already escaped what doctrine could prevent — never read it as
+full enforcement.
