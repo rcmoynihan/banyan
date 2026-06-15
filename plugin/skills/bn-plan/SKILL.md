@@ -114,10 +114,15 @@ Do not paste the plan body. The durable plan file is the artifact `/bn-work` or 
 consumes next.
 
 After presenting the summary, offer one optional, non-default touchpoint (via
-`AskUserQuestion`): **see it first / mock it** — invoke `/bn-mock <plan-path>` reusing the same
-run to build a deliberately-fake mock of the plan before `/bn-work`, so design holes
-surface first. Keep it a single optional offer so the thin-dispatcher character of `/bn-plan`
-is preserved; when declined, the existing "the plan is the artifact `/bn-work` consumes next"
-flow is unchanged. Mock findings off a plan path carry the plan-impact classification, so a
-"replan before work" finding loops back into `/bn-plan`. Do not add a standing menu and do not
-alter the `needs-user` / `blocked` branches.
+`AskUserQuestion`) with two alternatives before `/bn-work`: **see it first / mock it** — invoke
+`/bn-mock <plan-path>` reusing the same run to build a deliberately-fake mock of the plan so
+design holes surface first; or **prove it / spike it** — invoke `/bn-poc <plan-path>` reusing the
+same run to build the plan's core machine *for real* into a disposable `poc/<slug>/` and answer
+whether the central IP/capability the plan rests on can actually work (verdict `confirmed` /
+`confirmed-with-caveats` / `could-not-confirm`). Keep it a single optional offer so the
+thin-dispatcher character of `/bn-plan` is preserved; when declined, the existing "the plan is the
+artifact `/bn-work` consumes next" flow is unchanged. Both mock and PoC findings off a plan path
+carry the plan-impact classification, so a "replan before work" finding loops back into `/bn-plan`;
+a plan-sourced PoC `could-not-confirm` halts the plan and routes to research/pivot rather than
+carrying unproven core IP into `/bn-work`. Do not add a standing menu and do not alter the
+`needs-user` / `blocked` branches.

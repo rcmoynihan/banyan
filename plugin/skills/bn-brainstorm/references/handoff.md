@@ -53,9 +53,16 @@ of a path); an unresolved `Resolve Before Planning` section hides **Stress requi
    standalone — offered whether or not a requirements document exists, since `/bn-mock` accepts
    free text. Because this menu is skipped entirely under the `/bn-grow` intake guard at
    the top of this file, the mock option is never surfaced inside `/bn-grow` intake.
-5. **Keep refining** — More clarifying questions or another approach pass; return to the
+5. **Prove it / spike it with `/bn-poc`** — Build the idea's core machine *for real* into a
+   disposable `poc/<slug>/` to answer one feasibility question — can the central IP/capability
+   the idea rests on actually work? — returning a humble verdict (`confirmed` /
+   `confirmed-with-caveats` / `could-not-confirm`). Shown standalone — offered whether or not a
+   requirements document exists, since `/bn-poc` accepts free text. Like the mock option, it is
+   never surfaced inside `/bn-grow` intake because this whole menu is skipped under the
+   `/bn-grow` guard at the top of this file.
+6. **Keep refining** — More clarifying questions or another approach pass; return to the
    appropriate phase.
-6. **Done for now** — Print the closing summary and stop.
+7. **Done for now** — Print the closing summary and stop.
 
 ## Dispatch
 
@@ -75,6 +82,10 @@ closing summary first.
 **See it first / mock it** — Immediately invoke `/bn-mock` in the current session, passing
 the requirements-doc path when one exists, otherwise the finalized brainstorm summary as
 free-text input, reusing the live run; do not print the closing summary first.
+
+**Prove it / spike it** — Immediately invoke `/bn-poc` in the current session, passing the
+requirements-doc path when one exists, otherwise the finalized brainstorm summary as free-text
+input, reusing the live run; do not print the closing summary first.
 
 **Keep refining** — Return to dialogue (Phase 1.3) or approaches (Phase 2) as the user's
 note indicates. Re-run Phase 2.5 and Phase 3 (updating the existing doc) before offering
