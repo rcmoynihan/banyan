@@ -293,6 +293,19 @@ A **lead** is an agent that owns a subtree end-to-end and returns a verdict, not
   compete with real work for the cap), and it must not block or alter the lead's verdict —
   harvest, then return.
 
+**Driver's vigilance.** A lead does more than *read* its children's artifacts — it reads them like
+a human driving the tool, watching the child's trajectory for the process pitfalls a diff-reading
+reviewer cannot see: goal drift, fixing the wrong problem, assumption-driven work, solving
+uncertainty with code, acting on partial understanding, hallucinated context, tool misuse, and
+tunnel vision. These are legible in a child's artifact *before any diff exists* — exactly the
+surface the reviewer panel cannot reach. This is a lens held while reading, not a gate run per
+spawn; when a flag survives the lead's own judgment, the corrective is a move on the existing
+re-dispatch / §2.2 escalation ladder (a sharper-envelope re-dispatch within the retry cap, or a
+`blocker_class` escalation), never a new recovery system. The catalog of pitfalls, their
+trajectory tells, and their correctives lives at
+`skills/bn-conventions/references/process-pitfalls.md`; the operative copy of this reflex is
+inlined in each lead body, because `plugin/AGENTS.md` is never auto-loaded into a spawned subagent.
+
 The core leads are `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`,
 `bn-debug-lead`, `bn-plan-lead`, and `bn-ask-lead`. The main session stays a near-empty **trunk** that talks
 to the user, holds intent, reads gate artifacts, and dispatches owning leads.
