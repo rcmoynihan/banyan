@@ -19,7 +19,9 @@ PR-style, evidence-cited proposals to `.banyan/harness-proposals/`. It **NEVER s
 **applying is the human's call.** Nothing here is auto-applied.
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
-`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`, and
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`,
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-tune/references/message-grading-rubric.md` (the canonical
+message-grading lens the agent applies to each call), and
 `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 3
 artifacts-over-prose, invariant 5 budgets, invariant 6 permission cliff). Skip any already in your context.
 
@@ -32,7 +34,9 @@ Resolve which runs the agent will mine, and how many there are.
   runs; a range picks the runs in it).
 
 Count the runs in scope. Harness-tuning is EXPLORATORY: the pattern floor needs accumulated
-data to separate a real recurring failure from a one-off.
+data to separate a real recurring failure from a one-off. The message-grading lens makes this
+scope window the effective cost control: grading every call's full round-trip is more work per
+run, narrowed only via this existing scope arg -- there is no separate cost knob.
 
 - **WARN if fewer than 5 runs are available.** State plainly that harness-tuning is exploratory and the
   pattern floor (>=2-3 occurrences across runs) needs accumulated data -- with < 5 runs the
@@ -63,14 +67,24 @@ contract -- the agent mines the runs it names, not prose.
 === BANYAN ENVELOPE ===
 objective:       Mine the accumulated Banyan run corpus for RECURRING harness-failure
                  patterns (reviewer over-fires, budget squeezes, envelope/boundary
-                 violations, loop/escalation patterns, repeated dead-ends) and write one
-                 evidence-cited, PR-style proposal per pattern. Never apply anything.
+                 violations, loop/escalation patterns, repeated dead-ends) AND grade each
+                 call's full round-trip against the message-grading rubric, surfacing
+                 token-waste / misleading-context on calls that SUCCEEDED. Write one
+                 evidence-cited, PR-style proposal per recurring pattern. Never apply anything.
 corpus_scope:    <all runs under .banyan/runs/ | the run-id range or count from Step 1>
 artifact_path:   .banyan/harness-proposals/  (one <date>-<slug>.md per pattern, plus
                  optional INDEX.md entries)
 output_format:   One PR-style proposal per pattern: the pattern, the EVIDENCE (>=2 cited
                  occurrences -- run-ids + file:line), the exact plugin/ file targeted, a
-                 unified-diff or precise before/after, and the expected effect.
+                 unified-diff or precise before/after, and the expected effect. When the
+                 pattern is a message-quality weakness, grade against the rubric's canonical
+                 axes by their exact names -- envelope axes `objective-clarity`,
+                 `boundary-right-sizing`, `budget-fit`, `doctrine-relevance`,
+                 `context-accuracy`; brief axes `answers-the-objective`,
+                 `artifacts-over-prose`, `confidence-calibration`, `token-economy` -- and
+                 mark the proposal Category: message-quality. These axis names are
+                 byte-identical to the rubric; do not synonymize.
+grading_rubric:  ${CLAUDE_PLUGIN_ROOT}/skills/bn-tune/references/message-grading-rubric.md
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      NEVER edit plugin/ (no Edit tool by design -- you PROPOSE, a human
@@ -90,6 +104,8 @@ effort_class:    deep
 === END ENVELOPE ===
 ```
 
+- `grading_rubric:` is a deliberate skill-local envelope extension carrying the resolved rubric
+  path -- not a canonical `envelope.md` field, so it is not a drift to be reconciled there.
 - `max_children: 0` and `depth_remaining: 0` make the agent a leaf -- it mines inline and
   spawns nothing (it has no `Agent(...)` allowlist either).
 - The agent runs at its pinned `model: opus`: whole-system analysis steers edits to the
@@ -105,12 +121,21 @@ the user:
   how many candidate patterns were DROPPED for insufficient evidence (the honest floor);
 - for each proposal: the pattern, the plugin/ FILE it targets, and its cited evidence
   (run-ids + file:line) so the user can judge it;
+- how many proposals are in the **message-quality** category -- a distinct category from
+  failure-fix, targeting an agent's envelope-construction or brief-writing instructions to
+  improve efficiency/clarity on calls that already SUCCEEDED. Where two proposals land against
+  the same target file in one run, note that the human applier reconciles them on apply;
 - the headline rule, stated clearly: **nothing was applied.** Each proposal is a suggested
   diff to a Banyan agent or skill that a HUMAN reviews and merges. Applying is the user's call.
 
 If the agent found NO actionable patterns (common on a thin corpus -- see the under-5 warning),
 say so plainly: zero proposals is an honest outcome, not a failure, when the data floor is not
-yet met. Point the user at `.banyan/harness-proposals/` for any proposals.
+yet met. Distinguish the two zero-proposal causes the agent reports, because they read
+differently: **no graded calls cleared the `>=2` floor for any agent+axis** -- few or no calls
+graded low at all (a narrow window or thin corpus, so there may be debt that simply did not
+surface in scope) -- versus **axes were graded low but none recurred** -- weaknesses did surface
+on individual calls, but no single agent+axis hit the floor twice. Point the user at
+`.banyan/harness-proposals/` for any proposals.
 
 ## Permission cliff (invariant 6)
 
