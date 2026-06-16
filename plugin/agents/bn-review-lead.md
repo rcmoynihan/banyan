@@ -218,6 +218,15 @@ Reviewers are read-only; each writes only its own findings file.
 When the panel returns, **read every `findings/<reviewer>.json` file** — never extract
 load-bearing facts from a reviewer's final-message prose (invariant 3). Then:
 
+**Drive, don't trust.** Read the child's artifact, not its final-message prose, and read it as a
+vigilant driver: does this trajectory still serve the objective you dispatched, or has it drifted —
+goal drift, fixing the wrong problem, assumption-driven work, solving uncertainty with code,
+acting on partial understanding, hallucinated context, tool misuse, tunnel vision? This is a lens
+you hold while reading, not a checklist to run. If a flag survives your own judgment, name the
+failure mode and pick the corrective from the catalog:
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/process-pitfalls.md`.
+
+
 1. **Fingerprint** each finding: `normalize(file)` + `line-bucket(line, ±3)` +
    `normalize(title)`. Two findings with the same fingerprint are the same issue.
    Previous-comments findings merge, dedup, and promote identically to the shipped

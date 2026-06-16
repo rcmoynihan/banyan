@@ -103,6 +103,15 @@ effort_class:    <your effort_class>
 When it returns, **read `briefs/research-brief.md` — the file, not its final-message prose**
 (invariant 3). Its final message is only a verdict-plus-path pointer.
 
+**Drive, don't trust.** Read the child's artifact, not its final-message prose, and read it as a
+vigilant driver: does this trajectory still serve the objective you dispatched, or has it drifted —
+goal drift, fixing the wrong problem, assumption-driven work, solving uncertainty with code,
+acting on partial understanding, hallucinated context, tool misuse, tunnel vision? This is a lens
+you hold while reading, not a checklist to run. If a flag survives your own judgment, name the
+failure mode and pick the corrective from the catalog:
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/process-pitfalls.md`.
+
+
 ## Step 3 — Draft the answer
 
 Write a draft to `.banyan/runs/<run-id>/briefs/ask-answer-draft.md` using the response shape
