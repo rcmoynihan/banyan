@@ -98,11 +98,18 @@ export function apply(state, event) {
           ...enrichNode(event.rootTranscript ?? []),
         };
       }
+      // Default to fully EXPANDED: this tool's whole job is to show the historical nested tree at a
+      // glance (KD6 — see the whole run map). A collapsed default hid every depth>=2 agent behind its
+      // parent, so a launch showed only the trunk-spawned roots. Every node starts expanded; the user
+      // collapses via toggle-expand (which flips true→false). Leaves carry a harmless true.
+      const expanded = {};
+      for (const id of Object.keys(nodes)) expanded[id] = true;
       return {
         ...state,
         mode: 'transcript',
         nodes,
         rootChildren,
+        expanded,
         durable: null,
         waiting: null,
         stats: tree.stats,
@@ -131,8 +138,12 @@ export function apply(state, event) {
         },
       };
       const rootChildren = isRoot ? state.rootChildren : [...state.rootChildren, event.id];
+      // Keep the default-expanded contract for live-materialized nodes too: expand the new node (so
+      // its own future children show) and make sure the run-root is expanded (so the new node is
+      // visible even if add-node fired before any build-tree, e.g. the push-down path).
+      const expanded = { ...state.expanded, [event.id]: true, [RUN_ROOT_ID]: true };
       // A live node materializing clears the "waiting for transcripts" state (R2-F4 recovery).
-      return { ...state, mode: 'transcript', nodes, rootChildren, waiting: null };
+      return { ...state, mode: 'transcript', nodes, rootChildren, expanded, waiting: null };
     }
 
     case 'waiting': {

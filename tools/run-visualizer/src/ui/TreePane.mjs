@@ -18,7 +18,7 @@ export function flattenVisible(state) {
     for (const id of childrenOf(state, parentId)) {
       const node = state.nodes[id];
       rows.push({ id, depth, node });
-      // children shown only if this node is expanded (default collapsed beyond depth 1)
+      // children shown only if this node is expanded (default EXPANDED — see run-model build-tree)
       if (state.expanded[id]) walk(id, depth + 1);
     }
   };
@@ -52,11 +52,17 @@ export function TreePane({ state, viewport = 20, scrollTop = 0 }) {
       const selected = state.selectedId === id;
       const marker = active ? '●' : '○'; // active vs finished, visually distinct
       const indent = '  '.repeat(depth);
+      // Has-children affordance: a node with children is otherwise indistinguishable from a leaf.
+      // ▾ expanded / ▸ collapsed (with a child count so a collapsed subtree advertises its size);
+      // a leaf gets a blank so columns still align.
+      const childCount = childrenOf(state, id).length;
+      const twisty = childCount > 0 ? (state.expanded[id] ? '▾' : '▸') : ' ';
+      const collapsedCount = childCount > 0 && !state.expanded[id] ? ` (${childCount})` : '';
       return e(Text, {
         key: id,
         color: active ? 'green' : 'gray',
         inverse: selected,
-      }, `${indent}${marker} ${label(node)}`);
+      }, `${indent}${twisty} ${marker} ${label(node)}${collapsedCount}`);
     }),
   );
 }

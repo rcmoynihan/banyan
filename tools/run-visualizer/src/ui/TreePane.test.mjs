@@ -45,15 +45,23 @@ test('snapshot renders the root-level nodes with active vs finished markers', ()
 
 test('expand/collapse changes the rendered node set', () => {
   let s = twoLevelState();
-  // collapsed: child not visible
+  // default is EXPANDED (this tool shows the historical nested tree on launch): child visible.
   let rows = flattenVisible(s);
-  assert.equal(rows.some((r) => r.id === 'agent-child'), false, 'child hidden while parent collapsed');
-  // expand the parent
+  assert.equal(rows.some((r) => r.id === 'agent-child'), true, 'child visible by default (expanded)');
+  // collapse the parent: child hidden
   s = apply(s, { type: 'toggle-expand', id: 'agent-parent' });
   rows = flattenVisible(s);
-  assert.equal(rows.some((r) => r.id === 'agent-child'), true, 'child visible after expand');
+  assert.equal(rows.some((r) => r.id === 'agent-child'), false, 'child hidden after collapse');
+  // a collapsed parent advertises its child count (▸ affordance)
+  const collapsed = render(e(TreePane, { state: s }));
+  assert.match(collapsed.lastFrame(), /▸ ● banyan:bn-parent \(1\)/, 'collapsed parent shows ▸ + count');
+  // expand again: child visible
+  s = apply(s, { type: 'toggle-expand', id: 'agent-parent' });
+  rows = flattenVisible(s);
+  assert.equal(rows.some((r) => r.id === 'agent-child'), true, 'child visible after re-expand');
   const { lastFrame } = render(e(TreePane, { state: s }));
   assert.match(lastFrame(), /banyan:bn-child/);
+  assert.match(lastFrame(), /▾ ● banyan:bn-parent/, 'expanded parent shows ▾');
 });
 
 test('durable-only mode renders the degraded roster with ×N', () => {
