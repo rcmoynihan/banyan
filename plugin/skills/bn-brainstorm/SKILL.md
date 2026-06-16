@@ -14,7 +14,7 @@ to build them.
 
 The durable output of this workflow is a **requirements document**. In other workflows this might be called a lightweight PRD or feature brief. Keep the workflow name `brainstorm`, but make the written artifact strong enough that planning does not need to invent product behavior, scope boundaries, or success criteria.
 
-This skill does not implement code. It explores, clarifies, and documents decisions for later planning or execution. It is a **trunk-level dialogue** skill: a pure-dialogue brainstorm spawns nothing and opens no run ledger; the one optional spawn (research grounding, Phase 1.1) opens a ledger lazily at that point. When reached from `/bn-grow`, this skill runs as **grow intake**: it completes the requirements artifact step, returns the requirements document path or finalized summary to `/bn-grow`, and skips the standalone handoff menu.
+This skill does not implement code. It explores, clarifies, and documents decisions for later planning or execution. It is a **trunk-level dialogue** skill: a pure-dialogue brainstorm spawns nothing and opens no run ledger. Optional read-only delegated branches (research grounding in Phase 1.1 and Deep critique loops in Phase 2) open a run ledger lazily per branch and use `bn-research-lead` for artifact-backed grounding. When reached from `/bn-grow`, this skill runs as **grow intake**: it completes the requirements artifact step, returns the requirements document path or finalized summary to `/bn-grow`, and skips the standalone handoff menu.
 
 Grow intake is more autonomous than standalone brainstorming. Ask the user only when the missing
 answer changes product behavior and has no safe default. Otherwise write the requirements doc with
@@ -115,6 +115,17 @@ If the scope is unclear, ask one targeted question to disambiguate and then proc
 
 Product-tier triggers additional Phase 1.2 questions and additional sections in the requirements document. Feature-tier uses the current Deep behavior unchanged.
 
+#### 0.4 Multiple Ideas or Proposals
+
+When the user asks to explore multiple ideas, proposals, or directions, classify the set before drilling into any one item.
+
+- **Alternatives for one goal** — Treat them as Phase 2 approaches. Keep the conversation anchored on the shared problem, compare value, risk, carrying cost, fit with constraints, and available evidence, then converge on one recommended direction or a small intentional bundle. Rejected or deferred options become Scope Boundaries when material.
+- **Independent candidates** — Run a portfolio brainstorm. Keep each candidate separate, compare them on the same axes, and ask the user whether they want to select one, rank them, sequence them, or carry several forward. Do not merge unrelated candidates into one requirements document unless the user intentionally chooses a bundle.
+- **Several surviving proposals** — When the output is a decision aid rather than a plan-ready feature, write one comparison brief using the Phase 3 brainstorm metadata and path rules. Write separate requirements documents only for proposals the user wants to take to planning. A single requirements document for a bundle must distinguish shared requirements from per-proposal requirements so `/bn-plan` can split tracks cleanly.
+- **Too many candidates** — Ask the user to pick a batch or top 3-5. Shallow coverage of a long list produces weaker decisions than a bounded comparison.
+
+If the relation between candidates or the desired output is unclear, ask one triage question using the Interaction Rules before Phase 1.1. Multiple ideas can still be Lightweight, Standard, or Deep; the count alone does not determine scope.
+
 ### Phase 1: Understand the Idea
 
 #### 1.1 Existing Context Scan
@@ -135,12 +146,16 @@ If nothing obvious appears after a short scan, say so and continue. Two rules go
 
 2. **Defer design decisions to planning** — Implementation details like schemas, migration strategies, endpoint structure, or deployment topology belong in planning, not here — unless the brainstorm is itself about a technical or architectural decision, in which case those details are the subject of the brainstorm and should be explored.
 
-**Research grounding** (opt-in, Standard and Deep only) — never auto-dispatch. When the user asks for deeper grounding, or the dialogue hits a question a short scan cannot answer (how does this codebase actually do X? has the team solved this before? what's the industry standard?), offer to dispatch `bn-research-lead`. If accepted:
+**Research grounding and external context** (opt-in, Standard and Deep only) — never auto-dispatch. When the user asks for deeper grounding, or the dialogue hits a question a short scan cannot answer (how does this codebase actually do X? has the team solved this before? what's the industry standard?), offer to dispatch `bn-research-lead`.
+
+Grounding may include external web research when outside context could change approach selection, scope boundaries, or success criteria: existing best practices, state-of-the-art (SotA) prior art, open-web examples, competitor or adjacent-product signals, cross-domain analogies, and current documentation. Do not restrict `bn-research-lead` to repo-local context unless the user asks for local-only grounding; the lead's effort scaling decides whether to use `bn-best-practices-researcher`, `bn-framework-docs-researcher`, or `bn-web-researcher`. If the user accepts deeper research, that acceptance covers these read-only external searches unless the user restricts sources.
+
+If accepted:
 
 1. Use the caller's run ledger if this brainstorm is running as `/bn-grow` intake. Otherwise open the run ledger **now** (lazily — only this branch needs one):
    `node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/new-run.mjs brainstorm-<slug> --root <repo-root> --objective "<ground the brainstorm question>" --plan-ref "none -- brainstorm grounding" --unit "research|bn-research-lead|in-progress|.banyan/runs/<run-id>/briefs/brainstorm-grounding.md" --actor trunk`
    Parse the JSON output and use `run_id`, `run_dir`, `ledger_path`, and `facts`.
-2. Spawn `bn-research-lead` **foreground** with a standard envelope: `objective` = the grounding question, `artifact_path` = `.banyan/runs/<run-id>/briefs/brainstorm-grounding.md`, boundaries read-only, budget `{ max_children: 6, depth_remaining: 3 }`, `effort_class` by question breadth.
+2. Spawn `bn-research-lead` **foreground** with a standard envelope: `objective` = the grounding question, including any external best-practice, SotA, or prior-art dimension that matters; `artifact_path` = `.banyan/runs/<run-id>/briefs/brainstorm-grounding.md`; boundaries read-only; `tool_guidance` permits read-only repo research plus WebSearch/WebFetch/Context7 through the research lead's external researchers when external grounding helps; budget `{ max_children: 6, depth_remaining: 3 }`; `effort_class` by question breadth.
 3. READ the brief file (not the lead's prose) and fold its findings into the dialogue.
 4. Note the brief's path in the requirements doc so `/bn-plan` can reuse it instead of re-researching.
 
@@ -224,6 +239,18 @@ For each approach, provide:
 
 **Approach granularity: mechanism / product shape, not architecture.** Approach descriptions name mechanism-level distinctions ("pause as a rule property" vs "pause as an event filter" vs "pause as a separate entity") and product-relevant trade-offs (plan-tier coupling, complexity surface, migration difficulty). They do NOT name implementation specifics — column names, table names, file paths, service classes, JSON shapes, exact method names. Those are `/bn-plan`'s job. Bringing architecture forward at brainstorm time forces the user to make architectural decisions on the brainstorm's intentionally-shallow research, and the synthesis at Phase 2.5 then has to filter out the leak.
 
+**Deep critique loop (optional).** For Deep scope, or when the user asks for devil's advocate, steelman, strawman, or proposal-stress analysis, you may run a bounded fresh-context critique pass before the final recommendation. This is an analytic loop, not role-play: the delegated lead critiques proposals from fresh context and writes a brief; it does not become a persona in a staged debate.
+
+Use `bn-research-lead` as the delegated lead. If grounding has not run and both grounding and critique are needed, combine them into one research objective and one artifact. If a separate critique pass is warranted, open a separate lazy run for that branch so the research lead's fixed `progress/bn-research-lead.md` remains single-writer. In `/bn-grow` intake, prefer one combined research/critique pass inside the caller's run ledger; if the pass surfaces a no-safe-default product decision, return it through the grow intake blocker contract instead of spinning unbounded loops.
+
+The critique objective should name the candidate approaches and ask for:
+- **Steelman** — the strongest credible case for each serious proposal.
+- **Devil's advocate** — concrete failure modes, missing evidence, adoption friction, and cases where the proposal solves the wrong problem.
+- **Strawman check** — the oversimplified or superficially attractive version that should not be built because it misses the actual value.
+- **External grounding** — best practices, state-of-the-art prior art, open-web examples, and cross-domain analogies when those could materially change the recommendation.
+
+READ the critique brief file, not the lead's final-message prose, and fold it into the approach comparison, recommendation, call-outs, and requirements doc. One critique pass is the default; a second pass needs a material unresolved uncertainty and a clear reason the next pass will answer it. The critique pass informs the recommendation, but the trunk remains responsible for presenting choices and the user remains the authority on product direction.
+
 After presenting all approaches, state your recommendation and explain why. Prefer simpler solutions when added complexity creates real carrying cost, but do not reject low-cost, high-value polish just because it is not strictly necessary.
 
 If one approach is clearly best and alternatives are not meaningful, skip the menu and state the recommendation directly.
@@ -259,7 +286,7 @@ When a doc is warranted, compose it using:
 
 **Write tight.** A section being material is not license to pad it. Hold every kept section to the prose-economy discipline in `references/brainstorm-sections.md`: one idea per sentence, a requirement is intent plus at most one qualifier, defer forks to Outstanding Questions rather than specifying both arms, resolve superseded text in place rather than stacking strata. Before declaring the doc written, run the named test there — could a reader find a contradiction in each section in one pass?
 
-Write to `.banyan/brainstorms/YYYY-MM-DD-<topic>-requirements.md`. Confirm with the absolute path so the reference is clickable. If a research brief was produced in Phase 1.1, reference its path in the doc.
+Write to `.banyan/brainstorms/YYYY-MM-DD-<topic>-requirements.md`. Confirm with the absolute path so the reference is clickable. If a grounding or critique brief was produced, reference its path in the doc.
 
 #### Vocabulary Capture — after the requirements doc (only if CONCEPTS.md already exists)
 
