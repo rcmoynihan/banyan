@@ -18,63 +18,97 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 You talk to **one** thing — the trunk. You hand it a goal (`/bn-grow ...`) and read
 the result; everything else happens below the waterline. **The shape** is who owns
 what underneath: each lead owns a subtree and spawns its own workers, all coordinating
-through files instead of one crowded shared context. Below is the whole tree of a standard
-`/bn-grow` run — every subagent it spawns, named, from the trunk down to the leaves. Leads
-(`●`) own a subtree and spawn children of their own; leaves (`○`) do one job and return.
-The five stages run top to bottom:
+through files instead of one crowded shared context. Here is the whole tree of a standard
+`/bn-grow` run — every subagent it can spawn, from the trunk down to the leaves:
 
-```
-● /bn-grow                                 your one entry point — holds intent, reads each artifact, gates the next stage
-├─● bn-research-lead                       1 · RESEARCH — dispatch researchers, chase threads, write one brief
-│  ├─○ bn-repo-researcher                  repo structure & conventions
-│  ├─○ bn-learnings-researcher             prior lessons from .banyan/solutions/
-│  ├─○ bn-best-practices-researcher        external standards & conventions
-│  ├─○ bn-framework-docs-researcher        framework / version constraints
-│  ├─○ bn-web-researcher                   external grounding & prior art
-│  ├─● bn-thread-chaser                    chase one unread thread to its leaf fact
-│  │  └─● bn-thread-chaser                 spawns one deeper self if the thread forks
-│  └─○ bn-lesson-harvester                 stage lessons before returning
-├─○ bn-spec-scenario-reviewer              2 · SPEC STRESS — trunk runs these lenses itself; scenario & acceptance gaps
-├─○ bn-spec-assumption-reviewer            assumptions, dependencies, premortem
-├─○ bn-spec-threat-reviewer                trust / data / misuse surface
-├─● bn-plan-lead                           3 · PLAN — competing drafts, judged, synthesized into one plan
-│  ├─○ bn-plan-generator ×3                one draft each: mvp-first · risk-first · ops-first
-│  ├─○ bn-plan-judge ×3                    independent rubric scorers (PoLL panel)
-│  ├─○ bn-plan-checker                     run the repo against the winning draft
-│  └─○ bn-lesson-harvester
-├─● bn-delivery-lead                       4 · DELIVER + REVIEW — build units, integrate, run the review→fix loop
-│  ├─● bn-unit-lead ×N                     own one unit in an isolated worktree
-│  │  ├─○ bn-correctness-reviewer          scoped mini-review
-│  │  ├─○ bn-spec-fidelity-reviewer        scoped mini-review
-│  │  └─● bn-unit-lead                     splits once, only on genuine over-size
-│  ├─○ bn-integrator                       merge unit branches in dependency order
-│  ├─● bn-review-lead                      read-only full panel · rounds 1–2
-│  │  ├─○ bn-correctness-reviewer          always-on
-│  │  ├─○ bn-testing-reviewer              always-on
-│  │  ├─○ bn-maintainability-reviewer      always-on
-│  │  ├─○ bn-yagni-reviewer                always-on
-│  │  ├─○ bn-project-standards-reviewer    always-on
-│  │  ├─○ bn-agent-native-reviewer         always-on
-│  │  ├─○ bn-learnings-researcher          always-on
-│  │  ├─○ bn-security-reviewer             conditional — added by reading the diff
-│  │  ├─○ bn-performance-reviewer          conditional
-│  │  ├─○ bn-api-contract-reviewer         conditional
-│  │  ├─○ bn-data-migration-reviewer       conditional
-│  │  ├─○ bn-reliability-reviewer          conditional
-│  │  ├─○ bn-adversarial-reviewer          conditional
-│  │  ├─○ bn-spec-fidelity-reviewer        conditional
-│  │  └─○ bn-previous-comments-reviewer    conditional
-│  ├─○ bn-finding-owner ×N                 fix confirmed findings on disjoint files
-│  └─○ bn-lesson-harvester
-└─○ bn-knowledge-curator                   5 · CURATE — fold staged lessons into .banyan/solutions/ (background)
+```mermaid
+flowchart TB
+  %% stage subgraphs declared last-to-first so the layout engine renders them left-to-right in run order
+  classDef trunk fill:#14532d,stroke:#052e16,color:#ffffff,font-weight:bold
+  classDef lead  fill:#16a34a,stroke:#14532d,color:#ffffff,font-weight:bold
+  classDef leaf  fill:#dcfce7,stroke:#4ade80,color:#14532d
+  classDef cond  fill:#fef9c3,stroke:#eab308,color:#713f12
+
+  T(["/bn-grow — the trunk<br/>holds your intent · reads each artifact · gates the next stage"]):::trunk
+
+  subgraph S5["⑤ Curate · background"]
+    KC["bn-knowledge-curator"]:::leaf
+  end
+  subgraph S4["④ Deliver + review"]
+    DL["bn-delivery-lead"]:::lead
+    DL --> UL["bn-unit-lead ×N<br/>isolated worktree"]:::lead
+    UL --> UC["bn-correctness-reviewer"]:::leaf
+    UL --> UF["bn-spec-fidelity-reviewer"]:::leaf
+    UL --> US["bn-unit-lead<br/>splits once on over-size"]:::lead
+    DL --> IN["bn-integrator<br/>merge in dependency order"]:::leaf
+    DL --> RVL["bn-review-lead<br/>read-only · up to 2 rounds"]:::lead
+    DL --> FO["bn-finding-owner ×N<br/>fix confirmed findings"]:::leaf
+    DL --> DH["bn-lesson-harvester"]:::leaf
+
+    subgraph AO["always-on (7)"]
+      A1["bn-correctness-reviewer"]:::leaf
+      A2["bn-testing-reviewer"]:::leaf
+      A3["bn-maintainability-reviewer"]:::leaf
+      A4["bn-yagni-reviewer"]:::leaf
+      A5["bn-project-standards-reviewer"]:::leaf
+      A6["bn-agent-native-reviewer"]:::leaf
+      A7["bn-learnings-researcher"]:::leaf
+    end
+
+    subgraph CO["conditional ≤8 · chosen by reading the diff"]
+      C1["bn-security-reviewer"]:::cond
+      C2["bn-performance-reviewer"]:::cond
+      C3["bn-api-contract-reviewer"]:::cond
+      C4["bn-data-migration-reviewer"]:::cond
+      C5["bn-reliability-reviewer"]:::cond
+      C6["bn-adversarial-reviewer"]:::cond
+      C7["bn-spec-fidelity-reviewer"]:::cond
+      C8["bn-previous-comments-reviewer"]:::cond
+    end
+
+    RVL --> AO
+    RVL --> CO
+  end
+  subgraph S3["③ Plan · judge panel"]
+    PL["bn-plan-lead"]:::lead
+    PL --> PG["bn-plan-generator ×3<br/>mvp · risk · ops priors"]:::leaf
+    PL --> PJ["bn-plan-judge ×3"]:::leaf
+    PL --> PC["bn-plan-checker"]:::leaf
+    PL --> PH["bn-lesson-harvester"]:::leaf
+  end
+  subgraph S2["② Spec stress · trunk-run lenses"]
+    SC["bn-spec-scenario-reviewer"]:::leaf
+    SA["bn-spec-assumption-reviewer"]:::leaf
+    ST["bn-spec-threat-reviewer"]:::leaf
+  end
+  subgraph S1["① Research"]
+    RL["bn-research-lead"]:::lead
+    RL --> RR["bn-repo-researcher"]:::leaf
+    RL --> RLN["bn-learnings-researcher"]:::leaf
+    RL --> RBP["bn-best-practices-researcher"]:::leaf
+    RL --> RFD["bn-framework-docs-researcher"]:::leaf
+    RL --> RWB["bn-web-researcher"]:::leaf
+    RL --> RTC["bn-thread-chaser"]:::lead
+    RTC --> RTC2["bn-thread-chaser<br/>deeper self"]:::lead
+    RL --> RH["bn-lesson-harvester"]:::leaf
+  end
+  T --> KC
+  T --> DL
+  T --> PL
+  T --> ST
+  T --> SA
+  T --> SC
+  T --> RL
 ```
 
-`●` leads recurse; `○` leaves don't. The deepest path drops four levels below the trunk —
-`bn-delivery-lead` → `bn-unit-lead` → its split → that split's mini-reviewers. Two spawns are
-omitted as always-conditional: `bn-consult-extractor` (a disposable transcript reader any lead
-spawns when a child's question needs one fact from upstream) and `bn-dogfood-verifier` (an
-opt-in review leaf that drives the running app). A fuzzy idea gets one stage earlier still —
-brainstorm intake — which reuses the research subtree when it needs grounding.
+**Green** nodes are leads — they own a subtree and spawn children of their own; **pale**
+nodes are leaves that do one job and return; **amber** reviewers are conditional, fired only
+when the diff warrants. The deepest path drops four levels below the trunk:
+`bn-delivery-lead` → `bn-unit-lead` → its split → that split's mini-reviewers. Two
+always-conditional spawns are left off — `bn-consult-extractor` (a disposable reader any lead
+spawns for one upstream fact) and `bn-dogfood-verifier` (an opt-in leaf that drives the running
+app). A fuzzy idea gets one stage earlier still — brainstorm intake — which reuses the research
+subtree for grounding.
 
 So why does that beat one agent doing everything? **The loop.** A lead acts less like
 a relay and more like a *human driving the tool*: when a worker hits a question it
