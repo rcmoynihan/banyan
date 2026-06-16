@@ -109,7 +109,7 @@ honestly):
 Consults are transcript-only: a consult message is graded ONLY when its transcript is present, and
 in degraded mode consult grading is withheld, not inferred.
 
-The governing rule (Design invariant DI-3): in degraded mode the lens lowers confidence on or
+The governing degraded-mode rule: in degraded mode the lens lowers confidence on or
 withholds any transcript-dependent axis; it never converts an absence of evidence into an assertion
 of a weakness.
 

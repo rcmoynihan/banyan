@@ -130,8 +130,8 @@ pattern; do not propose on it. Count occurrences precisely. The patterns to hunt
   `.banyan/solutions/` in >=3 runs -> the harness keeps walking into it; an agent/skill should
   encode the avoidance.
 - **Per-call message-quality weaknesses (graded).** From the per-call grading pass, a
-  message-quality axis that grades low repeatedly for the same authoring agent -- on calls that
-  **SUCCEEDED**, not only failure-implicated ones. Grade each round-trip against the canonical
+  message-quality axis that grades low repeatedly for the same authoring agent -- regardless of
+  outcome, **including calls that succeeded**, not only failure-implicated ones. Grade each round-trip against the canonical
   axes defined in `message-grading-rubric.md`. These axis names are **byte-identical to the
   rubric; do not synonymize.** The **envelope axes** are `objective-clarity`,
   `boundary-right-sizing`, `budget-fit`, `doctrine-relevance`, and `context-accuracy`; the

@@ -69,7 +69,8 @@ objective:       Mine the accumulated Banyan run corpus for RECURRING harness-fa
                  patterns (reviewer over-fires, budget squeezes, envelope/boundary
                  violations, loop/escalation patterns, repeated dead-ends) AND grade each
                  call's full round-trip against the message-grading rubric, surfacing
-                 token-waste / misleading-context on calls that SUCCEEDED. Write one
+                 token-waste / misleading-context regardless of outcome -- including calls
+                 that succeeded, not only failure-implicated ones. Write one
                  evidence-cited, PR-style proposal per recurring pattern. Never apply anything.
 corpus_scope:    <all runs under .banyan/runs/ | the run-id range or count from Step 1>
 artifact_path:   .banyan/harness-proposals/  (one <date>-<slug>.md per pattern, plus
@@ -123,7 +124,8 @@ the user:
   (run-ids + file:line) so the user can judge it;
 - how many proposals are in the **message-quality** category -- a distinct category from
   failure-fix, targeting an agent's envelope-construction or brief-writing instructions to
-  improve efficiency/clarity on calls that already SUCCEEDED. Where two proposals land against
+  improve efficiency/clarity regardless of outcome -- including calls that already succeeded,
+  not only failure-implicated ones. Where two proposals land against
   the same target file in one run, note that the human applier reconciles them on apply;
 - the headline rule, stated clearly: **nothing was applied.** Each proposal is a suggested
   diff to a Banyan agent or skill that a HUMAN reviews and merges. Applying is the user's call.
