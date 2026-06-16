@@ -61,8 +61,8 @@
 ### Hallucinated context
 - Tell: the artifact cites files, APIs, symbols, or facts that do not exist in the repo/brief.
 - Defers to local gates per lead. Plan: plan-judge's file-existence spot-check (a draft that
-  invents files loses feasibility points) AND the plan-checker typed-finding fold (untraced-path /
-  infeasible-claim must be repaired, fall back, or set verdict: needs-user) — point a plan-lead
+  invents files loses feasibility points) AND the plan-checker typed-finding fold (infeasible-claim
+  must be repaired, fall back, or set verdict: needs-user) — point a plan-lead
   there. Research: research's Step 3 triage — point a research-lead there.
 - Corrective elsewhere (likely: re-dispatch): re-dispatch demanding every load-bearing claim carry
   a repo citation.
