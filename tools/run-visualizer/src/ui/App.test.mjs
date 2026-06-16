@@ -1,11 +1,14 @@
 // U6 — App two-pane render + the watcher adapter deterministic tail.
-import { test } from 'node:test';
+import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import React from 'react';
-import { render } from 'ink-testing-library';
+import { render, cleanup } from 'ink-testing-library';
+
+// Unmount all Ink instances after each test so the integrated `node --test` run terminates.
+afterEach(() => cleanup());
 
 import { App } from './App.mjs';
 import { initialState, apply } from '../model/run-model.mjs';

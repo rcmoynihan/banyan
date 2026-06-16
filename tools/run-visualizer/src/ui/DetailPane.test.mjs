@@ -1,8 +1,11 @@
 // U7 — detail pane: all P9 floor fields by name, tokens unavailable not 0, prompt scrolls.
-import { test } from 'node:test';
+import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
-import { render } from 'ink-testing-library';
+import { render, cleanup } from 'ink-testing-library';
+
+// Unmount all Ink instances after each test so the integrated `node --test` run terminates.
+afterEach(() => cleanup());
 
 import { DetailPane, floorRows } from './DetailPane.mjs';
 import { UNAVAILABLE } from '../parse/transcript-fields.mjs';

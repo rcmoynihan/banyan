@@ -1,8 +1,11 @@
 // U6 — TreePane snapshot: nested tree, active vs finished distinct, expand/collapse node set.
-import { test } from 'node:test';
+import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
-import { render } from 'ink-testing-library';
+import { render, cleanup } from 'ink-testing-library';
+
+// Unmount all Ink instances after each test so the integrated `node --test` run terminates.
+afterEach(() => cleanup());
 
 import { TreePane, flattenVisible } from './TreePane.mjs';
 import { initialState, apply } from '../model/run-model.mjs';
