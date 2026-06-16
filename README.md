@@ -17,28 +17,80 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 
 You talk to **one** thing — the trunk. You hand it a goal (`/bn-grow ...`) and read
 the result; everything else happens below the waterline. **The shape** is who owns
-what underneath: each lead owns a subtree and runs its own workers, and they
-coordinate through files instead of one crowded shared context.
+what underneath: each lead owns a subtree and spawns its own workers, all
+coordinating through files instead of one crowded shared context. Here is a standard
+`/bn-grow` run with every subagent it can spawn named explicitly — leads (`●`) own a
+subtree and spawn children of their own; leaves (`○`) do one job and return:
 
-```mermaid
-flowchart TD
-  human(["You"])
-  trunk["Trunk — the main session<br/>holds your intent"]
-  leadA["Lead<br/>owns a subtree"]
-  leadB["Lead<br/>owns a subtree"]
-  w1["workers"]
-  w2["workers"]
-  ledger[(".banyan ledger<br/>shared ground truth")]
-
-  human <-->|"a goal in, results out"| trunk
-  trunk --> leadA
-  trunk --> leadB
-  leadA --> w1
-  leadB --> w2
-  trunk -. reads results .-> ledger
-  leadA -. writes artifacts .-> ledger
-  leadB -. writes artifacts .-> ledger
 ```
+● /bn-grow — the trunk: holds your intent, reads each phase's one artifact, enforces the gate
+│
+├─ Phase 2 · Research ────────────────── subtree
+│  └─● bn-research-lead                   dispatches researchers, chases threads, writes ONE brief
+│     ├─○ bn-repo-researcher              repo structure & conventions
+│     ├─○ bn-learnings-researcher         prior lessons from .banyan/solutions/
+│     ├─○ bn-best-practices-researcher    external standards & community conventions
+│     ├─○ bn-framework-docs-researcher    framework / version-specific constraints
+│     ├─○ bn-web-researcher               external grounding & prior art
+│     ├─● bn-thread-chaser                chases one cited-but-unread thread to its leaf fact
+│     │  └─● bn-thread-chaser             spawns ONE deeper self when the thread forks
+│     └─○ bn-lesson-harvester             stages candidate lessons before the lead returns
+│
+├─ Phase 3 · Spec stress ─────────────── trunk-run skill; each leaf lens fires only on its trigger
+│  ├─○ bn-spec-scenario-reviewer          scenario branches & acceptance gaps
+│  ├─○ bn-spec-assumption-reviewer        assumptions, dependencies, premortem
+│  └─○ bn-spec-threat-reviewer            trust / data / misuse surface
+│
+├─ Phase 4 · Plan ────────────────────── subtree (judge panel)
+│  └─● bn-plan-lead                       scores the drafts, synthesizes the winner, writes the plan
+│     ├─○ bn-plan-generator · mvp-first   one full draft under its prior
+│     ├─○ bn-plan-generator · risk-first  one full draft under its prior
+│     ├─○ bn-plan-generator · ops-first   one full draft under its prior
+│     ├─○ bn-plan-judge ×3                independent rubric scorers (PoLL panel)
+│     ├─○ bn-plan-checker                 runs the repo against the winning draft
+│     └─○ bn-lesson-harvester
+│
+├─ Phase 5 · Deliver + review ────────── trunk-run /bn-work → subtree
+│  └─● bn-delivery-lead                   atomizes units, merges, drives the review→fix loop
+│     ├─● bn-unit-lead · unit A           owns one unit in its own git worktree
+│     │  ├─○ bn-correctness-reviewer      scoped two-reviewer mini-review
+│     │  ├─○ bn-spec-fidelity-reviewer    scoped two-reviewer mini-review
+│     │  └─● bn-unit-lead · split         splits ONCE, only on genuine over-size
+│     ├─● bn-unit-lead · unit B           parallel, disjoint worktree
+│     │  ├─○ bn-correctness-reviewer
+│     │  └─○ bn-spec-fidelity-reviewer
+│     ├─○ bn-integrator                   merges the unit branches in dependency order
+│     ├─● bn-review-lead                  READ-ONLY full panel · rounds 1–2
+│     │  │  always-on (7):
+│     │  ├─○ bn-correctness-reviewer
+│     │  ├─○ bn-testing-reviewer
+│     │  ├─○ bn-maintainability-reviewer
+│     │  ├─○ bn-yagni-reviewer
+│     │  ├─○ bn-project-standards-reviewer
+│     │  ├─○ bn-agent-native-reviewer
+│     │  ├─○ bn-learnings-researcher
+│     │  │  conditional (up to 8, chosen by reading the diff):
+│     │  ├─○ bn-security-reviewer
+│     │  ├─○ bn-performance-reviewer
+│     │  ├─○ bn-api-contract-reviewer
+│     │  ├─○ bn-data-migration-reviewer
+│     │  ├─○ bn-reliability-reviewer
+│     │  ├─○ bn-adversarial-reviewer
+│     │  ├─○ bn-spec-fidelity-reviewer
+│     │  └─○ bn-previous-comments-reviewer
+│     ├─○ bn-finding-owner ×N             fixes confirmed findings on disjoint file sets
+│     └─○ bn-lesson-harvester
+│
+└─ Phase 7 · Curate ──────────────────── handed off non-blocking, in the background
+   └─○ bn-knowledge-curator              consolidates staged lessons → .banyan/solutions/
+```
+
+The deepest path runs four levels below the trunk — `bn-delivery-lead` → `bn-unit-lead`
+→ its split → that split's mini-reviewers. Two spawns are left off as always-conditional:
+`bn-consult-extractor`, the disposable single-fact transcript reader any lead spawns when a
+child's question needs exactly one fact from upstream, and `bn-dogfood-verifier`, an opt-in
+review leaf that drives the running app. Phase 1 brainstorm intake runs only for a fuzzy idea
+(a clear feature skips it) and reuses the Phase 2 research subtree when it needs grounding.
 
 So why does that beat one agent doing everything? **The loop.** A lead acts less like
 a relay and more like a *human driving the tool*: when a worker hits a question it
