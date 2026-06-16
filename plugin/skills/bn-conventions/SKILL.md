@@ -33,6 +33,11 @@ Read the one you need; do not read them all by reflex.
   frontmatter contract, the two tracks (bug / knowledge), category taxonomy, and YAML
   safety rules. Read this to **write or curate a solution doc**, or a candidate lesson
   in `lessons-staging/`.
+- **`references/process-pitfalls.md`** -- the driver's-vigilance playbook — the 8 process
+  pitfalls a lead catches in a child's *trajectory* before a diff exists, each mapped to
+  its tell, its corrective on the existing re-dispatch / §2.2 ladder, and which leads it
+  bites hardest. Read this when the inlined driver's-vigilance reflex raises a flag and you
+  want to name the failure mode before choosing the corrective.
 
 ## Opening a new run
 
