@@ -1,0 +1,4 @@
+{"parentUuid":null,"isSidechain":true,"type":"user","message":{"role":"user","content":"torn fixture root → café envelope"},"uuid":"u-torn-0001","timestamp":"2026-06-14T17:25:00.000Z","sessionId":"b5bf91de-f038-4e03-b691-9cbbc703613a"}
+{"parentUuid":"u-torn-0001","isSidechain":true,"type":"assistant","message":{"role":"assistant","model":"claude-opus-4-8","content":[{"type":"text","text":"second good line with a multibyte char ☕ near the middle"}],"usage":{"input_tokens":12,"output_tokens":7}},"uuid":"u-torn-0002","timestamp":"2026-06-14T17:25:30.000Z"}
+{"parentUuid":"u-torn-0002","isSidechain":true,"type":"assistant","message":{"role":"assistant","model":"claude-opus-4-8","content":[{"type":"text","text":"third good line"}],"usage":{"input_tokens":3,"output_tokens":2}},"uuid":"u-torn-0003","timestamp":"2026-06-14T17:26:00.000Z"}
+{"parentUuid":"u-torn-0003","type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"truncated café men

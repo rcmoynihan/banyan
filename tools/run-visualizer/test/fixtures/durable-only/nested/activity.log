@@ -1,0 +1,4 @@
+2026-06-14T18:00:00.000Z	bn-delivery-lead	run scaffolded; spawning 3 unit-leads
+2026-06-14T18:02:11.000Z	bn-delivery-lead	units committed; spawning integrator
+2026-06-14T18:05:30.000Z	bn-delivery-lead	integrated green; spawning review-lead round 1
+2026-06-14T18:09:45.000Z	bn-delivery-lead	round 1 fixed; re-review round 2

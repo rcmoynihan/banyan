@@ -1,0 +1,26 @@
+{
+  "runId": "2026-06-14-001-plan-bn-mock-skill",
+  "projectSlug": "-Users-riley-repos-banyan",
+  "expectedSessionId": "b5bf91de-f038-4e03-b691-9cbbc703613a",
+  "rejectsAllOtherSessions": true,
+  "activityLogWindow": {
+    "start": "2026-06-14T17:23:43.362Z",
+    "end": "2026-06-14T17:37:07.383Z",
+    "note": "Window ends at last LOGGED event. The lesson-harvester (last-spawned agent) starts ~16s after window close, so the scorer must not require full agent-coverage; it scores on in-window evidence (F2/R-B)."
+  },
+  "inWindowEvidence": {
+    "transcriptsStartingInWindow": 7,
+    "transcriptsWithAnyInWindowLine": 8,
+    "inWindowAgentTypeMultiset": {
+      "banyan:bn-plan-generator": 3,
+      "banyan:bn-plan-judge": 3,
+      "banyan:bn-plan-checker": 1
+    },
+    "harvesterInWindow": false,
+    "otherSessionsInWindowTranscripts": 0
+  },
+  "dirMtimeMustNotResolve": {
+    "note": "b5bf91de dir mtime (16:42) precedes the fixture window (17:23-17:37) and the session spans days; a dir-mtime resolver must NOT pick it. Line-timestamps are the load-bearing signal (F2).",
+    "sessionDirMtimeBeforeWindow": true
+  }
+}
