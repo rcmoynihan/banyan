@@ -19,3 +19,6 @@ __pycache__/
 
 # eval run outputs (reproducible artifacts; keep the dir, not the runs)
 eval/review-ab/results/*/
+
+# run-visualizer tool deps (committed: package.json + package-lock.json; ignored: node_modules)
+tools/run-visualizer/node_modules/

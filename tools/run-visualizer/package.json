@@ -1,0 +1,25 @@
+{
+  "name": "banyan-run-visualizer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Personal terminal TUI that renders the live nested subagent tree of a Banyan run by fusing Claude Code per-agent transcripts with Banyan durable signals. Lives outside plugin/ (KD5); never ships on claude plugin install.",
+  "bin": {
+    "banyan-run-visualizer": "src/index.mjs"
+  },
+  "scripts": {
+    "test": "node --test",
+    "start": "node src/index.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "chokidar": "^4",
+    "ink": "^7",
+    "react": "^19.2"
+  },
+  "devDependencies": {
+    "ink-testing-library": "^4"
+  }
+}
