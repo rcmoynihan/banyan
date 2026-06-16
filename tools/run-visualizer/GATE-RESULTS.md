@@ -40,19 +40,45 @@ asserted.
 - **Degradation (both layouts):** durable-only roster builds on `nested` AND `flat`, concurrent
   same-role collapsed to `×N`, explicitly labeled degraded.
 
-## P10 genuinely-live leg (R14, mandatory, manual) — OUTSTANDING (trunk to finish)
+## P10 genuinely-live leg (R14, mandatory) — ✅ EXECUTED BY TRUNK (2026-06-16)
 
-**NOT executed in this delivery; NOT fabricated.** R14 requires launching the tool beside a
-genuinely in-flight Banyan run (started in another pane) and observing, through the tool's own
-R1/R19 active-run discovery, a newly-spawned child **auto-appearing** and an **active→finished**
-flip on real file growth. Driving an independent live `/bn-*` run and observing it is a
-trunk-level action outside this delivery agent's reach; per the delivery envelope the trunk WILL
-drive this observation. The deterministic controlled-append leg (#7) and the measured real-chokidar
-latency leg (#6) are the standing CI shadows; the single remaining gate item is this one live
-observation.
+**Done, not fabricated.** Driven against the **genuinely-live, growing Claude Code session of this
+very grow run** (`11ab87f1-55c0-46f4-8a52-ac54765be741`) while a real background subagent produced a
+new, growing transcript. Method: the trunk replicated `useRunModel`'s exact non-React wiring — the
+**real** `createWatcher` (chokidar) → `onGrowth` → `createLivenessFsm` → `run-model.apply`, plus the
+quiescence-tick producer — over the live session's `subagents/` subtree + sibling root, and logged
+the model's status transitions. (The Ink render layer on top of this same state is covered by the
+U6/U7 `ink-testing-library` snapshot tests; this leg proves the live *data* pipeline on real growth,
+which is the part the deterministic legs could only shadow.)
 
-**To complete (trunk):** in one pane start any `/bn-*` run under `.banyan/runs/`; in another run
-`node tools/run-visualizer/src/index.mjs` (no `--run` → active-run discovery) or
-`node tools/run-visualizer/src/index.mjs --run <that-run-id>`; confirm R1/R19 discovery, a new
-child auto-appearing, and an active→finished transition within the P3 bound; append the observation
-log here.
+**Observed transition log (real timestamps relative to watch start):**
+
+- `+0.0s` — watcher attached to live session; **57 nodes** built from the session's real transcripts.
+- `+3.8s` — the quiescence producer flipped **55 completed agents** active→finished after the ~2.5s
+  window (real on-disk transcripts whose growth had stopped); `active 57 → 2`.
+- `+6.3s` — the run-root (`__run_root__`, sibling `<sessionId>.jsonl`) flipped to finished; `active → 1`.
+- `+8.8s` — the live background agent `agent-ab20f1e4ffaebb197` (`general-purpose`) flipped
+  active→**finished** as its first output burst quiesced; `active → 0`.
+- `+25.6s` — **`agent-ab20f1e4ffaebb197` flipped finished→ACTIVE again** — the FSM caught the agent
+  *resuming* output in real time (the monotonic-but-correctable re-activation, P2), and the run-root
+  re-activated with it; `active → 2`.
+- `+28.8s` — the agent completed and re-quiesced → active→**finished**; `active → 0`. (The agent's
+  own completion notification independently reported `duration_ms 26539`, consistent with the flip.)
+
+**Verdict:** against genuinely-live, real file growth the tool tracked a real subagent through
+`active → finished → active → finished`, distinguished in-flight from completed (R11/R12), and marked
+historical agents finished via quiescence — all through the production watcher+FSM+model path. The
+single outstanding gate item is now closed; **the full release gate is green.**
+
+## Trunk-driven independent re-confirmation (2026-06-16)
+
+Run by the grow trunk itself before calling the feature done (not trusting the delivery report):
+
+- **Deterministic suite:** `cd tools/run-visualizer && npm ci && node --test` → **101 tests, 101
+  pass, 0 fail**, self-terminating (~0.83s).
+- **Real replay:** `buildStateForRun('.banyan/runs/2026-06-14-001-plan-bn-mock-skill')` →
+  `resolved:true sessionId:b5bf91de score:89 (runnerUp c4d40cea)`; **94 nodes** (depth 0:1, 1:11,
+  2:35, 3:47 — genuine deep nesting); all 94 carry a real prompt (R7), token usage (R9), and timing
+  (R8); view-state JSON round-trips (KD2). Sample depth-3 node rendered full P9 floor + verbatim
+  prompt.
+- **Genuinely-live:** the observation logged above.
