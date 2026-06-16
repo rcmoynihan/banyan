@@ -39,6 +39,10 @@ The `/bn-tune` skill hands you a `=== BANYAN ENVELOPE ===` block carrying:
   it.
 - `artifact_path`: the **directory** `.banyan/harness-proposals/` you write proposals into (one file
   per pattern), plus a local `INDEX.md` in that directory.
+- `grading_rubric`: a path to the canonical **message-grading rubric** reference (a skill-local
+  field the `/bn-tune` envelope carries). READ it before mining; it is the single source for the
+  per-call message-grading axis names you quote. Later in this body it is cited by its bare
+  filename, `message-grading-rubric.md`.
 - `boundaries`: your write scope (below) and the never-touch-`plugin/` wall.
 - `tool_guidance`: Read/Grep/Glob to mine ledgers, progress files, findings, and transcripts;
   Bash to enumerate runs and locate transcript files; Write **only** to `.banyan/harness-proposals/`.
@@ -90,6 +94,19 @@ locate them and Read/Grep to mine them for the same signals at finer grain (the 
 actual spawn). **Degrade gracefully:** when transcripts are absent, work from the ledgers alone --
 the echoed envelopes and findings make most patterns auditable without the raw transcript.
 
+The same corpus is **also graded message by message.** Each subagent call is one round-trip:
+the down-going envelope the parent constructed (echoed in `progress/<agent>.md`), the up-returning
+brief + verdict the child wrote (`briefs/`, named artifacts), and any consult messages present in
+the transcripts. These messages and turns are the graded evidence for the per-call
+message-grading lens (`message-grading-rubric.md`). The lens is an **additional analytical pass
+over the same scoped corpus, run inside this one leaf** -- it spawns nothing and resolves no new
+scope. The failure-pattern mining above and this message-grading pass are independent: neither
+takes precedence, and each emits its own proposals. The **same degrade-gracefully contract
+applies** -- when transcripts are absent the lens grades only the artifact-derivable axes from the
+persisted `progress/` envelopes and `briefs/` and lowers confidence on or withholds any
+transcript-dependent axis (per `message-grading-rubric.md`); it never asserts a weakness from an
+absence of transcript evidence.
+
 ### 2. Failure-pattern mining
 
 Look for **RECURRING** signals -- **>=2-3 occurrences across runs**. A one-off is **NOT** a
@@ -112,6 +129,24 @@ pattern; do not propose on it. Count occurrences precisely. The patterns to hunt
 - **Repeated dead-ends.** A dead-end harvested into `lessons-staging/` / promoted to
   `.banyan/solutions/` in >=3 runs -> the harness keeps walking into it; an agent/skill should
   encode the avoidance.
+- **Per-call message-quality weaknesses (graded).** From the per-call grading pass, a
+  message-quality axis that grades low repeatedly for the same authoring agent -- on calls that
+  **SUCCEEDED**, not only failure-implicated ones. Grade each round-trip against the canonical
+  axes defined in `message-grading-rubric.md`. These axis names are **byte-identical to the
+  rubric; do not synonymize.** The **envelope axes** are `objective-clarity`,
+  `boundary-right-sizing`, `budget-fit`, `doctrine-relevance`, and `context-accuracy`; the
+  **brief axes** are `answers-the-objective`, `artifacts-over-prose`, `confidence-calibration`,
+  and `token-economy`. **Attribute per direction** (the aggregation key is `(authoring-agent,
+  axis)`): an envelope-axis grade is debt against the envelope-CONSTRUCTING agent's body (the
+  parent that built the down-going envelope); a brief-axis grade is debt against the brief-WRITING
+  agent's body (the child that wrote the up-returning brief) -- so each proposal's Target file is
+  the correct author's `plugin/` body. The misleading axis `context-accuracy` is bounded to
+  **CALL-INTERNAL** contradictions only -- the envelope's `inputs` or `doctrine` contradicted by
+  what the up-returning brief reports, or `inputs` that are stale or internally contradictory
+  within the call's two messages; it does **not** fact-check the envelope's claims against the real
+  code or repository state. Floor: a message-quality proposal fires only when a weakness recurs **`>=2`** occurrences
+  for the same `(agent, axis)` within the scoped corpus -- one occurrence is one graded call
+  inside the current scope, and a single low-graded message produces no proposal.
 
 For each candidate pattern, tally the runs it appears in. If the tally is **< 2 cited
 occurrences, DROP it** -- it is not actionable. Honesty about the floor matters more than a long
@@ -128,6 +163,7 @@ contain:
 # Proposal: <one-line pattern name>
 
 **Date:** <YYYY-MM-DD>  ·  **Status:** Proposed (awaiting human review)
+**Category:** message-quality | failure-fix
 **Target file:** plugin/agents/<agent>.md   (or plugin/skills/<skill>/SKILL.md)
 
 ## Pattern
@@ -157,6 +193,14 @@ Cite evidence for **EVERY** proposal. A proposal without **>=2 cited occurrences
 actionable -- DROP it** (do not write the file). The diff/before-after is a *suggestion the human
 applies*; you do not apply it.
 
+The `Category:` marker distinguishes a **message-quality** proposal (a graded round-trip weakness
+on calls that already succeeded, per the per-call lens) from a **failure-fix** proposal (a
+recurring harness failure from the mining above). It is a distinct category, not a precedence
+order, and it surfaces in the `/bn-tune` Step-4 read-back so the human applier sees which kind
+each proposal is. A message-quality proposal's Target file is the **authoring** agent's body for
+the graded direction (envelope axis -> the envelope-constructing parent; brief axis -> the
+brief-writing child).
+
 ### 4. Update the local proposal index (optional)
 
 For each proposal written, you MAY append one row to `.banyan/harness-proposals/INDEX.md`
@@ -166,8 +210,15 @@ Applied changes are recorded by the human who merges in `docs/harness-changelog.
 ### 5. Return
 
 Return a verdict-plus-paths line (invariant 3 -- your only channel is the final message): how many
-patterns found, how many actionable proposals written + their paths, and how many candidate
-patterns you DROPPED for insufficient evidence. State the floor honestly.
+patterns found, how many actionable proposals written + their paths (noting which are
+`message-quality` vs `failure-fix`), and how many candidate patterns you DROPPED for insufficient
+evidence. State the floor honestly. When the message-grading pass yields **no** message-quality
+proposal, distinguish the **two zero-proposal causes** so the quiet result is legible (consistent
+with the `/bn-tune` Step-4 read-back): "no graded calls cleared the `>=2` floor for any
+agent+axis" -- few or no calls graded low at all, so there may be debt that simply did not surface
+in this scope (a narrow window or thin corpus) -- versus "axes were graded low but none recurred"
+-- weaknesses did surface on individual calls, but no single `(agent, axis)` pair hit the floor
+twice.
 
 ## Boundaries (hard walls)
 
