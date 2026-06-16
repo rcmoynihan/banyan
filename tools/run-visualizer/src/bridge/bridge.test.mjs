@@ -56,6 +56,41 @@ test('a dir-mtime resolver picks a DIFFERENT session than the line-timestamp bri
   assert.equal(r.sessionId, EXPECTED.expectedSessionId);
 });
 
+test('SUCCESS PATH: one dominant in-window session + a decoy resolves to the dominant (P4, no real fixture)', () => {
+  // Ungated companion to the real-data ACCEPTANCE test: exercises the margin gate + best-vs-second
+  // selection deterministically in a temp projects root, so the success leg is verified even in CI
+  // where ~/.claude/projects is absent. Built from the same synthetic-root construction as the
+  // ambiguity test below.
+  const tmp = fs.mkdtempSync(join(os.tmpdir(), 'rv-bridge-ok-'));
+  const slug = '-tmp-proj';
+  const projDir = join(tmp, slug);
+  const runDir = join(tmp, 'run');
+  fs.mkdirSync(runDir, { recursive: true });
+  fs.writeFileSync(join(runDir, 'activity.log'),
+    '2026-06-14T17:00:00.000Z\tlead\tstart\n2026-06-14T17:10:00.000Z\tlead\tend\n');
+
+  // Dominant session: a transcript line squarely inside the run window → starts AND any in-window.
+  const domSub = join(projDir, 'sess-dominant', 'subagents');
+  fs.mkdirSync(domSub, { recursive: true });
+  fs.writeFileSync(join(domSub, 'agent-x.jsonl'),
+    '{"type":"user","timestamp":"2026-06-14T17:05:00.000Z","message":{"content":"hi"}}\n');
+  fs.writeFileSync(join(domSub, 'agent-x.meta.json'), '{"agentType":"banyan:bn-x","toolUseId":"t"}');
+
+  // Decoy session: a transcript line far OUTSIDE the window → contributes no in-window evidence.
+  const decSub = join(projDir, 'sess-decoy', 'subagents');
+  fs.mkdirSync(decSub, { recursive: true });
+  fs.writeFileSync(join(decSub, 'agent-y.jsonl'),
+    '{"type":"user","timestamp":"2020-01-01T00:00:00.000Z","message":{"content":"old"}}\n');
+  fs.writeFileSync(join(decSub, 'agent-y.meta.json'), '{"agentType":"banyan:bn-y","toolUseId":"t"}');
+
+  const env = { CLAUDE_PROJECTS_DIR: tmp };
+  const r = resolveSession({ runDir, cwd: '/tmp/proj', env });
+  assert.equal(r.resolved, true, `expected resolved; got ${JSON.stringify(r)}`);
+  assert.equal(r.sessionId, 'sess-dominant');
+  assert.equal(r.runnerUp, 'sess-decoy');
+  fs.rmSync(tmp, { recursive: true, force: true });
+});
+
 test('ambiguity: two equally-scoring sessions refuse with a candidate list (DI3)', () => {
   // Build a synthetic projects root with two sessions carrying identical in-window evidence.
   const tmp = fs.mkdtempSync(join(os.tmpdir(), 'rv-bridge-'));

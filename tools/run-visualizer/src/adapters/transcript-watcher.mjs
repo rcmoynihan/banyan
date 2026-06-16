@@ -7,34 +7,32 @@
 import fs from 'node:fs';
 import { createCursor, advance, reconcileSize } from '../parse/offset-cursor.mjs';
 import { parseLines } from '../parse/jsonl-line.mjs';
+import { idForTranscriptPath } from '../model/ids.mjs';
 
 export const DEFAULT_DEBOUNCE_MS = 50; // ~30-80ms app-level debounce (R17).
 
 /**
- * Create a watcher. `chokidarFactory` is injectable so tests can drive it without a real fs watch;
- * the default uses chokidar. Returns { start, stop, _tailPath } — _tailPath is exposed for tests.
+ * Create a watcher. Returns { start, stop, _tail, _idForPath } — the underscore-prefixed handles
+ * are exposed for the deterministic tests (drive a single tail without a real chokidar event).
+ *
+ * `fsImpl` is the one injected seam (the deterministic short-read test drives readSync via it);
+ * the chokidarFactory/usePolling seams were dropped as unconsumed (F13).
  *
  * @param {{
  *   paths: string[],                 // files/dirs to watch (subagents/, run dir, sibling root)
  *   onGrowth: (ev: {id, lines, records, lastLineComplete, size}) => void,
  *   debounceMs?: number,
- *   chokidarFactory?: (paths, opts) => { on: Function, close: Function },
- *   usePolling?: boolean,            // network-mount fallback
  *   fsImpl?: typeof fs,
  * }} opts
  */
-export function createWatcher({ paths, onGrowth, debounceMs = DEFAULT_DEBOUNCE_MS, chokidarFactory, usePolling = false, fsImpl = fs }) {
+export function createWatcher({ paths, onGrowth, debounceMs = DEFAULT_DEBOUNCE_MS, fsImpl = fs }) {
   const cursors = new Map(); // filePath → cursor
   const timers = new Map();  // filePath → debounce timer
   let watcher = null;
 
-  function idForPath(filePath) {
-    const m = filePath.match(/agent-([^/\\]+)\.jsonl$/);
-    if (m) return `agent-${m[1]}`;
-    // the sibling root transcript
-    const r = filePath.match(/([^/\\]+)\.jsonl$/);
-    return r ? `root:${r[1]}` : filePath;
-  }
+  // F10: node identity is the shared contract (subagent → agent-<id>, sibling root → RUN_ROOT_ID),
+  // so a wired live root-growth event dispatches against a node id the model actually built.
+  const idForPath = idForTranscriptPath;
 
   function tail(filePath) {
     let size;
@@ -50,7 +48,15 @@ export function createWatcher({ paths, onGrowth, debounceMs = DEFAULT_DEBOUNCE_M
       try {
         const len = Math.max(0, size - cursor.offset);
         buf = Buffer.alloc(len);
-        if (len > 0) fsImpl.readSync(fd, buf, 0, len, cursor.offset);
+        if (len > 0) {
+          // F5: capture the ACTUAL bytes read. A short/raced read (concurrent truncate/rewrite, or
+          // a slow network mount) returns n < len; passing the whole zero-padded buffer would wedge
+          // NUL bytes into cursor.partial AND advance the offset past EOF, triggering a replay-from-
+          // zero on the next reconcileSize and re-emitting delivered spawn/usage lines. Advance by
+          // exactly n; the unread tail is simply retried on the next tail.
+          const n = fsImpl.readSync(fd, buf, 0, len, cursor.offset);
+          buf = buf.subarray(0, n);
+        }
       } finally { fsImpl.closeSync(fd); }
     } catch { return; }
     const out = advance(cursor, buf);
@@ -74,12 +80,8 @@ export function createWatcher({ paths, onGrowth, debounceMs = DEFAULT_DEBOUNCE_M
   }
 
   async function start() {
-    let factory = chokidarFactory;
-    if (!factory) {
-      const chokidar = await import('chokidar');
-      factory = (p, o) => chokidar.watch(p, o);
-    }
-    watcher = factory(paths, { ignoreInitial: false, usePolling, depth: 99 });
+    const chokidar = await import('chokidar');
+    watcher = chokidar.watch(paths, { ignoreInitial: false, depth: 99 });
     watcher.on('add', (p) => { if (p.endsWith('.jsonl')) schedule(p); });
     watcher.on('change', (p) => { if (p.endsWith('.jsonl')) schedule(p); });
     return watcher;

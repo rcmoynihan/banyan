@@ -39,7 +39,7 @@ test('offset cursor: a 3-byte split of a multi-byte UTF-8 line reassembles to on
   const head = bytes.subarray(0, idx);
   const tail = bytes.subarray(idx);
 
-  let c = createCursor({ from: 'zero' });
+  let c = createCursor();
   let out = advance(c, head);
   assert.equal(out.lines.length, 0, 'no complete line yet (split mid-line, mid-char)');
   out = advance(out.cursor, tail);
@@ -62,7 +62,14 @@ test('offset cursor: size < offset triggers a truncation reset', () => {
   const { cursor, reset } = reconcileSize(c, 10);
   assert.equal(reset, true);
   assert.equal(cursor.offset, 0);
-  assert.equal(cursor.from, 'zero');
+});
+
+test('offset cursor: a legacy from option is accepted and ignored (back-compat)', () => {
+  // The watcher still calls createCursor({ from: 'zero' }); an unknown option must not break it.
+  const c = createCursor({ from: 'zero' });
+  assert.equal(c.offset, 0);
+  assert.equal(c.partial.length, 0);
+  assert.equal('from' in c, false, 'no carried from field after dropping the dead now mode');
 });
 
 test('drift/ fixture: tokens unavailable, array content handled, Task spawn recovered', () => {

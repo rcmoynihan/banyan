@@ -7,7 +7,8 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { parseArgs, main, resolveRunDir, buildStateForRun } from './index.mjs';
+import { parseArgs, main, resolveRunDir, buildStateForRun, buildStateForSessionPath, sessionIdFromPath } from './index.mjs';
+import { discoverActiveRun } from './bridge/active-run.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..', '..');
@@ -41,6 +42,28 @@ test('buildStateForRun resolves the fixture session and builds the full nested t
   // a selectable node carries a verbatim prompt + the floor bits
   const withPrompt = Object.values(state.nodes).find((n) => typeof n.prompt === 'string');
   assert.ok(withPrompt, 'a node with a verbatim prompt exists');
+});
+
+test('sessionIdFromPath strips a .jsonl transcript path and tolerates a session dir', () => {
+  assert.equal(sessionIdFromPath(`/x/-Users-y/${SESSION_ID}.jsonl`), SESSION_ID);
+  assert.equal(sessionIdFromPath(`/x/-Users-y/${SESSION_ID}`), SESSION_ID);
+});
+
+test('discoverActiveRun surfaces a push-down under sessionPath (F6 bypasses the cold bridge)', () => {
+  const r = discoverActiveRun({ runsDir: '/nonexistent', env: { BANYAN_SESSION_PATH: '/explicit/sess.jsonl' } });
+  assert.equal(r.source, 'push-down');
+  assert.equal(r.sessionPath, '/explicit/sess.jsonl', 'push-down is a session path, branched on by index.mjs');
+});
+
+test('buildStateForSessionPath builds the full nested tree from a push-down session path (F6)', { skip: !realDataPresent }, () => {
+  // The push-down value is the ROOT transcript path; F6 must bypass the cold bridge (no activity.log)
+  // and still build the resolved tree — not silently degrade to durable-only.
+  const { state, resolution, paths } = buildStateForSessionPath(ROOT, { cwd: '/Users/riley/repos/banyan' });
+  assert.equal(resolution.resolved, true, 'push-down resolves without the cold bridge');
+  assert.equal(resolution.sessionId, SESSION_ID);
+  assert.equal(state.mode, 'transcript', 'transcript tier built, NOT durable-only');
+  assert.equal(state.stats.total, 93, 'full nested tree built from the push-down session');
+  assert.ok(paths.rootTranscript, 'the sibling root transcript resolved for the watcher');
 });
 
 test('buildStateForRun falls to durable-only when the bridge cannot resolve (DI3)', () => {

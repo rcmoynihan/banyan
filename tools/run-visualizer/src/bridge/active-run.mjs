@@ -34,12 +34,24 @@ function activityMtimeMs(runDir) {
  *   runsDir: string, env?: object, now?: number, stalenessMs?: number,
  *   explicitRunId?: string|null
  * }} args
- * @returns {{ source: 'push-down'|'explicit-run-id'|'heuristic'|'none', runDir: string|null, reason?: string }}
+ * A push-down value is a SESSION/transcript path, not a run dir. F6: it is ALSO surfaced under a
+ * distinct `sessionPath` field so the caller can branch on it and BYPASS the cold bridge (which
+ * reads runDir/activity.log and would silently degrade a push-down session to durable-only). The
+ * `runDir` field is kept populated for the push-down case for backward compatibility, but callers
+ * must prefer `sessionPath` when present. The heuristic and explicit-run-id branches return a
+ * `.banyan/runs/<id>` run dir under `runDir` and no `sessionPath`.
+ *
+ * @returns {{
+ *   source: 'push-down'|'explicit-run-id'|'heuristic'|'none',
+ *   runDir: string|null, sessionPath?: string, reason?: string
+ * }}
  */
 export function discoverActiveRun({ runsDir, env = process.env, now = Date.now(), stalenessMs = DEFAULT_STALENESS_MS, explicitRunId = null }) {
-  // 1. Push-down beats everything (an explicit session path provided out of band).
+  // 1. Push-down beats everything (an explicit session path provided out of band). It is a SESSION
+  //    path (a <sessionId>.jsonl transcript or a session dir), NOT a run dir — surface it under
+  //    `sessionPath` (F6) so the caller bypasses the cold bridge; `runDir` is kept for compat.
   const pushed = env.CLAUDE_SESSION_PATH || env.BANYAN_SESSION_PATH;
-  if (pushed) return { source: 'push-down', runDir: pushed };
+  if (pushed) return { source: 'push-down', runDir: pushed, sessionPath: pushed };
 
   // 2. Explicit run-id (a named run dir).
   if (explicitRunId) {

@@ -5,8 +5,7 @@
 // Identity is the transcript instance-id (agent-<id>), never a role string. A child with a
 // dangling toolUseId attaches to a synthetic run-root, MARKED, never dropped (R1/P1a).
 
-import { extractSpawnEdges } from '../parse/transcript-fields.mjs';
-import { parseLines } from '../parse/jsonl-line.mjs';
+import { extractSpawnEdges, UNAVAILABLE } from '../parse/transcript-fields.mjs';
 
 export const RUN_ROOT_ID = '__run_root__';
 
@@ -66,6 +65,32 @@ export function buildTree({ transcripts, metas, rootTranscript = null }) {
     }
   }
 
+  // 2b. Reachability repair (R1/P1a): a CYCLIC or self-referential toolUseId can join a node
+  //     to an emitter that lies inside a cycle, so its parent chain never reaches RUN_ROOT_ID.
+  //     The renderer walks purely by parentId from the root, so such a node would be COUNTED in
+  //     stats yet NEVER rendered — violating the "marked, never dropped" invariant. Re-attach any
+  //     node not reachable from RUN_ROOT_ID back to the run-root, marked, and fix the stat counts.
+  function reachesRoot(startId) {
+    const seen = new Set();
+    let cur = startId;
+    while (cur !== RUN_ROOT_ID) {
+      if (seen.has(cur)) return false; // cycle — never reaches the root
+      seen.add(cur);
+      const p = parentOf.get(cur);
+      if (!p) return false; // no parent link ⇒ not joined to the root
+      cur = p.parentId;
+    }
+    return true;
+  }
+  for (const childId of childIds) {
+    if (reachesRoot(childId)) continue;
+    const prev = parentOf.get(childId);
+    if (prev.via === 'subagent') matchedViaSubagent--;
+    else if (prev.via === 'root') matchedViaRoot--;
+    parentOf.set(childId, { parentId: RUN_ROOT_ID, via: 'run-root' });
+    attachedToRoot++;
+  }
+
   // 3. Compute depth by walking parent links to the run-root (cycle-guarded).
   const depthCache = new Map([[RUN_ROOT_ID, 0]]);
   function depthOf(id, seen = new Set()) {
@@ -85,8 +110,8 @@ export function buildTree({ transcripts, metas, rootTranscript = null }) {
     const link = parentOf.get(childId);
     nodes.push({
       id: childId,
-      agentType: typeof meta?.agentType === 'string' ? meta.agentType : { unavailable: true },
-      description: typeof meta?.description === 'string' ? meta.description : { unavailable: true },
+      agentType: typeof meta?.agentType === 'string' ? meta.agentType : UNAVAILABLE,
+      description: typeof meta?.description === 'string' ? meta.description : UNAVAILABLE,
       depth: depthOf(childId),
       parentId: link.parentId,
       attachedToRoot: link.via === 'run-root',
@@ -105,11 +130,4 @@ export function buildTree({ transcripts, metas, rootTranscript = null }) {
       attachedToRoot,
     },
   };
-}
-
-/** Convenience: build directly from raw transcript TEXT blobs (parses per-line, drops bad lines). */
-export function buildTreeFromText({ transcriptTexts, metas, rootTranscriptText = null }) {
-  const transcripts = transcriptTexts.map(({ id, text }) => ({ id, records: parseLines(text).records }));
-  const rootTranscript = rootTranscriptText != null ? parseLines(rootTranscriptText).records : null;
-  return buildTree({ transcripts, metas, rootTranscript });
 }

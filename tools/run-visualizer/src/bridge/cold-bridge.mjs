@@ -1,7 +1,7 @@
 // U3 — run-id → session COLD bridge (P4 / R3 / DI3). Scores candidate sessions by
 // transcript LINE-TIMESTAMP intersection with the run's activity.log window (NEVER dir mtime,
-// F2), plus agentType overlap and project-slug match. Resolves only above a confidence margin;
-// ambiguity surfaces a candidate list or refuses to durable-only — never a silent wrong tree.
+// F2), within the cwd's project slug. Resolves only above a confidence margin; ambiguity
+// surfaces a candidate list or refuses to durable-only — never a silent wrong tree.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -39,7 +39,6 @@ function scoreSession({ paths, windowStartMs, windowEndMs }) {
   const padEnd = windowEndMs + WINDOW_TRAILING_MARGIN_MS;
   let anyInWindow = 0;
   let startInWindow = 0;
-  const agentTypes = [];
 
   const files = [...paths.subagentTranscripts];
   // The sibling root transcript participates too (its lines bound the session presence).
@@ -63,15 +62,7 @@ function scoreSession({ paths, windowStartMs, windowEndMs }) {
     if (firstTs !== undefined && firstTs >= windowStartMs && firstTs <= padEnd) startInWindow++;
   }
 
-  // agentType multiset from in-window metas (best-effort).
-  for (const m of paths.metas) {
-    try {
-      const meta = JSON.parse(fs.readFileSync(m, 'utf8'));
-      if (typeof meta.agentType === 'string') agentTypes.push(meta.agentType);
-    } catch { /* ignore */ }
-  }
-
-  return { anyInWindow, startInWindow, agentTypes };
+  return { anyInWindow, startInWindow };
 }
 
 /**

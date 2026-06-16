@@ -4,14 +4,13 @@
 // simultaneously the torn-write guard (R1 / P1a).
 
 /**
- * Create a cursor.
- * @param {{from?: 'zero'|'now', offset?: number}} [opts]
- *   from 'zero' = replay from start (R18 replay default); 'now' = tail from now with one backfill.
+ * Create a cursor. Cursors always replay from the start (R18 replay default); the caller
+ * re-reads bytes from `offset` and feeds them to advance().
+ * @param {{offset?: number}} [opts] - `offset` seeds a non-zero start (a prior position).
+ *   (A legacy `from` option is accepted and ignored for backward compatibility.)
  */
 export function createCursor(opts = {}) {
-  const from = opts.from === 'now' ? 'now' : 'zero';
   return {
-    from,
     offset: Number.isInteger(opts.offset) ? opts.offset : 0,
     // partial is a Buffer holding bytes after the last newline (an incomplete trailing line).
     partial: Buffer.alloc(0),
@@ -43,7 +42,6 @@ export function advance(cursor, chunk) {
   return {
     lines,
     cursor: {
-      from: cursor.from,
       offset: cursor.offset + buf.length,
       partial: Buffer.from(partial), // copy so the caller can reuse `combined`'s memory
     },
@@ -57,7 +55,7 @@ export function advance(cursor, chunk) {
  */
 export function reconcileSize(cursor, size) {
   if (typeof size === 'number' && size < cursor.offset) {
-    return { cursor: createCursor({ from: 'zero' }), reset: true };
+    return { cursor: createCursor(), reset: true };
   }
   return { cursor, reset: false };
 }
