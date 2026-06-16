@@ -1,0 +1,7 @@
+{"type":"growth","id":"agent-aaa","now":0,"lastLineComplete":true,"lastGoodTs":"2026-06-14T17:00:00.000Z"}
+{"type":"growth","id":"agent-aaa","now":500,"lastLineComplete":true,"lastGoodTs":"2026-06-14T17:00:00.500Z"}
+{"type":"quiescence-tick","id":"agent-aaa","now":1500}
+{"type":"quiescence-tick","id":"agent-aaa","now":3100}
+{"type":"quiescence-tick","id":"agent-aaa","now":4000}
+{"type":"growth","id":"agent-aaa","now":5000,"lastLineComplete":true,"lastGoodTs":"2026-06-14T17:00:05.000Z"}
+{"type":"quiescence-tick","id":"agent-aaa","now":8000}
