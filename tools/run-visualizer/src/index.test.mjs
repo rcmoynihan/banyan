@@ -6,9 +6,41 @@ import fs from 'node:fs';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 
 import { parseArgs, main, resolveRunDir, buildStateForRun, buildStateForSessionPath, sessionIdFromPath } from './index.mjs';
 import { discoverActiveRun } from './bridge/active-run.mjs';
+
+/**
+ * Build a synthetic CLAUDE_PROJECTS_DIR tree in a temp dir (no developer-home dependency, R2-F5):
+ * a <slug>/<sessionId>.jsonl root transcript + a <slug>/<sessionId>/subagents/ dir with one
+ * agent-*.jsonl child + its .meta.json. The single in-window line is what the cold bridge scores.
+ * @returns {{ tmp, runDir, env, cwd, slug, sessionId }}
+ */
+function buildSyntheticTree({ withSubagent = true, withRoot = true } = {}) {
+  const tmp = mkdtempSync(join(os.tmpdir(), 'rv-synth-'));
+  const cwd = '/tmp/proj';
+  const slug = '-tmp-proj';
+  const sessionId = 'sess-live';
+  const projDir = join(tmp, slug);
+  const runDir = join(tmp, 'run');
+  mkdirSync(runDir, { recursive: true });
+  // activity.log window straddles the transcript line timestamp so the bridge resolves this session.
+  writeFileSync(join(runDir, 'activity.log'),
+    '2026-06-14T17:00:00.000Z\tlead\tstart\n2026-06-14T17:10:00.000Z\tlead\tend\n');
+  const line = '{"type":"user","timestamp":"2026-06-14T17:05:00.000Z","message":{"content":"hi"}}\n';
+  if (withRoot) {
+    mkdirSync(projDir, { recursive: true });
+    writeFileSync(join(projDir, `${sessionId}.jsonl`), line);
+  }
+  if (withSubagent) {
+    const sub = join(projDir, sessionId, 'subagents');
+    mkdirSync(sub, { recursive: true });
+    writeFileSync(join(sub, 'agent-x.jsonl'), line);
+    writeFileSync(join(sub, 'agent-x.meta.json'), '{"agentType":"banyan:bn-x","toolUseId":"t"}');
+  }
+  return { tmp, runDir, env: { CLAUDE_PROJECTS_DIR: tmp }, cwd, slug, sessionId };
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(here, '..', '..', '..');
@@ -77,4 +109,51 @@ test('buildStateForRun falls to durable-only when the bridge cannot resolve (DI3
   assert.equal(state.mode, 'durable-only');
   assert.ok(state.durable, 'durable roster built');
   fs.rmSync(tmp, { recursive: true, force: true });
+});
+
+test('buildStateForRun builds the resolved transcript tree from a synthetic temp tree (UNGATED, R2-F5)', () => {
+  const t = buildSyntheticTree();
+  try {
+    const { state, resolution } = buildStateForRun(t.runDir, { cwd: t.cwd, env: t.env });
+    assert.equal(resolution.resolved, true, `bridge-resolve branch must resolve; got ${JSON.stringify(resolution)}`);
+    assert.equal(resolution.sessionId, t.sessionId);
+    assert.equal(state.mode, 'transcript');
+    assert.equal(state.stats.total, 1, 'one subagent child built');
+    assert.ok(state.nodes['agent-x'], 'the synthetic child node is present');
+    assert.ok(state.nodes.__run_root__, 'the run-root node is materialized (R2-F1)');
+  } finally {
+    rmSync(t.tmp, { recursive: true, force: true });
+  }
+});
+
+test('buildStateForSessionPath builds the resolved tree from a synthetic push-down path (UNGATED, R2-F5)', () => {
+  const t = buildSyntheticTree();
+  try {
+    const sessionPath = join(t.tmp, t.slug, `${t.sessionId}.jsonl`);
+    const { state, resolution, paths } = buildStateForSessionPath(sessionPath, { cwd: t.cwd, env: t.env });
+    assert.equal(resolution.resolved, true, 'push-down resolves without the cold bridge');
+    assert.equal(resolution.sessionId, t.sessionId);
+    assert.equal(state.mode, 'transcript', 'transcript tier built, NOT durable-only');
+    assert.equal(state.stats.total, 1, 'one subagent child built from the push-down session');
+    assert.ok(paths.rootTranscript, 'the sibling root transcript resolved for the watcher');
+    assert.equal(state.waiting, null, 'not waiting when transcripts resolved');
+  } finally {
+    rmSync(t.tmp, { recursive: true, force: true });
+  }
+});
+
+test('buildStateForSessionPath flags an explicit waiting state when ZERO transcripts resolve (R2-F4)', () => {
+  // A push-down launched at run START: no subagents/ and no root transcript yet. The bypass branch
+  // must NOT render a silently-blank, non-recovering tree — it flags an explicit waiting state.
+  const t = buildSyntheticTree({ withSubagent: false, withRoot: false });
+  try {
+    const sessionPath = join(t.tmp, t.slug, `${t.sessionId}.jsonl`);
+    const { state, resolution } = buildStateForSessionPath(sessionPath, { cwd: t.cwd, env: t.env });
+    assert.equal(resolution.resolved, true, 'the push-down still resolves (it beats everything, R11)');
+    assert.equal(state.stats.total, 0, 'no transcripts resolved yet');
+    assert.ok(state.waiting, 'an explicit waiting state is flagged rather than a blank tree');
+    assert.match(state.waiting.message, /waiting/);
+  } finally {
+    rmSync(t.tmp, { recursive: true, force: true });
+  }
 });

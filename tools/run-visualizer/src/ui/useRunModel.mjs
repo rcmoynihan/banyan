@@ -35,16 +35,26 @@ export function useRunModel({
   const dispatch = useCallback((event) => {
     setState((prev) => {
       const next = apply(prev, event);
-      // A (re)build-tree or durable-only event resets the known-node roster the producer ticks.
+      // A (re)build-tree or durable-only event resets the known-node roster the producer ticks; an
+      // add-node merges one fresh id into it (F1) so the quiescence producer ticks it too.
       if (event?.type === 'build-tree' || event?.type === 'durable-only') {
         nodeIdsRef.current = new Set(Object.keys(next.nodes ?? {}));
+      } else if (event?.type === 'add-node' && event.id) {
+        nodeIdsRef.current.add(event.id);
       }
       return next;
     });
   }, []);
 
-  // Translate a raw watcher growth event into a model 'liveness' event via the FSM.
+  // Translate a raw watcher growth event into model events. A growth whose id the snapshot
+  // build-tree never produced (a freshly-spawned child, or the run-root) must FIRST materialize the
+  // node via 'add-node' — otherwise run-model's liveness branch silently drops the transition for an
+  // id absent from state.nodes, and post-launch growth never surfaces (F1). Then route the growth
+  // through the FSM into a 'liveness' transition as before.
   const onGrowth = useCallback((growth) => {
+    if (!nodeIdsRef.current.has(growth.id)) {
+      dispatch({ type: 'add-node', id: growth.id, records: growth.records });
+    }
     nodeIdsRef.current.add(growth.id); // a growth for a freshly-seen node enters the tick roster
     const last = growth.records[growth.records.length - 1];
     const transitions = fsmRef.current.apply({

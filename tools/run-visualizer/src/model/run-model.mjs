@@ -6,7 +6,7 @@
 // PURE: imports only framework-free, fs-free code (no ink/react/chokidar/fs). All side-effecting
 // watch/IO lives in adapter modules that emit plain domain events into apply().
 
-import { buildTree } from './tree-builder.mjs';
+import { buildTree, RUN_ROOT_ID } from './tree-builder.mjs';
 import { createLivenessFsm } from './liveness-fsm.mjs';
 import {
   extractPrompt, extractModel, extractTokens, extractTiming, extractMetadata, UNAVAILABLE, isUnavail,
@@ -21,6 +21,7 @@ export function initialState() {
     expanded: {},              // id → bool (expand/collapse set)
     selectedId: null,
     durable: null,             // durable roster when mode === 'durable-only'
+    waiting: null,             // { message } when a resolved session has NO transcripts yet (R2-F4)
     stats: { total: 0 },
   };
 }
@@ -48,6 +49,9 @@ function enrichNode(records) {
  *  - { type: 'build-tree', transcripts, metas, rootTranscript } — (re)build topology + enrichment.
  *  - { type: 'durable-only', roster } — no transcript tier resolved; show the degraded roster (R9).
  *  - { type: 'liveness', transitions } — apply FSM transitions [{id, to, endTime, endTimeApprox}].
+ *  - { type: 'add-node', id, records? } — materialize a node first seen LIVE (a growth for an id the
+ *    snapshot build-tree never produced: a freshly-spawned child, or the run-root). Idempotent — an
+ *    id already present is left untouched so a subsequent liveness can refine it (F1).
  *  - { type: 'toggle-expand', id } / { type: 'select', id }.
  */
 export function apply(state, event) {
@@ -75,7 +79,24 @@ export function apply(state, event) {
           endTimeApprox: false,
           ...enrichNode(records),
         };
-        if (n.attachedToRoot || n.parentId === '__run_root__') rootChildren.push(n.id);
+        if (n.attachedToRoot || n.parentId === RUN_ROOT_ID) rootChildren.push(n.id);
+      }
+      // Materialize the synthetic run-root as a real node so a LIVE growth for the sibling root
+      // transcript (which the watcher maps to RUN_ROOT_ID) lands on an existing node and its
+      // liveness is observable (F1). Enrich it from the root transcript records when present.
+      if (!nodes[RUN_ROOT_ID]) {
+        nodes[RUN_ROOT_ID] = {
+          id: RUN_ROOT_ID,
+          agentType: 'run-root',
+          description: 'run root',
+          depth: 0,
+          parentId: null,
+          attachedToRoot: false,
+          hasMeta: false,
+          status: 'active',
+          endTimeApprox: false,
+          ...enrichNode(event.rootTranscript ?? []),
+        };
       }
       return {
         ...state,
@@ -83,8 +104,41 @@ export function apply(state, event) {
         nodes,
         rootChildren,
         durable: null,
+        waiting: null,
         stats: tree.stats,
       };
+    }
+
+    case 'add-node': {
+      // A node first seen LIVE (a growth whose id the snapshot tree never built). Idempotent: keep
+      // an already-present node so a later liveness/refine wins. New nodes attach to the run-root,
+      // marked, so the renderer can walk to them (mirrors tree-builder's "marked, never dropped").
+      if (!event.id || state.nodes[event.id]) return state;
+      const isRoot = event.id === RUN_ROOT_ID;
+      const nodes = {
+        ...state.nodes,
+        [event.id]: {
+          id: event.id,
+          agentType: isRoot ? 'run-root' : UNAVAILABLE,
+          description: isRoot ? 'run root' : UNAVAILABLE,
+          depth: isRoot ? 0 : 1,
+          parentId: isRoot ? null : RUN_ROOT_ID,
+          attachedToRoot: !isRoot,
+          hasMeta: false,
+          status: 'active',
+          endTimeApprox: false,
+          ...enrichNode(event.records ?? []),
+        },
+      };
+      const rootChildren = isRoot ? state.rootChildren : [...state.rootChildren, event.id];
+      // A live node materializing clears the "waiting for transcripts" state (R2-F4 recovery).
+      return { ...state, mode: 'transcript', nodes, rootChildren, waiting: null };
+    }
+
+    case 'waiting': {
+      // A resolved session with no transcripts yet (R2-F4): flag an explicit waiting view rather
+      // than a silently-blank tree. Cleared once build-tree/add-node materializes a node.
+      return { ...state, waiting: { message: event.message ?? 'waiting for session transcripts…' } };
     }
 
     case 'durable-only': {

@@ -50,3 +50,102 @@ test('controlled append: new-node growth then active→finished via the FSM', ()
 
   fs.rmSync(tmp, { recursive: true, force: true });
 });
+
+// R2-F2: stop() racing an unresolved start() must close the just-created chokidar watch and must
+// NOT register 'add'/'change' handlers — otherwise a late-resolving start() leaks a live fs watch
+// and can dispatch growth into a torn-down tree. We drive the race deterministically with a fake
+// chokidar whose import resolution we hold open until after stop() has run.
+test('R2-F2: stop() before start() resolves closes the watch and fires no post-teardown growth', async () => {
+  let closed = false;
+  const registered = []; // event names the watch handlers were registered for
+  let growthDispatched = false;
+
+  // A controllable chokidar import: start() awaits releaseImport() before it gets the chokidar obj.
+  let releaseImport;
+  const importGate = new Promise((resolve) => { releaseImport = resolve; });
+  const fakeChokidar = {
+    watch() {
+      return {
+        on(evt) { registered.push(evt); return this; },
+        async close() { closed = true; },
+      };
+    },
+  };
+
+  const w = createWatcher({
+    paths: ['/nonexistent'],
+    onGrowth: () => { growthDispatched = true; },
+    chokidarFactory: () => importGate.then(() => fakeChokidar),
+  });
+
+  // Kick off start() — it is now parked awaiting the import gate (watcher still null).
+  const startResolved = w.start();
+  // stop() races in BEFORE the import resolves.
+  const stopResolved = w.stop();
+  // Now let the chokidar "import" resolve; start() must observe stopped and tear down.
+  releaseImport();
+  await Promise.all([startResolved, stopResolved]);
+
+  assert.equal(closed, true, 'the watch created by the racing start() was closed');
+  assert.deepEqual(registered, [], 'no add/change handlers were registered after a pre-resolve stop()');
+  assert.equal(growthDispatched, false, 'no growth dispatched after teardown');
+});
+
+// R2-F6 (option b): the fsImpl seam has a real consumer — a short-read test that hardens the F5
+// readSync-byte-count guard. The injected fsImpl returns FEWER bytes than the requested length on
+// the first tail (the trailing line is "not yet flushed"). The F5 guard (buf = buf.subarray(0, n))
+// must keep the zero-padded unread tail out of advance() so that (a) cursor.offset advances by
+// exactly n — NOT the full requested len — so the next reconcileSize does not trip replay-from-zero
+// and RE-EMIT the already-delivered line; and (b) no NUL bytes are wedged into cursor.partial and
+// later surface in a parsed line. We prove both by driving a SECOND tail after the partial line is
+// completed: with the guard the second line emits exactly once and cleanly; without it line1 replays
+// and/or a line is NUL-contaminated.
+test('R2-F6: fsImpl short-read — guard advances by n, no replay and no NUL padding on the next tail', () => {
+  const line1 = '{"type":"user","timestamp":"2026-06-14T17:00:00.000Z","message":{"content":"a"}}\n';
+  const line2 = '{"type":"user","timestamp":"2026-06-14T17:00:01.000Z","message":{"content":"b"}}\n';
+
+  // Mutable "disk": first tail sees line1 + an incomplete line2; second tail sees the completed line2.
+  let onDisk = Buffer.from(line1 + '{"type":"use', 'utf8');
+  let shortReadOnce = true; // only the FIRST read is short (stops at the line1 newline)
+
+  const fakeFs = {
+    statSync() { return { size: onDisk.length }; },
+    openSync() { return 7; },
+    closeSync() {},
+    readSync(_fd, buf, offset, length, position) {
+      const available = onDisk.subarray(position, position + length);
+      let n = available.length;
+      if (shortReadOnce) {
+        const nlIdx = available.indexOf(0x0a); // deliver only through the first newline
+        if (nlIdx >= 0) n = nlIdx + 1;
+        shortReadOnce = false;
+      }
+      available.subarray(0, n).copy(buf, offset);
+      return n; // n < length on the short read: the F5 guard must clip buf to these n bytes
+    },
+  };
+
+  const emitted = [];
+  const w = createWatcher({
+    paths: ['/nonexistent'],
+    onGrowth: (ev) => { emitted.push(...ev.lines); },
+    fsImpl: fakeFs,
+  });
+
+  // First tail: short read delivers only the complete line1; the partial line2 stays unread.
+  w._tail('/whatever.jsonl');
+  assert.deepEqual(emitted, [line1.slice(0, -1)], 'first tail emits exactly line1, no NUL-padded extra');
+
+  // line2 is now fully flushed; a normal read should pick it up exactly once, with no line1 replay.
+  onDisk = Buffer.from(line1 + line2, 'utf8');
+  w._tail('/whatever.jsonl');
+
+  assert.deepEqual(
+    emitted,
+    [line1.slice(0, -1), line2.slice(0, -1)],
+    'no replay of line1 and no NUL contamination — exactly line1 then line2',
+  );
+  for (const ln of emitted) {
+    assert.ok(!ln.includes('\u0000'), 'no NUL byte wedged into an emitted line');
+  }
+});

@@ -111,6 +111,57 @@ test('unresolved session → durable-only roster with bn-finding-owner ×3 colla
   assert.equal(roster.fidelityLoss, true, 'fidelity loss recorded');
 });
 
+test('build-tree materializes the run-root node so root-transcript liveness is observable (R2-F1)', () => {
+  const s = apply(initialState(), {
+    type: 'build-tree',
+    transcripts: [{ id: 'agent-a', records: [] }],
+    metas: [{ id: 'agent-a', toolUseId: 'x', agentType: 'bn-x' }],
+    rootTranscript: null,
+  });
+  assert.ok(s.nodes.__run_root__, 'the synthetic run-root is a real node');
+  assert.equal(s.nodes.__run_root__.depth, 0);
+  // a liveness transition for the run-root now lands (previously dropped: id absent from nodes).
+  const s2 = apply(s, { type: 'liveness', transitions: [{ id: '__run_root__', to: 'finished', endTime: 'T9' }] });
+  assert.equal(s2.nodes.__run_root__.status, 'finished');
+});
+
+test('add-node materializes a node first seen LIVE for an UNKNOWN id (R2-F1)', () => {
+  let s = apply(initialState(), {
+    type: 'build-tree',
+    transcripts: [{ id: 'agent-known', records: [] }],
+    metas: [{ id: 'agent-known', toolUseId: 'x', agentType: 'bn-x' }],
+    rootTranscript: null,
+  });
+  assert.equal(s.nodes['agent-new'], undefined, 'unknown id absent from the snapshot tree');
+  s = apply(s, { type: 'add-node', id: 'agent-new', records: [] });
+  assert.ok(s.nodes['agent-new'], 'a growth for an unknown id materializes the node');
+  assert.equal(s.nodes['agent-new'].parentId, '__run_root__', 'new node attaches to the run-root, marked');
+  assert.ok(s.rootChildren.includes('agent-new'), 'new node is walkable as a run-root child');
+  // a subsequent liveness now refines the freshly-added node (previously dropped).
+  s = apply(s, { type: 'liveness', transitions: [{ id: 'agent-new', to: 'finished', endTime: 'T1' }] });
+  assert.equal(s.nodes['agent-new'].status, 'finished');
+});
+
+test('add-node is idempotent — an already-present id is left untouched (R2-F1)', () => {
+  let s = apply(initialState(), {
+    type: 'build-tree',
+    transcripts: [{ id: 'agent-a', records: [] }],
+    metas: [{ id: 'agent-a', toolUseId: 'x', agentType: 'bn-real' }],
+    rootTranscript: null,
+  });
+  const before = s.nodes['agent-a'];
+  s = apply(s, { type: 'add-node', id: 'agent-a', records: [] });
+  assert.equal(s.nodes['agent-a'], before, 'present node kept (so a real meta is not clobbered)');
+});
+
+test('waiting flag set then cleared when a node materializes (R2-F4 recovery)', () => {
+  let s = apply(initialState(), { type: 'waiting', message: 'waiting for session transcripts…' });
+  assert.ok(s.waiting, 'waiting flag set');
+  assert.match(s.waiting.message, /waiting/);
+  s = apply(s, { type: 'add-node', id: 'agent-late', records: [] });
+  assert.equal(s.waiting, null, 'waiting cleared once a live node appears');
+});
+
 test('toggle-expand and select are immutable updates', () => {
   const s0 = initialState();
   const s1 = apply(s0, { type: 'toggle-expand', id: 'n1' });

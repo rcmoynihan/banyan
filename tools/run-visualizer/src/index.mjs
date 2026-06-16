@@ -79,7 +79,7 @@ export function buildStateForRun(runDir, { cwd = process.cwd(), env = process.en
   }
   const projectSlug = projectSlugFromCwd(cwd);
   const paths = resolveSessionPaths({ projectSlug, sessionId: resolution.sessionId, env, homeDir });
-  const state = buildTranscriptState(paths);
+  const { state } = buildTranscriptState(paths);
   return { state, resolution, runDir, paths };
 }
 
@@ -101,26 +101,44 @@ export function buildStateForSessionPath(sessionPath, { cwd = process.cwd(), env
   const sessionId = sessionIdFromPath(sessionPath);
   const paths = resolveSessionPaths({ projectSlug, sessionId, env, homeDir });
   const resolution = { resolved: true, sessionId, source: 'push-down' };
-  const state = buildTranscriptState(paths);
-  return { state, resolution, sessionPath, paths };
+  const { state, resolvedCount } = buildTranscriptState(paths);
+  // R2-F4: a push-down at run START (before any subagent has spawned) resolves ZERO transcripts and
+  // no root. The push-down branch bypasses the cold bridge's durable-only fallback, so without this
+  // the TUI renders a permanently blank, non-recovering tree. Flag an explicit "waiting" state so
+  // the view is not silently blank; R2-F1's live add-node path then recovers it as files appear.
+  const waiting = resolvedCount === 0
+    ? apply(state, { type: 'waiting', message: 'waiting for session transcripts…' })
+    : state;
+  return { state: waiting, resolution, sessionPath, paths };
 }
 
-/** Load + parse the transcript tier for a resolved set of session paths into a build-tree state. */
+/** Load + parse the transcript tier for a resolved set of session paths into a build-tree state.
+ *  R2-F3: each per-transcript read is guarded — against a LIVE run a file can be deleted, truncated,
+ *  or permission-flipped between path resolution and read; an unguarded throw would abort the WHOLE
+ *  tree build. Skip the unreadable file (mirroring the meta loop) and build from whatever resolved;
+ *  R2-F1's live rebuild path then picks the skipped file back up when it reappears.
+ *  @returns {{ state: object, resolvedCount: number }} resolvedCount = transcripts + root actually read. */
 function buildTranscriptState(paths) {
   const transcripts = [];
   const metas = [];
   for (const f of paths.subagentTranscripts) {
     const id = path.basename(f, '.jsonl');
-    transcripts.push({ id, records: parseLines(fs.readFileSync(f, 'utf8')).records });
+    try {
+      transcripts.push({ id, records: parseLines(fs.readFileSync(f, 'utf8')).records });
+    } catch { /* skip a file that vanished/raced between resolution and read */ }
   }
   for (const m of paths.metas) {
     const id = path.basename(m, '.meta.json');
     try { metas.push({ id, ...JSON.parse(fs.readFileSync(m, 'utf8')) }); } catch { /* skip bad meta */ }
   }
-  const rootTranscript = paths.rootTranscript
-    ? parseLines(fs.readFileSync(paths.rootTranscript, 'utf8')).records
-    : null;
-  return apply(initialState(), { type: 'build-tree', transcripts, metas, rootTranscript });
+  let rootTranscript = null;
+  if (paths.rootTranscript) {
+    try { rootTranscript = parseLines(fs.readFileSync(paths.rootTranscript, 'utf8')).records; }
+    catch { /* skip an unreadable root transcript; the tree still builds from the subagents */ }
+  }
+  const resolvedCount = transcripts.length + (rootTranscript ? 1 : 0);
+  const state = apply(initialState(), { type: 'build-tree', transcripts, metas, rootTranscript });
+  return { state, resolvedCount };
 }
 
 /**

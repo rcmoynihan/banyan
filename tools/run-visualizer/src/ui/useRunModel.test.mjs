@@ -46,6 +46,36 @@ test('dispatch(build-tree) populates state; a growth routes to a finished livene
   assert.ok(captured.nodes['agent-x'], 'node present after build-tree dispatch');
 });
 
+test('a growth for an UNKNOWN id materializes the node live (R2-F1 post-launch growth)', async () => {
+  const clock = manualClock(0);
+  let captured = null;
+
+  function Harness() {
+    const [state] = useRunModel({
+      quiescenceMs: 2500,
+      clock,
+      bootstrap: (dispatchEvent, onGrowth) => {
+        // snapshot tree has ONE known node; then a growth arrives for an id the snapshot never built.
+        dispatchEvent({
+          type: 'build-tree',
+          transcripts: [{ id: 'agent-known', records: [] }],
+          metas: [{ id: 'agent-known', toolUseId: 't', agentType: 'banyan:bn-x' }],
+          rootTranscript: null,
+        });
+        onGrowth({ id: 'agent-fresh', records: [{ timestamp: 'T0' }], lastLineComplete: true });
+      },
+    });
+    captured = state;
+    const n = state.nodes['agent-fresh'];
+    return e(Text, null, n ? `${n.id}:${n.status}` : 'absent');
+  }
+
+  const { lastFrame } = render(e(Harness));
+  await new Promise((r) => setTimeout(r, 30));
+  assert.match(lastFrame(), /agent-fresh:active/, 'a newly-spawned child surfaces from a live growth');
+  assert.ok(captured.nodes['agent-fresh'], 'unknown-id growth materialized the node (not silently dropped)');
+});
+
 test('quiescence-tick producer flips an idle active node to finished live (F3)', async () => {
   const clock = manualClock(0);
   let driveTick = null; // captured tick callback (injected scheduler — no real timer)
