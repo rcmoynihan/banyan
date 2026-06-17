@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Drive recipe (the agentic-drive-readiness contract)",
+  "description": "The single machine-readable source of truth for how a repo's drive surfaces are exercised, produced by /bn-runbook and consumed by bn-dogfood-verifier Step 0 and bn-review-lead's drivable-surface gate. The recipe is embedded in an instruction file (AGENTS.md/CLAUDE.md) as a fenced JSON payload between HTML-comment sentinels (`<!-- bn-drive-recipe v1 -->` ... fenced ```json``` ... `<!-- /bn-drive-recipe -->`). It is parsed only through the shared validator (validate-drive-recipe.mjs); no consumer hand-rolls a parser, so there is no parser drift. The recipe fails closed: a malformed, absent, duplicate, or unknown-version block resolves to the consumer's pre-existing heuristic behavior or a typed skip, never to a guessed drive. Two conditional rules are part of the contract but enforced in the validator's code (this draft-07 subset has no if/then): `do_not_attempt` is required on any leg whose `tier` is `expensive-or-slow` or `no-dev-equivalent` (a leg that must never be executed must carry its cost basis and reason), and `observe` is required inside `drive` when `mode` is `trigger-and-monitor` (a remotely-triggered workflow must record how a dev observes/polls it).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["recipe_schema_version", "last_validated", "paths"],
+  "properties": {
+    "recipe_schema_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The schema version this recipe block is written against (R20). A consumer that does not recognize this value degrades to a typed `unknown-version` signal and falls back to its pre-existing behavior, never crashing or silently wrong-parsing. v1 is the value the validator currently recognizes."
+    },
+    "last_validated": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "commit", "validated_at"],
+      "description": "The freshness marker (R10): the run that proved this recipe and the repo state it was proven against. Consumers do NOT drift-check; this marker is the only freshness signal, refreshed solely by re-running /bn-runbook. A reader judges the recipe's age by it.",
+      "properties": {
+        "run_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The /bn-runbook run id that produced and validated this recipe."
+        },
+        "commit": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The repo commit (git rev-parse HEAD) the recipe was proven against — the repo state the `proven` legs were validated under."
+        },
+        "validated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 date-time the recipe was last validated."
+        }
+      }
+    },
+    "paths": {
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per drive path. Each names a user-facing surface, its tier, how it is driven, whether the drive was proven or merely declared, an optional surrogate, and (for declared-cliff legs) a do_not_attempt note.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["surface", "tier", "mode", "status", "drive"],
+        "properties": {
+          "surface": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The user-facing entry point this path drives — a route, a CLI command, or a triggerable workflow. Consumers reconcile a touched-by-diff surface set against these `surface` values (R18)."
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "drivable-as-is",
+              "cheap-surrogate",
+              "trigger-and-monitor",
+              "no-dev-equivalent",
+              "expensive-or-slow"
+            ],
+            "description": "Exactly one of the five dependency tiers (R2). `no-dev-equivalent` and `expensive-or-slow` legs are NEVER executed (R4) and MUST carry `do_not_attempt`."
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["local-dev-server", "local-cli-process", "trigger-and-monitor"],
+            "description": "How the surface is driven. `trigger-and-monitor` MUST carry an `observe` instruction inside `drive` (R8). The v1 verifier drives browser/dev-server surfaces only; a `local-cli-process` proven leg is recorded honestly but treated as no-proven-path by the verifier (checker F3)."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proven", "declared"],
+            "description": "`proven`: the step was actually executed under the budget pass and evidence captured. `declared`: recorded with its cost basis but never run (R4). Only ran steps are `proven` (R3)."
+          },
+          "drive": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["start"],
+            "description": "How to drive this surface. `start` launches it; `observe` (required when mode is trigger-and-monitor, R8) is how a dev polls/watches a remotely-running workflow.",
+            "properties": {
+              "start": {
+                "type": "string",
+                "minLength": 1,
+                "description": "The command or smoke-journey description that starts/drives this surface."
+              },
+              "observe": {
+                "type": "string",
+                "minLength": 1,
+                "description": "How to observe/poll the workflow from the dev machine when compute runs remotely (R8). Required when mode is trigger-and-monitor."
+              }
+            }
+          },
+          "surrogate": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The cheapest faithful-enough stand-in this path relies on where one exists — a fixture, a compose service, a contract mock (R9)."
+          },
+          "do_not_attempt": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["cost_basis", "reason"],
+            "description": "Required on any leg tiered `expensive-or-slow` or `no-dev-equivalent` (R4). Marks a leg a consumer must NEVER execute, with its cost basis and a human-readable reason.",
+            "properties": {
+              "cost_basis": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Why this leg is off-limits to execute — non-zero money, a remote batch, slow wall-clock, or a credential/setup requirement (R4/R19)."
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "description": "A human-readable do-not-attempt note explaining the cliff."
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
