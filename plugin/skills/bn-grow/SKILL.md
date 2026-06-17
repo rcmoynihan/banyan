@@ -79,6 +79,19 @@ assumptions. Ask before opening the run only when the missing decision would be 
 default because it is product-defining, permission-sensitive, destructive, or dependent on
 external authority the repo cannot infer.
 
+**Ground volatile external facts before you pose them or record them as assumptions.** Before
+you put a decision to the user, or write an assumption into the ledger, that turns on a
+fast-moving external fact — a third-party product's capabilities, an API surface or
+parameters, version-specific behavior, pricing, or a model's name/limits, and **especially
+the capabilities of other AI coding tools or competitor agents** — treat it as stale by
+default and confirm it against a source you fetch this session (one `WebSearch`/`WebFetch` is
+usually enough). Your confidence is not evidence; reasoning over a premise does not verify
+it. State such a fact as settled only if you can cite the source you just fetched; otherwise
+verify it now or record it explicitly as unverified. Autonomous intake authorizes you to
+ground a premise first, never to invent one. If grounding contradicts the premise, say so and
+re-pose the options. Stable facts — language syntax, settled CS, math — and incidental
+mentions are exempt; this fires only when the fact is **load-bearing**.
+
 Open ONE run ledger via the scaffolder. Pass the phase rows up front so the ledger is usable
 without hand-written setup:
 

@@ -13,7 +13,7 @@
 - Where a stronger local gate already owns a pitfall for a given lead, this catalog points you
   THERE by concept name. Defer to the gate; do not run parallel vigilance.
 
-## The eight pitfalls
+## The pitfalls
 ### Goal drift
 - Tell: the artifact answers a subtly different question than the envelope objective; scope
   silently widened or narrowed; the verdict is for work the child chose, not work it was asked to do.
@@ -68,6 +68,20 @@
   a repo citation.
 - Bites hardest: plan (defers to plan-judge + plan-checker), research (defers to Step 3 triage), ask.
 
+### Ungrounded external claim
+- Tell: the artifact (or a decision posed to the user) states a fast-moving external fact as
+  settled — a third-party product/API capability, version behavior, pricing, model limit, or
+  another AI tool's features — from training memory with no source fetched this session. Distinct
+  from hallucinated context: the fact may exist in the world; it was simply never verified against
+  it and is likely stale. Confidence is not evidence, and reasoning over the premise does not
+  verify it.
+- Corrective (likely: re-dispatch): sharper-envelope re-dispatch demanding every load-bearing
+  external claim cite a source fetched this session, or route the fact through `bn-web-researcher` /
+  `bn-framework-docs-researcher`. If the claim is the hinge of a user-facing decision with no safe
+  default → §2.2 ladder, `blocker_class: no-safe-default`, after grounding.
+- Bites hardest: plan (generators on a light grounding pass), debug (hypotheses about third-party
+  library behavior), research, ask.
+
 ### Tool misuse  [dual-surface]
 - Tell (trajectory form): the artifact reaches its result via the wrong instrument — a manual
   reconstruction where a deterministic script exists, a web search where the repo had the answer,
@@ -84,13 +98,13 @@
 - Bites hardest: research, ask, debug.
 
 ## Per-lead quick index (R8)
-- research / ask: tunnel vision, hallucinated context, acting on partial understanding bite
-  hardest. Hallucinated/contradicting evidence defers to research's Step 3 triage.
+- research / ask: tunnel vision, hallucinated context, ungrounded external claim, acting on partial
+  understanding bite hardest. Hallucinated/contradicting evidence defers to research's Step 3 triage.
 - delivery / unit: goal drift, assumption-driven work, solving-uncertainty-with-code, tool misuse.
-- debug: fixing the wrong problem (defers to the causal-chain gate), acting on partial
-  understanding, tool misuse.
+- debug: fixing the wrong problem (defers to the causal-chain gate), ungrounded external claim,
+  acting on partial understanding, tool misuse.
 - plan: hallucinated context (defers to plan-judge's spot-check + the plan-checker typed-finding
-  fold), assumption-driven development, solving-uncertainty-with-code.
+  fold), ungrounded external claim, assumption-driven development, solving-uncertainty-with-code.
 - review: drives the reviewer panel; goal drift and tunnel vision in a reviewer's findings.
 
 ## What this catalog is not

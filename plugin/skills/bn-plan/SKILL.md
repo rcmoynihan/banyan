@@ -34,6 +34,20 @@ for bounded choices in Claude Code; in a runtime without that tool, stop and wai
 answer in chat. Most planning ambiguity should be handed to the lead as an `[assumed]`
 requirement with a confirm-by clause, not handled as a trunk dialogue.
 
+**Ground volatile external facts before you pose them.** Before you put a decision, option,
+or premise to the user that turns on a fast-moving external fact — a third-party product's
+capabilities, an API surface or parameters, version-specific behavior, pricing, or a model's
+name/limits, and **especially the capabilities of other AI coding tools or competitor
+agents** — treat it as stale by default and confirm it against a source you fetch this
+session (one `WebSearch`/`WebFetch` is usually enough). Your confidence is not evidence;
+reasoning over a premise does not verify it. State such a fact as settled only if you can
+cite the source you just fetched; otherwise verify it now or present it explicitly as
+unverified. A user asking you to make a decision is asking for a sound one, not a fast one —
+that authorizes you to ground its premises first, never to invent them. If grounding
+contradicts the premise, say so and re-pose the options. Stable facts — language syntax,
+settled CS, math — and incidental mentions are exempt; this fires only when the fact is
+**load-bearing**.
+
 ## Step 2 - Spawn bn-plan-lead
 
 Resolve the repo root with `git rev-parse --show-toplevel` when cheap; otherwise pass
