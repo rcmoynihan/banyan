@@ -15,100 +15,44 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 
 ## How orchestration works
 
-You talk to **one** thing — the trunk. You hand it a goal (`/bn-grow ...`) and read
-the result; everything else happens below the waterline. **The shape** is who owns
-what underneath: each lead owns a subtree and spawns its own workers, all coordinating
-through files instead of one crowded shared context. Here is the whole tree of a standard
-`/bn-grow` run — every subagent it can spawn, from the trunk down to the leaves:
+You talk to **one** thing — the trunk. You hand it a goal (`/bn-grow ...`) and read the
+result; everything else happens below the waterline. Banyan's bet is **nesting**: a lead
+isn't a relay, it's a full trunk for the agents beneath it — and those can be leads too.
+Take just the *deliver* stage of a `/bn-grow` run. The trunk spawns one lead, which spawns
+more leads, which spawn their own workers — branches becoming trunks, the way a banyan drops
+roots that become new trunks:
 
 ```mermaid
 flowchart TB
-  %% stage subgraphs declared last-to-first so the layout engine renders them left-to-right in run order
   classDef trunk fill:#14532d,stroke:#052e16,color:#ffffff,font-weight:bold
   classDef lead  fill:#16a34a,stroke:#14532d,color:#ffffff,font-weight:bold
   classDef leaf  fill:#dcfce7,stroke:#4ade80,color:#14532d
-  classDef cond  fill:#fef9c3,stroke:#eab308,color:#713f12
 
-  T(["/bn-grow — the trunk<br/>holds your intent · reads each artifact · gates the next stage"]):::trunk
+  T(["/bn-grow — the trunk<br/>holds your intent"]):::trunk
+  T -->|spawns one lead| DL["bn-delivery-lead<br/>owns the deliver + review subtree"]:::lead
 
-  subgraph S5["⑤ Curate · background"]
-    KC["bn-knowledge-curator"]:::leaf
-  end
-  subgraph S4["④ Deliver + review"]
-    DL["bn-delivery-lead"]:::lead
-    DL --> UL["bn-unit-lead ×N<br/>isolated worktree"]:::lead
-    UL --> UC["bn-correctness-reviewer"]:::leaf
-    UL --> UF["bn-spec-fidelity-reviewer"]:::leaf
-    UL --> US["bn-unit-lead<br/>splits once on over-size"]:::lead
-    DL --> IN["bn-integrator<br/>merge in dependency order"]:::leaf
-    DL --> RVL["bn-review-lead<br/>read-only · up to 2 rounds"]:::lead
-    DL --> FO["bn-finding-owner ×N<br/>fix confirmed findings"]:::leaf
-    DL --> DH["bn-lesson-harvester"]:::leaf
+  DL -->|fans out| UL["bn-unit-lead ×N<br/>one unit, its own git worktree"]:::lead
+  DL --> IN["bn-integrator<br/>merges units in order"]:::leaf
+  DL -->|reviews its own work| RVL["bn-review-lead<br/>read-only reviewer panel"]:::lead
+  DL --> FO["bn-finding-owner ×N<br/>fixes the findings"]:::leaf
 
-    subgraph AO["always-on (7)"]
-      A1["bn-correctness-reviewer"]:::leaf
-      A2["bn-testing-reviewer"]:::leaf
-      A3["bn-maintainability-reviewer"]:::leaf
-      A4["bn-yagni-reviewer"]:::leaf
-      A5["bn-project-standards-reviewer"]:::leaf
-      A6["bn-agent-native-reviewer"]:::leaf
-      A7["bn-learnings-researcher"]:::leaf
-    end
+  UL --> UC["bn-correctness-reviewer"]:::leaf
+  UL --> UF["bn-spec-fidelity-reviewer"]:::leaf
+  UL -->|splits when a unit is too big| US["bn-unit-lead<br/>a lead spawning another lead"]:::lead
+  US --> USC["bn-correctness-reviewer"]:::leaf
+  US --> USF["bn-spec-fidelity-reviewer"]:::leaf
 
-    subgraph CO["conditional ≤8 · chosen by reading the diff"]
-      C1["bn-security-reviewer"]:::cond
-      C2["bn-performance-reviewer"]:::cond
-      C3["bn-api-contract-reviewer"]:::cond
-      C4["bn-data-migration-reviewer"]:::cond
-      C5["bn-reliability-reviewer"]:::cond
-      C6["bn-adversarial-reviewer"]:::cond
-      C7["bn-spec-fidelity-reviewer"]:::cond
-      C8["bn-previous-comments-reviewer"]:::cond
-    end
-
-    RVL --> AO
-    RVL --> CO
-  end
-  subgraph S3["③ Plan · judge panel"]
-    PL["bn-plan-lead"]:::lead
-    PL --> PG["bn-plan-generator ×3<br/>mvp · risk · ops priors"]:::leaf
-    PL --> PJ["bn-plan-judge ×3"]:::leaf
-    PL --> PC["bn-plan-checker"]:::leaf
-    PL --> PH["bn-lesson-harvester"]:::leaf
-  end
-  subgraph S2["② Spec stress · trunk-run lenses"]
-    SC["bn-spec-scenario-reviewer"]:::leaf
-    SA["bn-spec-assumption-reviewer"]:::leaf
-    ST["bn-spec-threat-reviewer"]:::leaf
-  end
-  subgraph S1["① Research"]
-    RL["bn-research-lead"]:::lead
-    RL --> RR["bn-repo-researcher"]:::leaf
-    RL --> RLN["bn-learnings-researcher"]:::leaf
-    RL --> RBP["bn-best-practices-researcher"]:::leaf
-    RL --> RFD["bn-framework-docs-researcher"]:::leaf
-    RL --> RWB["bn-web-researcher"]:::leaf
-    RL --> RTC["bn-thread-chaser"]:::lead
-    RTC --> RTC2["bn-thread-chaser<br/>deeper self"]:::lead
-    RL --> RH["bn-lesson-harvester"]:::leaf
-  end
-  T --> KC
-  T --> DL
-  T --> PL
-  T --> ST
-  T --> SA
-  T --> SC
-  T --> RL
+  RVL --> RP["the reviewer panel<br/>7 always-on + up to 8 conditional<br/>bn-correctness · bn-security · bn-adversarial · …"]:::leaf
 ```
 
-**Green** nodes are leads — they own a subtree and spawn children of their own; **pale**
-nodes are leaves that do one job and return; **amber** reviewers are conditional, fired only
-when the diff warrants. The deepest path drops four levels below the trunk:
-`bn-delivery-lead` → `bn-unit-lead` → its split → that split's mini-reviewers. Two
-always-conditional spawns are left off — `bn-consult-extractor` (a disposable reader any lead
-spawns for one upstream fact) and `bn-dogfood-verifier` (an opt-in leaf that drives the running
-app). A fuzzy idea gets one stage earlier still — brainstorm intake — which reuses the research
-subtree for grounding.
+Every **green** node is a lead — a subagent that owns a subtree and spawns children of its
+own; **pale** nodes are leaves that do one job and return. `bn-delivery-lead` fans work out to
+`bn-unit-lead`s in isolated worktrees, and when a unit is too big a unit-lead splits into
+*another* unit-lead — the same shape, one level deeper. It then spawns `bn-review-lead` to
+review the integrated result, which spawns the reviewer panel. Each lead answers its children's
+questions from its own narrow view and reads only their final artifacts, so context stays small
+however deep the tree goes. The full run nests four more stages — research, spec-stress, plan,
+and a background curator — the same way.
 
 So why does that beat one agent doing everything? **The loop.** A lead acts less like
 a relay and more like a *human driving the tool*: when a worker hits a question it
