@@ -28,8 +28,10 @@
 
 import { readdirSync, readFileSync, mkdirSync, copyFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
-import path, { dirname, join, basename } from "node:path";
+import { dirname, join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { isEntryPoint } from "../../plugin/skills/bn-conventions/scripts/entry-point.mjs";
 
 const AGENT_TOML_PATTERN = /\.toml$/;
 
@@ -138,6 +140,6 @@ function main() {
   console.log(`installed ${plan.length} Banyan agents into ${storeDir}`);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isEntryPoint(process.argv[1], import.meta.url)) {
   main();
 }

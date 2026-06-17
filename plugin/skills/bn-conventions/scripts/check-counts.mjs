@@ -15,6 +15,8 @@ import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
+import { isEntryPoint } from './entry-point.mjs';
+
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ROOT = path.resolve(SCRIPT_DIR, '..', '..', '..', '..');
 
@@ -137,6 +139,6 @@ function main() {
   process.stdout.write(`${out}\n`);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isEntryPoint(process.argv[1], import.meta.url)) {
   main();
 }

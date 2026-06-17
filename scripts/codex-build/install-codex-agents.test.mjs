@@ -9,6 +9,7 @@ import {
   rmSync,
   copyFileSync,
   realpathSync,
+  symlinkSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -24,6 +25,15 @@ import {
 } from "./install-codex-agents.mjs";
 
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), "install-codex-agents.mjs");
+const SHARED_SCRIPTS_DIR = join(
+  dirname(fileURLToPath(import.meta.url)),
+  "..",
+  "..",
+  "plugin",
+  "skills",
+  "bn-conventions",
+  "scripts",
+);
 
 function tempDir(prefix) {
   return mkdtempSync(join(tmpdir(), prefix));
@@ -182,16 +192,45 @@ test("the entry-point guard fires when the script path contains a space", () => 
   // realpathSync collapses platform temp symlinks (e.g. macOS /tmp -> /private/tmp) so the spaced
   // path is the only difference under test, not an unrelated symlink mismatch.
   const base = realpathSync(tempDir("u8 spaced-"));
-  const scriptDir = join(base, "sub");
+  // Mirror the in-tree layout under the spaced root so the script's relative import of the shared
+  // entry-point guard (../../plugin/skills/bn-conventions/scripts/entry-point.mjs) resolves: the
+  // installer lives at scripts/codex-build/ and reaches up two levels to plugin/.
+  const scriptDir = join(base, "scripts", "codex-build");
+  const sharedDir = join(base, "plugin", "skills", "bn-conventions", "scripts");
   const source = join(base, "src");
   const home = join(base, "home");
   try {
     mkdirSync(scriptDir, { recursive: true });
+    mkdirSync(sharedDir, { recursive: true });
     copyFileSync(SCRIPT, join(scriptDir, "install-codex-agents.mjs"));
+    copyFileSync(join(SHARED_SCRIPTS_DIR, "entry-point.mjs"), join(sharedDir, "entry-point.mjs"));
     seedSource(source);
     const out = execFileSync(
       "node",
       [join(scriptDir, "install-codex-agents.mjs"), "--source", source, "--codex-home", home, "--dry-run"],
+      { encoding: "utf8", env: { ...process.env } },
+    );
+    assert.match(out, /\[dry-run\] would install 2 agents/);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("the entry-point guard fires when the script is invoked through a symlink", () => {
+  // R2-2: invoking `node <symlink>` keeps the symlink in process.argv[1] while import.meta.url is
+  // the realpath of the target, so a resolve()-only guard fails to match and main() silently never
+  // runs (a no-op install). The shared realpath-canonicalized guard must still drive main(). The
+  // symlink points at the real in-tree script so its relative import of entry-point.mjs resolves.
+  const base = tempDir("u8-symlink-");
+  const source = join(base, "src");
+  const home = join(base, "home");
+  const link = join(base, "install-link.mjs");
+  try {
+    seedSource(source);
+    symlinkSync(SCRIPT, link);
+    const out = execFileSync(
+      "node",
+      [link, "--source", source, "--codex-home", home, "--dry-run"],
       { encoding: "utf8", env: { ...process.env } },
     );
     assert.match(out, /\[dry-run\] would install 2 agents/);

@@ -43,15 +43,19 @@
 //                    is unset for the driven child.
 //   --json           Emit the result object as JSON instead of the human GO/NO-GO summary.
 
-import { readdirSync, readFileSync, existsSync, statSync, realpathSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
+import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { isEntryPoint } from "../../plugin/skills/bn-conventions/scripts/entry-point.mjs";
+
+export { isEntryPoint };
 
 const TOML_NAME_RE = /^name\s*=\s*"([^"]+)"/m;
 const SKILL_NAME_RE = /^name:\s*(\S+)\s*$/m;
 const ROSTER_RE = /declared spawn roster is:\s*([^.]+?)\.(?:\s|$)/;
 const COMPONENT_REF_RE = /\bbn-[a-z0-9-]+\b/g;
-const FENCED_CODE_RE = /```[\s\S]*?```/g;
+const FENCED_CODE_RE = /(?:```|~~~)[\s\S]*?(?:```|~~~)/g;
 
 export function parseArgs(argv) {
   const opts = { dist: null, buildDir: null, repoRoot: null, driveCodex: false, json: false };
@@ -409,22 +413,6 @@ function main() {
 
   const go = result.go && consult.wired;
   process.exit(go ? 0 : 1);
-}
-
-// True when this module is the process entry point. Compares canonicalized real paths so the guard
-// fires regardless of spaces in the path (no file:// percent-encoding round-trip) or a symlinked
-// invocation dir (e.g. macOS /tmp -> /private/tmp, where argv[1] keeps the symlink but
-// import.meta.url is the realpath).
-export function isEntryPoint(argv1, importMetaUrl) {
-  if (!argv1) return false;
-  const canon = (p) => {
-    try {
-      return realpathSync(p);
-    } catch {
-      return resolve(p);
-    }
-  };
-  return canon(argv1) === canon(fileURLToPath(importMetaUrl));
 }
 
 if (isEntryPoint(process.argv[1], import.meta.url)) {

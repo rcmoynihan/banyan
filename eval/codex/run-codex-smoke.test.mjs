@@ -121,6 +121,78 @@ test("componentsReferencedBySkill ignores bn- tokens inside fenced code blocks",
   assert.deepEqual(componentsReferencedBySkill(body, "bn-resolve-pr"), ["bn-pr-comment-resolver"]);
 });
 
+test("componentsReferencedBySkill strips tilde fences as well as backtick fences", () => {
+  // R2-3: a bn-* token inside a ~~~ fence is a code literal, not a delegation, and must be stripped
+  // the same as a ``` fence. Leaving tilde fences unstripped reads the literal as a real delegation
+  // (a false positive in the R25 closure).
+  assert.deepEqual(
+    componentsReferencedBySkill("~~~\nbn-fake-agent\n~~~", "bn-test"),
+    [],
+  );
+  // A real prose delegation alongside a tilde-fenced literal keeps only the prose reference.
+  assert.deepEqual(
+    componentsReferencedBySkill("Spawn bn-mock-builder.\n~~~\nbn-not-an-agent --flag\n~~~", "bn-mock"),
+    ["bn-mock-builder"],
+  );
+});
+
+test("no installed-agent delegation is reachable only through a fenced block in a real SKILL.md (R2-3)", () => {
+  // R2-3: fenced blocks are stripped before the closure scan, so a delegation that lives ONLY inside
+  // a fence is invisible to the R25 gate (a future false GO when a load-bearing delegation is moved
+  // into an example fence). Guard the real committed package: for every skill, an installed-agent
+  // bn-* token that appears inside a fence must also be reachable through the skill's actual
+  // delegation closure (its prose refs walked transitively through lead rosters). A roster-reachable
+  // agent (e.g. bn-ask naming bn-research-lead only inside its envelope example, reached via
+  // bn-ask-lead's roster) is fine; a fenced-only agent that the closure does NOT reach would silently
+  // pass the gate and must fail here.
+  const distDir = join(REPO_ROOT, "dist", "codex");
+  const skillsDir = join(distDir, "skills");
+  const pkg = readPackage(distDir);
+  const { installedAgents, installedSkills, rosters } = pkg;
+
+  const reachableAgentsFor = (refs) => {
+    const reached = new Set();
+    const seen = new Set();
+    const stack = refs.map((ref) => ({ token: ref, rootRef: true }));
+    while (stack.length) {
+      const { token, rootRef } = stack.pop();
+      if (seen.has(token)) continue;
+      seen.add(token);
+      if (installedAgents.has(token)) {
+        reached.add(token);
+        for (const member of rosters.get(token) ?? []) {
+          if (!seen.has(member)) stack.push({ token: member, rootRef: false });
+        }
+        continue;
+      }
+      if (rootRef && installedSkills.has(token)) continue;
+    }
+    return reached;
+  };
+
+  const fencedRe = /(?:```|~~~)[\s\S]*?(?:```|~~~)/g;
+  const tokenRe = /\bbn-[a-z0-9-]+\b/g;
+  for (const skill of pkg.skills) {
+    const text = readFileSync(join(skillsDir, skill.dir, "SKILL.md"), "utf8");
+    const reachable = reachableAgentsFor(skill.refs);
+    const fencedTokens = new Set();
+    for (const block of text.match(fencedRe) ?? []) {
+      for (const t of block.match(tokenRe) ?? []) {
+        if (t !== skill.name) fencedTokens.add(t);
+      }
+    }
+    for (const t of fencedTokens) {
+      if (installedAgents.has(t) && !reachable.has(t)) {
+        assert.fail(
+          `${skill.dir}/SKILL.md reaches installed agent ${t} only through a fenced block; the ` +
+            `closure strips fences, so this delegation is invisible to the R25 gate — name it in ` +
+            `prose or reach it through a prose-named lead's roster`,
+        );
+      }
+    }
+  }
+});
+
 test("spawnRosterFromToml matches a roster line that terminates at end of string", () => {
   assert.deepEqual(spawnRosterFromToml("Your declared spawn roster is: bn-a, bn-b."), ["bn-a", "bn-b"]);
 });
@@ -294,6 +366,27 @@ test("discoverabilityResult: NO-GO when the manifest is valid-but-falsy JSON (nu
   }
 });
 
+test("discoverabilityResult: dirs-absent early-exit is NO-GO with null gaps (R2-4b)", () => {
+  // R2-4b: when agents/ (or skills/) is missing, discoverabilityResult records the dirs check FAIL
+  // and short-circuits, returning gaps === null without attempting to read the package. The default
+  // fixtures always create both dirs, so delete agents/ to exercise the early-exit branch.
+  const { root, distDir, buildDir } = buildPackage({
+    agents: { "bn-plan-generator": null },
+    skills: { "bn-plan": "dispatch bn-plan-lead" },
+  });
+  try {
+    rmSync(join(distDir, "agents"), { recursive: true, force: true });
+    const r = discoverabilityResult(distDir, buildDir);
+    assert.equal(r.go, false);
+    assert.equal(r.gaps, null);
+    const dirsCheck = r.checks.find((c) => c.name === "agents/ and skills/ dirs present");
+    assert.ok(dirsCheck, "expected the dirs-present check to be recorded");
+    assert.equal(dirsCheck.pass, false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("LIVE_GO_CONDITIONS names the depth-3, fan-out, reslot, and R25 conditions", () => {
   const blob = LIVE_GO_CONDITIONS.join("\n");
   assert.match(blob, /depth-3/i);
@@ -357,8 +450,16 @@ test("the entry-point guard runs main() when invoked from a path containing a sp
   const root = mkdtempSync(join(tmpdir(), "codex smoke space-"));
   const spacedDir = join(root, "eval with space", "codex");
   mkdirSync(spacedDir, { recursive: true });
+  // The smoke imports the shared guard at ../../plugin/skills/bn-conventions/scripts/entry-point.mjs;
+  // mirror that relative subtree under the spaced root so the copied script resolves it.
+  const sharedDir = join(root, "plugin", "skills", "bn-conventions", "scripts");
+  mkdirSync(sharedDir, { recursive: true });
   const srcDir = dirname(fileURLToPath(import.meta.url));
   cpSync(join(srcDir, "run-codex-smoke.mjs"), join(spacedDir, "run-codex-smoke.mjs"));
+  cpSync(
+    join(REPO_ROOT, "plugin", "skills", "bn-conventions", "scripts", "entry-point.mjs"),
+    join(sharedDir, "entry-point.mjs"),
+  );
   try {
     const out = execFileSync(
       process.execPath,

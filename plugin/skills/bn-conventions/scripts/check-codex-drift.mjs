@@ -25,6 +25,7 @@ import process from 'node:process';
 import { fileURLToPath } from 'node:url';
 
 import { render } from '../../../../scripts/codex-build/render-codex.mjs';
+import { isEntryPoint } from './entry-point.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_ROOT = path.resolve(SCRIPT_DIR, '..', '..', '..', '..');
@@ -191,6 +192,6 @@ function main() {
 
 export { REMEDIATION, MANIFEST_NAME, sha256, expectedOutputs, actualOutputs };
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (isEntryPoint(process.argv[1], import.meta.url)) {
   main();
 }

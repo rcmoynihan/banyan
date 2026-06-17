@@ -436,6 +436,22 @@ export {
   SKILLS_LIST_CHAR_CAP,
 };
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// True when this module is the process entry point. Canonicalizes both sides with
+// realpathSync so the guard fires through a symlinked invocation (e.g. macOS /tmp ->
+// /private/tmp, where argv[1] keeps the symlink while import.meta.url is the realpath),
+// falling back to path.resolve when a path does not exist on disk.
+function isEntryPoint(argv1, importMetaUrl) {
+  if (!argv1) return false;
+  const canon = (p) => {
+    try {
+      return fs.realpathSync(p);
+    } catch {
+      return path.resolve(p);
+    }
+  };
+  return canon(argv1) === canon(fileURLToPath(importMetaUrl));
+}
+
+if (isEntryPoint(process.argv[1], import.meta.url)) {
   main();
 }

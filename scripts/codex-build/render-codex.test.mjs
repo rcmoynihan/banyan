@@ -440,3 +440,44 @@ test('buildAgentsMd fails loud when its source markers go stale', () => {
     /hooks bullet marker/,
   );
 });
+
+// F5: both markers present but the reach marker is embedded mid-paragraph rather
+// than starting its own blank-line-delimited block, so no block matches
+// `startsWith(CONSENT_REACH_MARKER)` and the Codex reach replacement never lands.
+// The third guard must fire loud rather than ship an AGENTS.md still carrying the
+// source live-hook claim.
+test('buildAgentsMd fails loud when the reach marker is not isolated to its own block', () => {
+  const raw = [
+    '# AGENTS',
+    '',
+    'Some lead-in prose on the same paragraph as **How this rule reaches you.** the',
+    'reach sentence, so the marker does not begin a standalone block.',
+    '',
+    '  - `plugin/hooks/` — `hooks.json` bullet.',
+    '',
+  ].join('\n');
+  assert.throws(() => buildAgentsMd(raw), /did not isolate to a single/);
+});
+
+// R2-2: the entry-point guard must fire through a symlinked invocation. On macOS
+// /tmp -> /private/tmp, so a script run via a /tmp symlink keeps the symlink in
+// argv[1] while import.meta.url is the realpath; a path.resolve-only guard would
+// silently no-op (main() never runs, exit 0, no output).
+test('the entry-point guard fires when invoked through a symlink', () => {
+  const scriptPath = path.join(SCRIPT_DIR, 'render-codex.mjs');
+  const linkDir = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-entryguard-'));
+  const link = path.join(linkDir, 'render-link.mjs');
+  fs.symlinkSync(scriptPath, link);
+  try {
+    const out = execFileSync('node', [link, '--root', REPO_ROOT, '--check'], {
+      encoding: 'utf8',
+    });
+    assert.match(
+      out,
+      /render: \d+ agents/,
+      'main() did not run through the symlinked invocation',
+    );
+  } finally {
+    fs.rmSync(linkDir, { recursive: true, force: true });
+  }
+});
