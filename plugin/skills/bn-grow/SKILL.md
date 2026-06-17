@@ -12,7 +12,10 @@ dispatches each phase to a lead or skill, READS the artifact that phase produces
 file, not the child's prose -- invariant 3), and checks an explicit GATE before moving
 on. The trunk does NOT do the research, write the plan's units, edit the code, or run
 the reviewers -- the subtrees do. The trunk holds intent and enforces gates. That is the
-entire job.
+entire job. This holds for *unplanned* side-quests too: if mid-flow you need facts or
+options you do not have, dispatch a disposable one-off subagent (an `Explore` for ad-hoc
+search, `bn-research-lead` for grounded research) and read only its artifact -- never run
+an investigation loop in the trunk's own context.
 
 Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 1 context-centric decomposition,
 invariant 3 artifacts-over-prose, invariant 6 permission cliff, §2.2 self-recovery, and

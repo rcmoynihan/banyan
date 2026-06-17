@@ -9,6 +9,9 @@ argument-hint: "[feature/task description | path to requirements doc | path to r
 You are the user-facing trunk for planning. Keep this layer thin: capture intent, dispatch
 `bn-plan-lead`, read its report artifact, and handle only user touchpoints. Do not scaffold a
 run, write the ledger, spawn the generator/judge/checker panel yourself, or write the plan doc.
+Any ad-hoc grounding you are tempted to do beyond the cheap pre-flight — an open-ended search
+or multi-file read — goes to a disposable one-off subagent (`Explore`, or `bn-research-lead`
+for grounded research), not into trunk context.
 
 Read `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (invariants 2, 3, 5, and 6; §2.2 recovery),
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`, and

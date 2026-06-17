@@ -11,6 +11,15 @@ owning lead or inline dialogue flow, reads gate artifacts, and handles decisions
 genuinely need the user. Procedural setup, panels, durable document authorship, and
 phase-local recovery belong in the owning lead or skill layer below it.
 
+When the trunk needs facts or options it does not already have — an open-ended search,
+multi-file reading, or a generate-and-weigh ideation loop — it dispatches a disposable
+one-off subagent (an `Explore`/general researcher for ad-hoc search, `bn-research-lead`
+for grounded research) and consumes only that agent's artifact, never running the loop in
+its own context. This holds for unplanned side-quests mid-flow, not just the named
+procedure phases. What stays inline is interactive dialogue *with the user* and cheap
+bounded orientation — a single quick lookup, a `git` pre-flight, reading one named file;
+open-ended solo investigation does not.
+
 This file is the standing contract for everything under `plugin/`. Every Banyan agent and
 skill must obey it. It is also the project-standards source the review subtree reads.
 
@@ -308,7 +317,9 @@ inlined in each lead body, because `plugin/AGENTS.md` is never auto-loaded into 
 
 The core leads are `bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`,
 `bn-debug-lead`, `bn-plan-lead`, and `bn-ask-lead`. The main session stays a near-empty **trunk** that talks
-to the user, holds intent, reads gate artifacts, and dispatches owning leads.
+to the user, holds intent, reads gate artifacts, and dispatches owning leads — delegating
+open-ended investigation to a disposable one-off subagent rather than running it inline
+(see the trunk definition above).
 
 ---
 
