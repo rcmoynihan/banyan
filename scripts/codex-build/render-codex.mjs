@@ -1,0 +1,362 @@
+#!/usr/bin/env node
+// render-codex.mjs -- derive the Codex render of Banyan from the plugin/ source.
+//
+// The plugin/ tree is the single source for both hosts. This generator reads it
+// and writes dist/codex/: one subagent TOML per agent, one Codex skill directory
+// per skill, and a Codex AGENTS.md derived from plugin/AGENTS.md. It never writes
+// under plugin/.
+//
+// Usage:
+//   node render-codex.mjs [--root <repo-root>] [--check]
+//
+// --root  repo root to read plugin/ from and write dist/codex/ into
+//         (defaults to two levels above this script: scripts/codex-build/..).
+// --check render to in-memory artifacts and return them without touching disk;
+//         used by the test suite to assert shape and the golden fixture.
+//
+// The org-chart is realized by instruction-injection into agent_type:"default"
+// spawns: a generated agent's developer_instructions ARE the payload a parent
+// injects. No custom agent_type role name is emitted, because named-role dispatch
+// is unavailable. Panel-fanning leads carry the spawn-reap-respawn loop.
+//
+// Zero dependencies: node:* only.
+
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+
+const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
+const DEFAULT_ROOT = path.resolve(SCRIPT_DIR, '..', '..');
+
+// The Codex skills install root that replaces ${CLAUDE_PLUGIN_ROOT} (U4 rewrite
+// map): a deterministic install location, not a runtime-injected variable.
+const CODEX_INSTALL_ROOT = '~/.codex/skills/banyan';
+const PLUGIN_ROOT_TOKEN = '${CLAUDE_PLUGIN_ROOT}';
+
+const SKILLS_LIST_CHAR_CAP = 8000;
+
+// The reasoning tier each Claude model alias encodes. Codex subagent TOML carries
+// the tier as model_reasoning_effort; the concrete model name is left unspecified
+// so it inherits from the parent session (no Codex model identifier is invented).
+const REASONING_EFFORT_BY_MODEL = {
+  opus: 'high',
+  sonnet: 'medium',
+};
+
+function parseArgs(argv) {
+  const opts = { root: DEFAULT_ROOT, check: false };
+  for (let i = 0; i < argv.length; i++) {
+    if (argv[i] === '--root') {
+      opts.root = path.resolve(argv[++i]);
+    } else if (argv[i] === '--check') {
+      opts.check = true;
+    }
+  }
+  return opts;
+}
+
+// Rewrite every ${CLAUDE_PLUGIN_ROOT}/... reference to the Codex install-root
+// anchor. Class-aware per U4: agent bodies and cross-skill references take the
+// absolute ~/.codex/skills/banyan/... form (the only form that resolves when the
+// reader is an agent body, not a skill loader).
+function rewritePaths(text) {
+  return text.split(PLUGIN_ROOT_TOKEN).join(CODEX_INSTALL_ROOT);
+}
+
+// Split a markdown file into its YAML-ish frontmatter block and the body that
+// follows. Frontmatter is the run of `key: value` lines between the first two
+// `---` fences. Values are taken verbatim (after the first `: `).
+function parseFrontmatter(raw) {
+  const lines = raw.split('\n');
+  if (lines[0] !== '---') {
+    throw new Error('missing opening frontmatter fence');
+  }
+  const fm = {};
+  let i = 1;
+  for (; i < lines.length; i++) {
+    if (lines[i] === '---') {
+      i++;
+      break;
+    }
+    const m = lines[i].match(/^([A-Za-z0-9_-]+):\s?(.*)$/);
+    if (m) fm[m[1]] = m[2];
+  }
+  if (lines[i] === '') i++;
+  const body = lines.slice(i).join('\n');
+  return { frontmatter: fm, body };
+}
+
+// Strip one layer of surrounding double quotes from a frontmatter value.
+function unquote(value) {
+  if (value === undefined) return value;
+  const trimmed = value.trim();
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
+}
+
+// The Agent(...) roster declared in the tools: frontmatter line, or [] if none.
+function parseRoster(toolsLine) {
+  if (!toolsLine) return [];
+  const m = toolsLine.match(/Agent\(([^)]*)\)/);
+  if (!m) return [];
+  return m[1]
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
+
+const PANEL_FANOUT_RE = /\b(in parallel|parallel|panel|fan out|fan-out|concurrent)\b/i;
+
+// A panel-fanning lead: declares a roster of two or more spawnable types AND its
+// body describes launching a parallel panel. These are the bodies that must carry
+// the spawn-reap-respawn loop; single recursive-self spawners (roster of one) are
+// not panels and do not.
+function isPanelFanningLead(roster, body) {
+  return roster.length >= 2 && PANEL_FANOUT_RE.test(body);
+}
+
+const REAP_RESPAWN_MARKER = 'Codex spawn model — spawn-reap-respawn panel loop';
+
+function reapRespawnBlock(roster) {
+  const rosterList = roster.join(', ');
+  return [
+    `## ${REAP_RESPAWN_MARKER}`,
+    '',
+    'On Codex you realize this subtree by instruction-injection into',
+    '`agent_type:"default"` spawns: there is no callable custom role name, so each',
+    'panel member is a `default` spawn whose `developer_instructions` you inject as',
+    'its full role payload (the generated payload for that role plus its envelope).',
+    `Your declared spawn roster is: ${rosterList}. Inject only these roles' payloads;`,
+    'the roster and the envelope prompt-level cap discipline are the bound, since',
+    'Codex enforces no spawn-type allowlist.',
+    '',
+    'When you fan out a panel WIDER than `agents.max_threads`, run the',
+    'spawn-reap-respawn loop — the bound REJECTS the surplus spawn with an empty',
+    'receiver; it is NOT a transparent queue:',
+    '',
+    '1. Issue the panel `spawn_agent` calls up front. Sibling starts are STAGGERED',
+    '   (sequential tool round-trips), not a synchronized barrier launch.',
+    '2. If a `spawn_agent` returns an EMPTY receiver, the slot is saturated by',
+    '   `max_threads`. Do NOT assume it was queued.',
+    '3. `wait` on an in-flight sibling, then `close_agent` that finished sibling to',
+    '   free a slot.',
+    '4. Re-spawn the rejected sibling into the freed slot.',
+    '5. Repeat until every panel member has run and been reaped.',
+    '',
+    'Read the panel members\' returned artifacts (the files, not their prose), never',
+    'their transcripts.',
+  ].join('\n');
+}
+
+// Render a scalar as a TOML basic string. name/description/model_reasoning_effort
+// carry no control characters, so JSON quoting is a faithful TOML basic string.
+function tomlBasicString(value) {
+  return JSON.stringify(value);
+}
+
+// developer_instructions is a TOML LITERAL multiline string ('''...'''): literal
+// strings perform no escape processing, so a markdown body's backslashes (shell
+// line-continuations in command examples) and other characters pass through
+// verbatim. A basic ("""...""") string would mangle a trailing backslash. No agent
+// body contains the ''' delimiter, asserted by the generator's frontmatter parse.
+function tomlLiteralBlock(value) {
+  if (value.includes("'''")) {
+    throw new Error("developer_instructions body contains a ''' literal-string delimiter");
+  }
+  return `'''\n${value}\n'''`;
+}
+
+function renderAgentToml(agent) {
+  const lines = [];
+  lines.push(`name = ${tomlBasicString(agent.name)}`);
+  lines.push(`description = ${tomlBasicString(agent.description)}`);
+  if (agent.modelReasoningEffort) {
+    lines.push(`model_reasoning_effort = ${tomlBasicString(agent.modelReasoningEffort)}`);
+  }
+  lines.push(`developer_instructions = ${tomlLiteralBlock(agent.developerInstructions)}`);
+  return lines.join('\n') + '\n';
+}
+
+function buildAgent(raw, fileName) {
+  const { frontmatter, body } = parseFrontmatter(raw);
+  const name = unquote(frontmatter.name);
+  const stem = fileName.replace(/\.md$/, '');
+  if (name !== stem) {
+    throw new Error(`agent name "${name}" does not match file stem "${stem}"`);
+  }
+  const description = unquote(frontmatter.description);
+  const model = unquote(frontmatter.model);
+  const modelReasoningEffort = REASONING_EFFORT_BY_MODEL[model];
+  if (!modelReasoningEffort) {
+    throw new Error(`agent "${name}" has unmapped model "${model}"`);
+  }
+  const roster = parseRoster(frontmatter.tools);
+
+  let developerInstructions = rewritePaths(body).trimEnd();
+  if (isPanelFanningLead(roster, body)) {
+    developerInstructions = `${developerInstructions}\n\n${reapRespawnBlock(roster)}`;
+  }
+
+  return {
+    name,
+    description,
+    model,
+    modelReasoningEffort,
+    roster,
+    isPanelLead: isPanelFanningLead(roster, body),
+    developerInstructions,
+    toml: null,
+  };
+}
+
+function buildSkill(raw, dirName) {
+  const { frontmatter, body } = parseFrontmatter(raw);
+  const name = unquote(frontmatter.name);
+  if (name !== dirName) {
+    throw new Error(`skill name "${name}" does not match directory "${dirName}"`);
+  }
+  const description = unquote(frontmatter.description);
+
+  const fmLines = ['---', `name: ${name}`, `description: "${description}"`];
+  if (frontmatter['argument-hint'] !== undefined) {
+    fmLines.push(`argument-hint: ${frontmatter['argument-hint']}`);
+  }
+  fmLines.push('---');
+  const skillMd = `${fmLines.join('\n')}\n\n${rewritePaths(body).trimStart()}`;
+
+  return { name, description, skillMd };
+}
+
+// The consent-reminder doctrine that the absent Codex hook surface can no longer
+// deliver (U4 §2.3 / U5 Row 6): on Codex it lives in AGENTS.md as prompt-level
+// doctrine, with auto-load as the additive trunk backstop.
+function consentReminderDoctrine() {
+  return [
+    '## Invoked-procedure consent (Codex render)',
+    '',
+    'On Claude Code a `UserPromptSubmit` hook fires a best-effort, trunk-only',
+    'consent reminder before an invoked procedure runs. Codex exposes no confirmed',
+    'equivalent hook surface, so the reminder ships here as doctrine instead: at the',
+    'trunk, before invoking a procedure that the user did not directly request,',
+    'surface what is about to run and let the user decline. This is prompt-level',
+    'discipline, the same posture the spawn roster already relies on.',
+  ].join('\n');
+}
+
+function buildAgentsMd(raw) {
+  const rewritten = rewritePaths(raw).trimEnd();
+  return `${rewritten}\n\n${consentReminderDoctrine()}\n`;
+}
+
+function listAgentFiles(root) {
+  const dir = path.join(root, 'plugin', 'agents');
+  return fs
+    .readdirSync(dir)
+    .filter((f) => f.startsWith('bn-') && f.endsWith('.md'))
+    .sort();
+}
+
+function listSkillDirs(root) {
+  const dir = path.join(root, 'plugin', 'skills');
+  return fs
+    .readdirSync(dir, { withFileTypes: true })
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name)
+    .filter((name) => fs.existsSync(path.join(dir, name, 'SKILL.md')))
+    .sort();
+}
+
+export function render(root = DEFAULT_ROOT) {
+  const agentFiles = listAgentFiles(root);
+  const agents = agentFiles.map((file) => {
+    const raw = fs.readFileSync(path.join(root, 'plugin', 'agents', file), 'utf8');
+    const agent = buildAgent(raw, file);
+    agent.toml = renderAgentToml(agent);
+    return agent;
+  });
+
+  const skillDirs = listSkillDirs(root);
+  const skills = skillDirs.map((dir) => {
+    const raw = fs.readFileSync(path.join(root, 'plugin', 'skills', dir, 'SKILL.md'), 'utf8');
+    return buildSkill(raw, dir);
+  });
+
+  // The Codex skills list is capped ~8000 chars (R14). Compute the catalog line
+  // length and fail loudly rather than silently truncate.
+  const skillsCatalog = skills
+    .map((s) => `${s.name}: ${s.description}`)
+    .join('\n');
+  if (skillsCatalog.length > SKILLS_LIST_CHAR_CAP) {
+    throw new Error(
+      `Codex skills list is ${skillsCatalog.length} chars, over the ${SKILLS_LIST_CHAR_CAP}-char cap. ` +
+        'Trim skill descriptions in plugin/skills/*/SKILL.md; the build will not silently truncate.',
+    );
+  }
+
+  const agentsMdRaw = fs.readFileSync(path.join(root, 'plugin', 'AGENTS.md'), 'utf8');
+  const agentsMd = buildAgentsMd(agentsMdRaw);
+
+  return { agents, skills, agentsMd, skillsCatalogLength: skillsCatalog.length };
+}
+
+function writeDist(root, result) {
+  const distRoot = path.join(root, 'dist', 'codex');
+  const agentsDir = path.join(distRoot, 'agents');
+  const skillsDir = path.join(distRoot, 'skills');
+
+  fs.rmSync(agentsDir, { recursive: true, force: true });
+  fs.rmSync(skillsDir, { recursive: true, force: true });
+  fs.mkdirSync(agentsDir, { recursive: true });
+  fs.mkdirSync(skillsDir, { recursive: true });
+
+  for (const agent of result.agents) {
+    fs.writeFileSync(path.join(agentsDir, `${agent.name}.toml`), agent.toml);
+  }
+  for (const skill of result.skills) {
+    const dir = path.join(skillsDir, skill.name);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, 'SKILL.md'), skill.skillMd);
+  }
+  fs.writeFileSync(path.join(distRoot, 'AGENTS.md'), result.agentsMd);
+}
+
+function main() {
+  const opts = parseArgs(process.argv.slice(2));
+  const result = render(opts.root);
+  if (opts.check) {
+    process.stdout.write(
+      `render: ${result.agents.length} agents, ${result.skills.length} skills, ` +
+        `skills-catalog ${result.skillsCatalogLength}/${SKILLS_LIST_CHAR_CAP} chars\n`,
+    );
+    return;
+  }
+  writeDist(opts.root, result);
+  process.stdout.write(
+    `rendered ${result.agents.length} agents + ${result.skills.length} skills + AGENTS.md to dist/codex/\n`,
+  );
+}
+
+export {
+  parseFrontmatter,
+  unquote,
+  parseRoster,
+  isPanelFanningLead,
+  rewritePaths,
+  renderAgentToml,
+  buildAgent,
+  buildSkill,
+  buildAgentsMd,
+  listAgentFiles,
+  listSkillDirs,
+  CODEX_INSTALL_ROOT,
+  PLUGIN_ROOT_TOKEN,
+  REAP_RESPAWN_MARKER,
+  SKILLS_LIST_CHAR_CAP,
+};
+
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main();
+}

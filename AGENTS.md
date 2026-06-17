@@ -130,3 +130,27 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
 - **Pushing is explicit and foreground.** One-off `git push` commands are allowed when
   the user asks for them. `/bn-ship` remains the full Banyan shipping workflow for
   commit-push-PR flows. Background or nested agents never push.
+
+## Codex render
+
+`plugin/` is the single source for both hosts. The Codex render under `dist/codex/` is
+generated from it; the two hosts are never hand-forked.
+
+- **One writer.** `scripts/codex-build/render-codex.mjs` is the sole writer of
+  `dist/codex/` (`agents/`, `skills/`, `AGENTS.md`). Never hand-edit a file under
+  `dist/codex/`; edit the `plugin/` source and regenerate with
+  `node scripts/codex-build/render-codex.mjs`. The render reads `plugin/` and never writes
+  to it.
+- **What it emits.** One Codex subagent TOML per agent (`name`, `description`,
+  `model_reasoning_effort`, a literal-string `developer_instructions` body), one Codex skill
+  directory per skill, and a Codex `AGENTS.md`. The org-chart is instruction-injection into
+  `agent_type:"default"` spawns — no custom role name — and panel-fanning lead bodies carry
+  the spawn-reap-respawn loop. `${CLAUDE_PLUGIN_ROOT}/...` references rewrite to the
+  `~/.codex/skills/banyan/...` install root. The field map is `scripts/codex-build/mapping.md`.
+- **Counts.** The render covers all 54 agents and 19 skills; the count is asserted
+  dynamically against `plugin/skills/*/SKILL.md` on disk, not hardcoded.
+- **Verification.** `node --test scripts/codex-build/render-codex.test.mjs` asserts the
+  surface counts, the required TOML fields, the panel-lead reap-respawn loop, the absence of
+  a custom `agent_type`, a byte-exact golden-fixture round-trip for the `bn-plan` vertical
+  (`scripts/codex-build/fixtures/`), and that rendering leaves `plugin/` byte-clean. Regenerate
+  `dist/codex/` and the fixtures after editing shared source.
