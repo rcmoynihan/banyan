@@ -146,11 +146,45 @@ review.
   It is held off the critical path by a **triple gate; all three must pass to spawn it**:
   1. **Opt-in flag.** The `dogfood` envelope input must be `auto` or `on`. On the default
      `off`, **never spawn it** — no skip artifact, it was simply not selected.
-  2. **Effort + diff shape.** Only on `standard`/`deep` effort **and** a diff that touches
-     a **user-drivable surface** (a route/page/view/component/handler reachable through a
-     running app; judge from `files.txt` + the diff, not by extension). Skip on
-     `lightweight`/trivial effort and on library-only, CLI-only, or pure-backend diffs
-     with no user-facing entry point.
+  2. **Effort + diff shape, recipe-informed.** Only on `standard`/`deep` effort **and** a
+     diff that touches a **user-drivable surface** (a route/page/view/component/handler
+     reachable through a running app; judge from `files.txt` + the diff, not by extension).
+     Skip on `lightweight`/trivial effort and on library-only, CLI-only, or pure-backend
+     diffs with no user-facing entry point.
+
+     When a drive recipe is present, prefer its authoritative surface map over pure
+     diff-shape heuristics. Run
+     `node "${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-drive-recipe.mjs" <AGENTS.md|CLAUDE.md>`
+     (or `loadAndValidate(<file>)` from the same script) on the repo's instruction file:
+     - On `status: usable`, the recipe — not your diff-shape guess — governs the
+       surfaces it catalogues. Use `reconcile(recipe, touchedSurfaces)`, which returns
+       `drive`|`skip` per surface: **spawn the verifier when some touched surface
+       resolves to `drive`** (the recipe carries a `proven`, browser-drivable path for
+       it). The recipe governs only the surfaces it names: a touched surface the recipe
+       catalogues but does not prove a browser-drivable path for resolves to `skip`, and
+       a touched surface the recipe does **not** catalogue at all is **not** covered by
+       the recipe — judge it by the diff-shape heuristic above, never treat its absence
+       from the recipe as proof it is undrivable (R18: no-proven-path → typed skip for
+       that surface, not a blanket suppression). Spawn iff at least one touched surface
+       earns a `drive` from `reconcile` **or** the diff-shape judgment.
+       When `reconcile` returns `skip` for every touched surface the recipe catalogues
+       **and** no un-catalogued touched surface is diff-shape-drivable, **record
+       `dogfood: not run — recipe shows no drivable path for touched surface` and do
+       not spawn the verifier.** For a surface the recipe `skip`s because its only legs
+       are tiered `expensive-or-slow`/`no-dev-equivalent` (read the recipe's `tier` and
+       `do_not_attempt` fields directly — `reconcile` itself only returns `drive`|`skip`),
+       that is the do-not-attempt cliff honored here, at selection time, not only inside
+       the leaf.
+     - On any `fail-closed` status (`no-recipe`, `duplicate`, `unknown-version`,
+       `invalid`) — or when no instruction file exists — this gate behaves **exactly as
+       it does without a recipe**: fall back to the diff-shape judgment above. The recipe
+       path is additive; a malformed or absent recipe never tightens or loosens the
+       pre-recipe gate.
+
+     When a `usable` recipe drove this gate to spawn, pass a one-line recipe-status note
+     into the verifier's `inputs` (e.g. `recipe_status: usable — proven browser path for
+     <surface>; <surface-B> is declared/do-not-attempt`) so the leaf does not re-discover
+     the recipe's surface map from scratch in its own Step 0.
   3. **Runtime capability** is gated **inside** the verifier (Step 0: `agent-browser`,
      a dev-server, a drivable surface). When it cannot launch, it returns a typed `skip`;
      you record that as Coverage and the verdict is unaffected.
@@ -160,6 +194,19 @@ review.
   `on`, the user asserts the repo is drivable: treat a capability `skip` as a single
   louder advisory `concern` ("dogfood requested but the app could not be launched"), still
   non-blocking. Under `auto`, a capability `skip` is silent Coverage.
+
+  The `dogfood` flag lives **here**, not in the verifier — so the flag-aware framing of the
+  cliff belongs here too. **Even under `dogfood=on`**, where the user asserts the repo is
+  drivable, a recipe surface tiered `expensive-or-slow`/`no-dev-equivalent` is still
+  **never** driven: `on` raises the priority of attempting a drive and the loudness of a
+  capability `skip`, but it does **not** override the recipe's do-not-attempt cliff. When a
+  `usable` recipe's entries for the touched surfaces are all tiered
+  `expensive-or-slow`/`no-dev-equivalent` (read from the recipe's `tier`/`do_not_attempt`
+  fields — `reconcile` surfaces these as `skip`), gate 2 does not spawn the verifier even on
+  `on` — the asserted-drivable repo does not earn a pass past a recorded cliff. (The
+  verifier's own enforcement is the flat, flag-blind invariant "never execute a
+  `do_not_attempt` leg"; the flag-aware reading of that cliff is this gate's job because the
+  flag is in scope only here.)
 
 **Announce the selected team in your progress file before spawning** (which reviewers and
 why each conditional matched), so the panel is auditable.
@@ -207,7 +254,9 @@ decoy-prone self-discovery without the block. `bn-previous-comments-reviewer` ge
 in `inputs`; `bn-spec-fidelity-reviewer` gets `plan_ref` in `inputs`;
 `bn-data-migration-reviewer` gets `review_focus` (`migration | privacy | both`) in
 `inputs`, matching its dual-trigger gate; `bn-dogfood-verifier` gets the `dogfood` flag
-(`auto | on`) in `inputs`.
+(`auto | on`) in `inputs`, plus — when a `usable` recipe drove gate 2 (Step 2) — the
+one-line `recipe_status` note from that gate so the leaf does not re-discover the recipe's
+surface map from scratch in its own Step 0.
 
 `bn-dogfood-verifier` is a leaf reviewer with the same `{ max_children: 0,
 depth_remaining: <your own minus one> }` budget, but its `tool_guidance` differs: it drives the running app,
