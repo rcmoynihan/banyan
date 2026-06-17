@@ -1,0 +1,15 @@
+{
+  "name": "banyan",
+  "description": "A hierarchical, self-compounding agent harness ported to OpenAI Codex. Lead agents own whole subtrees and spawn their own children via multi_agent_v1; coordination happens through a file-based run ledger; lessons are harvested at the leaves and consolidated by a background curator.",
+  "version": "0.1.0",
+  "host": "codex",
+  "skills": "../../dist/codex/skills",
+  "doctrine": "../../dist/codex/AGENTS.md",
+  "agents": {
+    "source": "../../dist/codex/agents",
+    "install": "node ./install-codex-agents.mjs",
+    "note": "Codex native plugin install registers skills only. Run the agent-install step above to register the 54 agent definitions into <CODEX_HOME>/agents/, or delegating skills report missing agents (see docs/codex-install.md)."
+  },
+  "codex_cli_pin": "0.139.0",
+  "unverified": "Exact native marketplace manifest filename and schema are confirm-by against the current Codex skills/marketplace docs; see docs/codex-install.md."
+}

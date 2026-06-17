@@ -111,6 +111,17 @@ For development against the seeded-bug test fixture instead:
 pwsh scripts/smoke.ps1   # builds the fixture sandbox, installs the plugin, runs /bn-hello headlessly
 ```
 
+### Install on OpenAI Codex
+
+Banyan also runs on OpenAI Codex (verified on codex-cli 0.139.0). The Codex artifacts ship under `dist/codex/`, and the install is **two steps**, because Codex's native plugin install registers skills only:
+
+```
+codex plugin marketplace add <path-to-this-repo>   # then install the skills via the /plugins TUI
+node scripts/codex-build/install-codex-agents.mjs  # register the 54 agents into the Codex agent store
+```
+
+Banyan requires experimental multi-agent enabled and the load-bearing `[agents]` config (`max_depth=3`, `max_threads`, `job_max_runtime_seconds`), delivered via `codex exec -c` overrides or a project-local config — never the global `~/.codex/config.toml`. Authenticate with your Codex subscription login (`OPENAI_API_KEY` unset). See [`docs/codex-install.md`](docs/codex-install.md) for the full contract, the accepted parity caveats, and the verification steps.
+
 ## Quickstart
 
 In a `claude` session inside the repo you want to work on:

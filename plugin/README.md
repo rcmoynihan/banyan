@@ -144,6 +144,23 @@ claude plugin install banyan
 Restart or reload the `claude` session so the plugin's agents and skills load, then
 verify with `/bn-hello`.
 
+## Install on OpenAI Codex
+
+Banyan also runs on OpenAI Codex (verified on codex-cli 0.139.0). The Codex artifacts
+are generated from this `plugin/` source into the repo's `dist/codex/` tree. The Codex
+install is **two steps**, because Codex's native plugin install registers skills only:
+
+```
+codex plugin marketplace add <repo-root>   # then install the skills via the /plugins TUI
+node scripts/codex-build/install-codex-agents.mjs   # register the 54 agents into the Codex agent store
+```
+
+Banyan requires experimental multi-agent enabled and the load-bearing `[agents]` config
+(`max_depth=3`, `max_threads`, `job_max_runtime_seconds`), delivered via `codex exec -c`
+overrides or a project-local config -- never the user's global `~/.codex/config.toml`.
+Authenticate with a Codex subscription login (`OPENAI_API_KEY` unset). The full contract,
+the accepted parity caveats, and the verification steps live in `../docs/codex-install.md`.
+
 ## License
 
 MIT. Banyan vendors leaf assets from EveryInc's compound-engineering plugin (also
