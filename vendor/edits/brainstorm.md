@@ -4,7 +4,9 @@
 (core principles, interaction rules, rigor probes, synthesis gate, section contract) is
 preserved; the edits remove the HTML output mode and Every-stack integrations, and swap
 the handoffs to Banyan skills. `references/html-rendering.md` is **not vendored**
-(markdown is the only output format).
+(markdown is the only output format). `references/coverage-map.md` is **net-new and
+Banyan-authored** (not vendored) — the Deep-tier convergence-gate doctrine; it has no
+upstream counterpart.
 
 ---
 
@@ -32,6 +34,15 @@ the handoffs to Banyan skills. `references/html-rendering.md` is **not vendored*
 - Phases 0.1b-2.5 (domain routing, scope tiers, pressure-test gap lenses, dialogue
   rules, approach exploration, synthesis gate) and the "current year is 2026" note
   preserved verbatim-in-spirit.
+- **Banyan-native convergence gate added (no upstream counterpart):** a new **Phase 2.4
+  Convergence Gate (Deep tiers only)** runs after Phase 2 and before Phase 2.5. It opens
+  a run lazily, writes a running-shape note, and spawns the native
+  `bn-brainstorm-coverage-reviewer` (fresh-context leaf) to report thin product surfaces
+  (breadth — blocking) and high-leverage expansion opportunities (generative — opt-in).
+  The Phase 1.3 exit condition gains a Deep-tier clause (no load-bearing surface left
+  untouched without an explicit deferral), and Phase 1.3 guidelines gain two bullets
+  pointing at `references/coverage-map.md` for the inline breadth/expansion complements.
+  Motivated by an observed premature-convergence failure on a Deep-product brainstorm.
 
 ## references/brainstorm-sections.md
 
