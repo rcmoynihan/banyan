@@ -114,13 +114,12 @@ plus `reason`/`recipe`) and exits 0 only on `status: usable`.
 
 - **On `status: fail-closed`** (`reason` is `no-recipe`, `duplicate`, `unknown-version`, or
   `invalid`) — the recipe is absent, ambiguous, or unreadable. Fall through to the heuristic
-  detection below **unchanged**. The recipe fails closed: a malformed, missing, duplicate, or
-  unknown-version block degrades to today's behavior, never to a guessed or partial drive.
+  detection below. The recipe fails closed: a malformed, missing, duplicate, or unknown-version
+  block degrades to heuristic detection, never to a guessed or partial drive.
 
-This branch adds **reading** — running the validator and honoring its output. It grants no new
-mutation authority: the hard contract above (the forbidden-Bash list, the no-install/migrate/
-seed rule, and the mandatory post-run `git status --porcelain` self-check) is **unchanged** and
-applies identically whether you drive from the recipe or from heuristic detection.
+Reading the recipe grants no mutation authority. The hard contract — the forbidden-Bash list,
+the no-install/migrate/seed rule, and the mandatory post-run `git status --porcelain` self-check —
+governs this step identically whether you drive from the recipe or from heuristic detection.
 
 ### Heuristic detection — when no usable recipe is present
 

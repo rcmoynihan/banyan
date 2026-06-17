@@ -57,6 +57,13 @@ function block(recipeObj, version = 'v1') {
   return `<!-- bn-drive-recipe ${version} -->\n\`\`\`json\n${JSON.stringify(recipeObj, null, 2)}\n\`\`\`\n<!-- /bn-drive-recipe -->`;
 }
 
+// A documentation example of the recipe block: the same sentinel pattern wrapped in
+// an outer 4-backtick code fence so the inner ```json nests (CommonMark close rules).
+// A fence-aware extractor must treat this as inert, not a live recipe.
+function docExample(recipeObj, version = 'v1') {
+  return `\`\`\`\`text\n${block(recipeObj, version)}\n\`\`\`\``;
+}
+
 // --- validateRecipe: structural + the two code-enforced conditional rules ----
 
 test('a known-good recipe validates', () => {
@@ -154,6 +161,34 @@ test('a no-dev-equivalent leg also requires do_not_attempt', () => {
   assert.ok(result.errors.some((e) => e.path === '$.paths[0].do_not_attempt' && /missing required/.test(e.reason)));
 });
 
+test('a cliff-tier leg cannot be proven — a never-execute leg is never run (R3/R4)', () => {
+  const leg = provenBrowserLeg({
+    tier: 'expensive-or-slow',
+    status: 'proven',
+    mode: 'local-dev-server',
+    do_not_attempt: { cost_basis: 'non-zero money per run', reason: 'remote batch costs real money' },
+  });
+  const result = validateRecipe(validRecipe({ paths: [leg] }));
+  assert.equal(result.ok, false);
+  assert.ok(
+    result.errors.some((e) => e.path === '$.paths[0].status' && /never-execute/.test(e.reason)),
+    JSON.stringify(result.errors),
+  );
+});
+
+test('a leg carrying do_not_attempt cannot be proven even on a drivable tier', () => {
+  const leg = provenBrowserLeg({
+    status: 'proven',
+    do_not_attempt: { cost_basis: 'credential setup', reason: 'cannot be exercised locally' },
+  });
+  const result = validateRecipe(validRecipe({ paths: [leg] }));
+  assert.equal(result.ok, false);
+  assert.ok(
+    result.errors.some((e) => e.path === '$.paths[0].status' && /never-execute/.test(e.reason)),
+    JSON.stringify(result.errors),
+  );
+});
+
 // --- extractRecipeBlock: sentinel + fenced-JSON parsing, blockCount ----------
 
 test('extractRecipeBlock finds a single block and parses its version', () => {
@@ -177,6 +212,21 @@ test('extractRecipeBlock reports not-found when no block is present', () => {
   assert.equal(got.found, false);
   assert.equal(got.blockCount, 0);
   assert.equal(got.version, null);
+});
+
+test('extractRecipeBlock ignores a sentinel example nested in an outer doc fence', () => {
+  const text = `# Docs\n\nThe recipe form:\n\n${docExample(validRecipe())}\n\nend`;
+  const got = extractRecipeBlock(text);
+  assert.equal(got.found, false);
+  assert.equal(got.blockCount, 0);
+});
+
+test('extractRecipeBlock counts one live block alongside a doc example as a single block', () => {
+  const text = `# Docs\n\n${docExample(validRecipe())}\n\n${block(validRecipe())}\n`;
+  const got = extractRecipeBlock(text);
+  assert.equal(got.found, true);
+  assert.equal(got.blockCount, 1);
+  assert.deepEqual(JSON.parse(got.raw), validRecipe());
 });
 
 // --- loadAndValidate: the fail-closed outcome table (R17/R20) ----------------
@@ -274,6 +324,30 @@ test('reconcile skips a proven trigger-and-monitor surface (not browser-drivable
     paths: [declaredCliffLeg({ surface: 'wf', status: 'proven' })],
   });
   assert.deepEqual(reconcile(recipe, ['wf']), { perSurface: { wf: 'skip' } });
+});
+
+test('reconcile skips a never-execute leg even on a drivable mode (cliff tier)', () => {
+  const recipe = validRecipe({
+    paths: [provenBrowserLeg({
+      surface: 'A',
+      tier: 'expensive-or-slow',
+      mode: 'local-dev-server',
+      status: 'proven',
+      do_not_attempt: { cost_basis: 'money', reason: 'costs real money' },
+    })],
+  });
+  assert.deepEqual(reconcile(recipe, ['A']), { perSurface: { A: 'skip' } });
+});
+
+test('reconcile skips a leg carrying do_not_attempt even on a drivable mode', () => {
+  const recipe = validRecipe({
+    paths: [provenBrowserLeg({
+      surface: 'A',
+      status: 'proven',
+      do_not_attempt: { cost_basis: 'credential setup', reason: 'cannot run locally' },
+    })],
+  });
+  assert.deepEqual(reconcile(recipe, ['A']), { perSurface: { A: 'skip' } });
 });
 
 // --- CLI exit codes (0 usable / non-zero non-usable / 2 usage) ---------------

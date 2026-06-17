@@ -176,10 +176,10 @@ review.
        that is the do-not-attempt cliff honored here, at selection time, not only inside
        the leaf.
      - On any `fail-closed` status (`no-recipe`, `duplicate`, `unknown-version`,
-       `invalid`) — or when no instruction file exists — this gate behaves **exactly as
-       it does without a recipe**: fall back to the diff-shape judgment above. The recipe
-       path is additive; a malformed or absent recipe never tightens or loosens the
-       pre-recipe gate.
+       `invalid`) — or when no instruction file exists — gate 2 judges by the diff-shape
+       heuristic above. A malformed or absent recipe neither tightens nor loosens this
+       gate: a recipe governs only when it is `usable`, and otherwise the diff-shape
+       judgment alone decides whether to spawn the verifier.
 
      When a `usable` recipe drove this gate to spawn, pass a one-line recipe-status note
      into the verifier's `inputs` (e.g. `recipe_status: usable — proven browser path for

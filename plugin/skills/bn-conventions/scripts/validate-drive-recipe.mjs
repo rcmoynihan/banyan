@@ -139,6 +139,18 @@ function validateNode(value, schema, where, errors) {
 // structural pass on those fields produces its own error there.
 const CLIFF_TIERS = new Set(['expensive-or-slow', 'no-dev-equivalent']);
 
+function hasDoNotAttempt(leg) {
+  return leg && leg.do_not_attempt !== null && leg.do_not_attempt !== undefined;
+}
+
+// A leg is never-execute when its tier is a cliff or it carries a do_not_attempt
+// note. Per R3/R4 such a leg is never run, so it can never legitimately be `proven`,
+// and a consumer must never drive it. Both validateConditionalRules and reconcile
+// key on this so `drive` is structurally impossible for a never-execute leg.
+function isNeverExecute(leg) {
+  return matchesType(leg, 'object') && (CLIFF_TIERS.has(leg.tier) || hasDoNotAttempt(leg));
+}
+
 function validateConditionalRules(obj, errors) {
   if (!matchesType(obj, 'object') || !Array.isArray(obj.paths)) return;
   obj.paths.forEach((leg, i) => {
@@ -151,6 +163,12 @@ function validateConditionalRules(obj, errors) {
           reason: `missing required property (tier ${leg.tier} must carry do_not_attempt)`,
         });
       }
+    }
+    if (leg.status === 'proven' && isNeverExecute(leg)) {
+      errors.push({
+        path: `$.paths[${i}].status`,
+        reason: 'a never-execute leg (cliff tier or do_not_attempt) cannot be proven (R3/R4)',
+      });
     }
     if (leg.mode === 'trigger-and-monitor') {
       const observe = matchesType(leg.drive, 'object') ? leg.drive.observe : undefined;
@@ -177,12 +195,55 @@ export function validateRecipe(obj) {
 // the fenced JSON text of the first block; `blockCount` is the total so callers can
 // detect duplicates (R17). A block requires an opening sentinel, a fenced ```json
 // payload, and a closing `<!-- /bn-drive-recipe -->` sentinel.
+//
+// A live recipe block's sentinels sit at the top level of the document with the
+// block's own ```json fence between them. A documentation example instead wraps the
+// whole sentinel pattern inside an OUTER fenced code block — necessarily a longer
+// (4+ backtick) fence so the inner ```json nests under CommonMark close rules. To
+// keep a doc example from being miscounted as a live block, the interior of every
+// top-level fenced region whose info string is not `json` is blanked before matching,
+// so a sentinel nested in such a fence cannot match.
 const BLOCK_RE =
   /<!--\s*bn-drive-recipe\s+(\S+)\s*-->\s*```json\s*\n([\s\S]*?)\n?```\s*<!--\s*\/bn-drive-recipe\s*-->/g;
 
+const FENCE_OPEN = /^(\s*)(`{3,}|~{3,})\s*(\S*)/;
+
+// Replace the interior lines of every top-level fenced code block whose info string
+// is not `json` with blank lines, preserving line count and offsets so match indices
+// stay meaningful. A `json` fence is left intact because it carries a live recipe's
+// payload. Close detection follows CommonMark: a fence opened with N of a char closes
+// only on a line of >= N of the SAME char with no info string, so an inner ```json
+// (or any shorter/different fence) nested in a longer outer fence does not close it.
+function maskNonJsonFences(text) {
+  const lines = text.split('\n');
+  const out = [];
+  let fence = null; // { char, len, infoIsJson }
+  for (const line of lines) {
+    if (fence === null) {
+      const m = FENCE_OPEN.exec(line);
+      if (m) {
+        const char = m[2][0];
+        fence = { char, len: m[2].length, infoIsJson: m[3].toLowerCase() === 'json' };
+        out.push(line);
+      } else {
+        out.push(line);
+      }
+    } else {
+      const close = new RegExp(`^\\s*(${fence.char === '`' ? '`' : '~'}{${fence.len},})\\s*$`);
+      if (close.test(line)) {
+        out.push(fence.infoIsJson ? line : '');
+        fence = null;
+      } else {
+        out.push(fence.infoIsJson ? line : '');
+      }
+    }
+  }
+  return out.join('\n');
+}
+
 export function extractRecipeBlock(instructionFileText) {
   const text = typeof instructionFileText === 'string' ? instructionFileText : '';
-  const matches = [...text.matchAll(BLOCK_RE)];
+  const matches = [...maskNonJsonFences(text).matchAll(BLOCK_RE)];
   if (matches.length === 0) {
     return { found: false, version: null, raw: null, blockCount: 0 };
   }
@@ -249,7 +310,8 @@ export function reconcile(recipe, touchedSurfaces) {
   for (const surface of touchedSurfaces) {
     const drivable = paths.some(
       (leg) =>
-        leg && leg.surface === surface && leg.status === 'proven' && DRIVABLE_MODES.has(leg.mode),
+        leg && leg.surface === surface && leg.status === 'proven'
+        && DRIVABLE_MODES.has(leg.mode) && !isNeverExecute(leg),
     );
     perSurface[surface] = drivable ? 'drive' : 'skip';
   }

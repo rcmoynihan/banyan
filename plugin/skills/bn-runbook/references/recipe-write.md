@@ -10,13 +10,13 @@ STOPping on duplicates.
 The recipe is embedded as **HTML-comment sentinels around a fenced JSON payload**, one block per
 instruction file:
 
-```text
+````text
 <!-- bn-drive-recipe v1 -->
 ```json
 { ...the recipe object... }
 ```
 <!-- /bn-drive-recipe -->
-```
+````
 
 This is the exact shape `extractRecipeBlock` locates and `validate-drive-recipe.mjs` parses. It is
 human-skimmable (a reader sees the sentinels) and machine-parseable (the validator reads the fenced
