@@ -103,14 +103,14 @@ plus `reason`/`recipe`) and exits 0 only on `status: usable`.
   not routed, never blocks the verdict), **never** as a trigger. This is the flat invariant: a
   `do_not_attempt` leg is never driven, in any mode, for any reason.
 
-  This refusal is a strict override applied **after** `reconcile`, not something `reconcile`
-  guarantees for you. `reconcile` keys only on `status`/`mode`; it never reads `tier` or
-  `do_not_attempt`, so a structurally valid recipe could carry a `proven`, `local-dev-server`
-  leg that *also* carries `do_not_attempt`, and `reconcile` would return `drive` for it. So
-  before driving any surface `reconcile` marked `drive`, inspect that surface's path(s) in
-  `recipe.paths`: if any matching path carries `do_not_attempt`, demote that surface to a typed
-  **skip** and surface the cliff as a `concern`, regardless of what `reconcile` returned. This
-  post-reconcile check is the sole guarantee a never-execute leg is not driven.
+  This refusal is defense-in-depth restating an invariant the recipe contract already enforces.
+  A never-execute leg — one tiered `expensive-or-slow`/`no-dev-equivalent`, or one carrying
+  `do_not_attempt` — can never reach you marked `drive`: `validateRecipe` rejects any `proven`
+  never-execute leg, so a usable recipe cannot present one, and `reconcile` returns `skip` for a
+  never-execute leg even were one to slip through. So a `do_not_attempt` leg never arrives as a
+  `drive` surface in the first place. Your unconditional refusal stands regardless: if any path
+  you are about to drive carries `do_not_attempt`, demote that surface to a typed **skip** and
+  surface the cliff as a `concern`. A never-execute leg is never driven, in any mode.
 
 - **On `status: fail-closed`** (`reason` is `no-recipe`, `duplicate`, `unknown-version`, or
   `invalid`) — the recipe is absent, ambiguous, or unreadable. Fall through to the heuristic
