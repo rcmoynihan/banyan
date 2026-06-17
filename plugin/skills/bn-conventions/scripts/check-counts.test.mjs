@@ -54,16 +54,39 @@ test('the real repo reports 54 agents and 19 skills with no count failures', () 
   );
 });
 
-test('the real repo flags the stale authoring AGENTS.md count bullet', () => {
+test('the real repo AGENTS.md count bullet matches disk and is not flagged', () => {
   const report = check(REPO_ROOT);
   assert.ok(
-    report.flags.some((f) => f.file === 'AGENTS.md' && f.found === 46 && f.kind === 'agents'),
-    'expected the AGENTS.md "46 agents" bullet to be flagged',
+    !report.flags.some((f) => f.file === 'AGENTS.md' && f.kind === 'agents' && f.found !== 54),
+    'expected no stale AGENTS.md agent-count bullet',
   );
   assert.ok(
-    report.flags.some((f) => f.file === 'AGENTS.md' && f.found === 16 && f.kind === 'skills'),
-    'expected the AGENTS.md "16 skills" bullet to be flagged',
+    !report.flags.some((f) => f.file === 'AGENTS.md' && f.kind === 'skills' && f.found !== 19),
+    'expected no stale AGENTS.md skill-count bullet',
   );
+});
+
+test('a stale authoring AGENTS.md count bullet is flagged', () => {
+  const root = syntheticRoot({
+    agents: 54,
+    skills: 19,
+    readme: 'ships 54 agents, 19 skills.\n',
+    pluginReadme: '54 agents and 19 skills.\n',
+    agentsMd: 'counts (currently 46 agents, 16 skills); adding\n',
+  });
+  try {
+    const report = check(root);
+    assert.ok(
+      report.flags.some((f) => f.file === 'AGENTS.md' && f.found === 46 && f.kind === 'agents'),
+      'expected the synthetic "46 agents" bullet to be flagged',
+    );
+    assert.ok(
+      report.flags.some((f) => f.file === 'AGENTS.md' && f.found === 16 && f.kind === 'skills'),
+      'expected the synthetic "16 skills" bullet to be flagged',
+    );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test('matching prose passes with no failures', () => {

@@ -35,6 +35,10 @@ truth that `scripts/vendor.ps1` reads is [`vendor-map.json`](./vendor-map.json).
    pinned-SHA upstream; and pinned-SHA-vs-upstream-HEAD drift (so we can see when
    upstream has moved on since we pinned). HEAD-drift is best-effort and is skipped
    with a NOTE when offline.
+6. **Generated Codex artifacts are derived, not vendored.** The Codex render under
+   `dist/codex/` is generated from `plugin/` by `scripts/codex-build/render-codex.mjs`; it
+   is out of scope for the byte-match verbatim discipline and is guarded instead by the
+   `node --test` drift gate (`check-codex-drift.mjs`), not by `vendor.ps1`.
 
 ## (c) Vendored file mapping
 

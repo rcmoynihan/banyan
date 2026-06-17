@@ -112,8 +112,10 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
   -Status`); `ported` files are Banyan-owned, and every substantive edit to one gets a
   one-line entry in its group's edit log under `vendor/edits/`.
 - **Component counts are stated in prose.** `README.md` and `plugin/README.md` both claim
-  agent/skill counts (currently 46 agents, 16 skills); adding or removing a component
-  means updating both.
+  agent/skill counts (currently 54 agents, 19 skills); adding or removing a component
+  means updating both. The `node --test` count assertion
+  (`plugin/skills/bn-conventions/scripts/check-counts.test.mjs`) guards the value against the
+  `plugin/agents/*.md` and `plugin/skills/*/SKILL.md` files on disk.
 - **Frontmatter and naming rules for `plugin/` components live in `plugin/AGENTS.md` §3**, and
   `plugin/skills/bn-conventions/scripts/validate-frontmatter.py` checks **only** `.banyan/solutions/`
   (and `lessons-staging/`) frontmatter parser-safety. It does **not** verify agent `name == stem`
@@ -154,3 +156,25 @@ generated from it; the two hosts are never hand-forked.
   a custom `agent_type`, a byte-exact golden-fixture round-trip for the `bn-plan` vertical
   (`scripts/codex-build/fixtures/`), and that rendering leaves `plugin/` byte-clean. Regenerate
   `dist/codex/` and the fixtures after editing shared source.
+- **Drift is enforced, not just asserted.** `plugin/skills/bn-conventions/scripts/check-codex-drift.mjs`
+  (in the standing `node --test` spine) re-renders `plugin/` and compares it against the committed
+  `dist/codex/` and `dist/codex/.build-manifest.json`. A `plugin/` edit that was not regenerated,
+  or a hand-edit of `dist/codex/`, fails the suite with the offending paths and the remediation line.
+  Regenerate and commit `dist/codex/` whenever shared source changes.
+- **Authoring tooling ships to neither host.** `scripts/codex-build/` (the generator, the field map,
+  the fixtures, the agent-install step `install-codex-agents.mjs`, and the packaging manifest
+  `codex-plugin.json`) and `eval/codex/` are authoring context. Only `dist/codex/` is render output,
+  and it holds nothing hand-authored — install tooling and the packaging manifest live under
+  `scripts/codex-build/`, not inside the render-owned tree.
+- **The Codex install is two steps.** Codex's native plugin install registers skills only, not custom
+  agents (shipped compound-engineering precedent). Banyan therefore installs in two steps — the native
+  marketplace/TUI skills install, then `scripts/codex-build/install-codex-agents.mjs` to register the
+  54 agents into the Codex agent store — or a delegating skill reports missing agents. The flow,
+  the load-bearing `[agents]` config contract (`max_depth=3`, `max_threads`, experimental multi-agent
+  enabled), and the subscription-auth boundary (`~/.codex/auth.json`, `OPENAI_API_KEY` unset, config via
+  `-c` overrides / project-local config, never the global `~/.codex/config.toml`) live in
+  `docs/codex-install.md`; the parity stance is `docs/decisions/codex-parity-gap-register.md`.
+- **CLI-absent verification falls back, like the Claude Code smoke.** `eval/codex/run-codex-smoke.mjs`
+  drives the install + a thin invocation when the Codex CLI is present; absent it, it asserts manifest
+  + agent-TOML + skill discoverability and emits a GO/NO-GO line with a MANUAL-STEP note, mirroring
+  `scripts/smoke.ps1` on a host without `pwsh`.
