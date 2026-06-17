@@ -235,6 +235,36 @@ The Claude Code `node --test` script spine is unaffected by this file and stays 
   is `[assumed]` from doctrine; closes by locating the Codex user-input tool doc and confirming
   the trunk touchpoint at U8/U9.
 
+### Row 8 — `/bn-doctor` host health check
+
+- **Behavior:** `/bn-doctor` is a capability check for the host environment — a version floor, the
+  dev toolchain, plugin-asset integrity, and a live depth-2 nested-spawn / allowlist / transcript /
+  user-question probe — printing a green/yellow/red checklist.
+- **Claude Code reality:** A Claude-Code-host health check. Its checks are Claude-Code-shaped by
+  design: Check 1's floor is `claude --version >= 2.1.172`; Check 3's probe scratch dir is
+  `.claude/banyan-doctor/` and grades the `Agent(...)` spawn-type allowlist; Check 4 locates the
+  per-agent transcript at the undocumented Claude Code path
+  (`dist/codex/skills/bn-doctor/SKILL.md:13,25,56,80,93-96,102,107-129` mirrors the
+  `plugin/skills/bn-doctor/SKILL.md` source verbatim, since the render is instruction-injection).
+- **Codex reality:** **Claude-host-only — not a Codex health check.** `bn-doctor` ships in the Codex
+  render for completeness, but on a Codex host its results are not meaningful: Check 1 REDs because no
+  `claude` binary exists; Check 3 writes to a Claude-Code scratch path (`.claude/banyan-doctor/`) and
+  grades a spawn-type allowlist Codex does not enforce (Row 5: prompt-level, not-enforced/by-design —
+  no regression, the allowlist-enforced expectation maps to Row 5's outcome); Check 4 targets the
+  Claude Code transcript path rather than the Codex `<CODEX_HOME>/sessions/**` rollout substrate
+  (Row 4). The render must not be hand-edited (it is generated render output) and the `plugin/` source
+  must not be re-shaped per host (it would risk the Claude Code product), so the gap is closed by
+  documentation, not a generator change.
+- **Documented fallback:** verify a Codex install with the steps in
+  `docs/codex-install.md` § Verification (skills load, agents registered, a delegating skill resolves
+  its agent), **not** `/bn-doctor`. The install doc carries a caveat next to the skills-list step
+  stating `bn-doctor` is Claude-Code-host-specific.
+- **Severity: GREEN-with-caveat / by-design** (documented host-scope gap; no Codex behavior is lost
+  because `/bn-doctor` was never a Codex health check).
+- **Confirm-by:** none — the gap is intrinsic to the skill's Claude-Code-shaped checks, not a
+  version-pinned Codex behavior; a future Codex-specific doctor (a separate skill, not a re-shape of
+  this one) would supersede this row.
+
 ---
 
 ## Severity summary
@@ -248,6 +278,7 @@ The Claude Code `node --test` script spine is unaffected by this file and stays 
 | 5 | Allowlist enforcement | GREEN-with-caveat / prompt-level | roster in `developer_instructions` + envelope cap discipline | none — moot via R15; same posture as Claude Code |
 | 6 | Hook semantics (consent reminder) | AMBER (candidate faithful) | fold reminder into Codex `AGENTS.md` doctrine | `MatcherGroup` schema, trunk-only firing, hook-trust (U8/U9) |
 | 7 | Nested user-questions | GREEN-with-caveat / by-design | trunk `request_user_input` + artifact re-entry | `request_user_input` shape under `codex exec` (U8/U9) |
+| 8 | `/bn-doctor` host health check | GREEN-with-caveat / by-design | Codex-install § Verification steps (not `/bn-doctor`) | none — Claude-host-only by design; a future Codex doctor is a separate skill |
 
 ## What this register gates
 

@@ -5,17 +5,18 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, readdirSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 import {
   parseArgs,
   agentNameFromToml,
   skillNameFromMarkdown,
   spawnRosterFromToml,
-  leadsReferencedBySkill,
+  componentsReferencedBySkill,
   readPackage,
   delegationClosureGaps,
   discoverabilityResult,
@@ -86,15 +87,38 @@ test("spawnRosterFromToml extracts the declared roster and ignores prose", () =>
   assert.deepEqual(spawnRosterFromToml("a leaf body with no roster"), []);
 });
 
-test("leadsReferencedBySkill finds and dedups lead references", () => {
-  assert.deepEqual(leadsReferencedBySkill("spawn bn-plan-lead, then bn-plan-lead again, and bn-research-lead"), ["bn-plan-lead", "bn-research-lead"]);
-  assert.deepEqual(leadsReferencedBySkill("bn-hello with no leads"), []);
+test("componentsReferencedBySkill finds and dedups component references, dropping the self-reference", () => {
+  assert.deepEqual(
+    componentsReferencedBySkill("spawn bn-plan-lead, then bn-plan-lead again, and bn-mock-builder", "bn-plan"),
+    ["bn-plan-lead", "bn-mock-builder"],
+  );
+  assert.deepEqual(componentsReferencedBySkill("bn-hello with no delegates", "bn-hello"), []);
 });
 
-test("leadsReferencedBySkill does not match a 'lead'-prefixed longer token", () => {
-  // 'bn-team-leadership' must not be read as a reference to a 'bn-team-lead' agent.
-  assert.deepEqual(leadsReferencedBySkill("under bn-team-leadership the work proceeds"), []);
-  assert.deepEqual(leadsReferencedBySkill("the bn-plan-lead, not bn-plan-leadership"), ["bn-plan-lead"]);
+test("componentsReferencedBySkill references non-lead workers and reviewers directly (no -lead convention)", () => {
+  // The closure must see direct skill -> worker / skill -> reviewer edges, not only skill -> lead.
+  assert.deepEqual(
+    componentsReferencedBySkill("Spawn ONE bn-mock-builder leaf.", "bn-mock"),
+    ["bn-mock-builder"],
+  );
+  assert.deepEqual(
+    componentsReferencedBySkill("Spawn bn-spec-scenario-reviewer and bn-spec-threat-reviewer.", "bn-spec-stress"),
+    ["bn-spec-scenario-reviewer", "bn-spec-threat-reviewer"],
+  );
+});
+
+test("componentsReferencedBySkill ignores bn- tokens inside fenced code blocks", () => {
+  // A bn-... token that is a temp-file name or shell literal inside ``` fences (e.g. the bn-ship
+  // mktemp bn-pr-body template) is not a delegation and must not be scraped.
+  const body = [
+    "Spawn `bn-pr-comment-resolver` per comment.",
+    "```bash",
+    'BODY_FILE=$(mktemp "${TMPDIR:-/tmp}/bn-pr-body.XXXXXX")',
+    "bn-not-an-agent --flag",
+    "```",
+    "Then route back.",
+  ].join("\n");
+  assert.deepEqual(componentsReferencedBySkill(body, "bn-resolve-pr"), ["bn-pr-comment-resolver"]);
 });
 
 test("spawnRosterFromToml matches a roster line that terminates at end of string", () => {
@@ -130,6 +154,46 @@ test("delegationClosureGaps: NO-GO catches a missing lead (the R25 failure mode)
     assert.equal(gaps.missing.length, 1);
     assert.equal(gaps.missing[0].missingAgent, "bn-plan-lead");
     assert.deepEqual(gaps.missing[0].chain, ["bn-plan", "bn-plan-lead"]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("delegationClosureGaps: NO-GO when a skill delegates DIRECTLY to a non-lead agent absent from the store (F1)", () => {
+  // The R25 failure mode the smoke exists to catch: a delegating skill whose delegate is a worker
+  // or reviewer (no -lead suffix) missing from the agent store. The old lead-prose closure scored
+  // this a false GO; the structural closure over the full installed surface must NO-GO.
+  const { root, distDir } = buildPackage({
+    agents: { "bn-correctness-reviewer": null }, // bn-mock-builder deliberately absent
+    skills: { "bn-mock": "Spawn ONE bn-mock-builder leaf under the fidelity boundary." },
+  });
+  try {
+    const gaps = delegationClosureGaps(readPackage(distDir));
+    assert.equal(gaps.missing.length, 1);
+    assert.equal(gaps.missing[0].missingAgent, "bn-mock-builder");
+    assert.deepEqual(gaps.missing[0].chain, ["bn-mock", "bn-mock-builder"]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("delegationClosureGaps: a cross-skill reference resolves without requiring an agent of that name", () => {
+  // A skill that routes to another skill (e.g. bn-debug naming bn-plan) is valid cross-skill
+  // routing, not a delegation to an agent; it must NOT be reported as a missing delegate.
+  const { root, distDir } = buildPackage({
+    agents: {
+      "bn-debug-lead": "Your declared spawn roster is: bn-hypothesis-investigator.",
+      "bn-hypothesis-investigator": null,
+    },
+    skills: {
+      "bn-debug": "dispatch bn-debug-lead; on a confirmed fix, hand off to bn-plan",
+      "bn-plan": "a planning skill, no agent named bn-plan exists",
+    },
+  });
+  try {
+    const gaps = delegationClosureGaps(readPackage(distDir));
+    assert.deepEqual(gaps.missing, [], `unexpected gaps: ${JSON.stringify(gaps.missing)}`);
+    assert.equal(gaps.delegatingSkillCount, 1, "only bn-debug delegates to an agent");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -260,4 +324,49 @@ test("real committed dist/codex/ is a GO package: 54 agents, 19 skills, R25 clos
   assert.equal(r.gaps.missing.length, 0, `R25 gaps: ${r.gaps.missing.map((m) => m.chain.join(" -> ")).join("; ")}`);
   assert.ok(r.gaps.delegatingSkillCount > 0, "expected at least one delegating skill");
   assert.equal(r.go, true, `discoverability NO-GO: ${r.checks.filter((c) => !c.pass).map((c) => c.name).join("; ")}`);
+});
+
+test("the roster-line contract holds against the real rendered lead TOMLs (F11)", () => {
+  // The "Your declared spawn roster is: a, b, c." line is a cross-file contract between the Codex
+  // generator and this smoke's parser. Parse it out of the real committed lead TOMLs so a generator
+  // change to the roster-line shape is caught here rather than silently zeroing every roster (which
+  // would let a missing roster member slip through the R25 closure as a false GO).
+  const agentsDir = join(REPO_ROOT, "dist", "codex", "agents");
+  const withRosterLine = readdirSync(agentsDir)
+    .filter((f) => f.endsWith(".toml"))
+    .map((f) => ({ file: f, text: readFileSync(join(agentsDir, f), "utf8") }))
+    .filter(({ text }) => /declared spawn roster is:/.test(text));
+
+  assert.ok(withRosterLine.length > 0, "expected at least one rendered lead to carry a roster line");
+  for (const { file, text } of withRosterLine) {
+    const roster = spawnRosterFromToml(text);
+    assert.ok(
+      roster.length > 0,
+      `${file} carries a roster line but spawnRosterFromToml parsed it to []; the generator's roster-line shape and the smoke's ROSTER_RE have drifted`,
+    );
+    for (const member of roster) {
+      assert.match(member, /^bn-[a-z0-9-]+$/, `${file} roster member "${member}" is not a bn- agent name`);
+    }
+  }
+});
+
+test("the entry-point guard runs main() when invoked from a path containing a space (F4)", () => {
+  // The guard must not silently no-op on a script path with a space (the percent-encoding bug class
+  // of the file://${argv[1]} form). Copy the smoke into a spaced dir and confirm it still drives the
+  // discoverability arm against the real package and emits a GO/NO-GO line with exit 0 (GO).
+  const root = mkdtempSync(join(tmpdir(), "codex smoke space-"));
+  const spacedDir = join(root, "eval with space", "codex");
+  mkdirSync(spacedDir, { recursive: true });
+  const srcDir = dirname(fileURLToPath(import.meta.url));
+  cpSync(join(srcDir, "run-codex-smoke.mjs"), join(spacedDir, "run-codex-smoke.mjs"));
+  try {
+    const out = execFileSync(
+      process.execPath,
+      [join(spacedDir, "run-codex-smoke.mjs"), "--repo-root", REPO_ROOT],
+      { encoding: "utf8" },
+    );
+    assert.match(out, /SMOKE \(discoverability\): GO/, "expected the guarded main() to run and emit a GO line");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

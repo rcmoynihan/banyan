@@ -31,7 +31,10 @@ const DEFAULT_ROOT = path.resolve(SCRIPT_DIR, '..', '..', '..', '..');
 
 const DIST_REL = path.join('dist', 'codex');
 const MANIFEST_NAME = '.build-manifest.json';
-const REMEDIATION = 'run `node scripts/codex-build/render-codex.mjs` and commit.';
+const REMEDIATION =
+  'run `node scripts/codex-build/render-codex.mjs` then ' +
+  '`node plugin/skills/bn-conventions/scripts/check-codex-drift.mjs --write-manifest`, ' +
+  'and commit.';
 
 function sha256(text) {
   return crypto.createHash('sha256').update(text, 'utf8').digest('hex');

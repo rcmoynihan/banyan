@@ -180,6 +180,14 @@ test('a stale .build-manifest.json is reported as drift', () => {
   }
 });
 
+test('the remediation names both the render and the --write-manifest step', () => {
+  // detectDrift checks .build-manifest.json, which render-codex.mjs does not
+  // emit; a remediation that names only the render leaves the manifest stale and
+  // the gate red. The contract: following the line produces a green tree.
+  assert.match(REMEDIATION, /render-codex\.mjs/);
+  assert.match(REMEDIATION, /check-codex-drift\.mjs --write-manifest/);
+});
+
 test('the CLI exits 1 and prints the remediation line on drift', () => {
   const root = freshRoot();
   try {

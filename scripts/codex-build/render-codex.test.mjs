@@ -12,17 +12,24 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
+import os from 'node:os';
+
 import {
   render,
   parseFrontmatter,
   parseRoster,
   isPanelFanningLead,
   rewritePaths,
+  tomlLiteralBlock,
+  renderAgentToml,
+  buildAgent,
+  buildAgentsMd,
   listAgentFiles,
   listSkillDirs,
   CODEX_INSTALL_ROOT,
   PLUGIN_ROOT_TOKEN,
   REAP_RESPAWN_MARKER,
+  SKILLS_LIST_CHAR_CAP,
 } from './render-codex.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -220,8 +227,216 @@ test('parseRoster extracts the Agent(...) spawn roster', () => {
   assert.deepEqual(parseRoster(undefined), []);
 });
 
-test('isPanelFanningLead requires roster >= 2 and panel language', () => {
-  assert.equal(isPanelFanningLead(['a', 'b'], 'spawn them in parallel'), true);
-  assert.equal(isPanelFanningLead(['a'], 'spawn it in parallel'), false);
-  assert.equal(isPanelFanningLead(['a', 'b'], 'a single serial worker, nothing else'), false);
+test('isPanelFanningLead keys on roster size, not prose wording', () => {
+  assert.equal(isPanelFanningLead(['a', 'b']), true);
+  assert.equal(isPanelFanningLead(['a']), false);
+  assert.equal(isPanelFanningLead([]), false);
+  // A roster>=2 lead stays a panel even when its body omits panel keywords — the
+  // former silent false-negative (F2) no longer drops it from the set.
+  const fanWithoutKeyword = buildAgent(
+    [
+      '---',
+      'name: bn-fanner',
+      'description: "fans a panel"',
+      'model: opus',
+      'tools: Read, Agent(bn-x, bn-y)',
+      '---',
+      '',
+      'Spawn each worker and collect their returned artifacts. Reap each as it finishes.',
+    ].join('\n'),
+    'bn-fanner.md',
+  );
+  assert.equal(fanWithoutKeyword.isPanelLead, true, 'roster>=2 lead must be a panel regardless of prose');
+  assert.ok(
+    fanWithoutKeyword.developerInstructions.includes(REAP_RESPAWN_MARKER),
+    'a keyword-free roster>=2 lead must still carry the reap-respawn loop',
+  );
+});
+
+// F2: the structural panel set and the prose keyword signal must agree, and the
+// build fails loudly when they do not — neither a false-negative (roster>=2 lead
+// with no panel prose) nor a false-positive (panel prose with roster<2) ships
+// silently.
+test('every roster>=2 agent is a panel lead and carries the reap-respawn loop', () => {
+  const multi = result.agents.filter((a) => a.roster.length >= 2);
+  assert.ok(multi.length >= 7, 'expected at least the known roster>=2 leads');
+  for (const a of multi) {
+    assert.ok(a.isPanelLead, `${a.name}: roster>=2 agent not classified as a panel lead`);
+    assert.ok(
+      a.developerInstructions.includes(REAP_RESPAWN_MARKER),
+      `${a.name}: roster>=2 lead missing reap-respawn loop`,
+    );
+  }
+});
+
+// A roster<2 agent that merely mentions parallelism in prose is NOT a panel lead
+// and must not receive the reap-respawn loop (the former false-positive direction).
+test('a roster<2 agent with panel prose is not a panel lead', () => {
+  const worker = buildAgent(
+    [
+      '---',
+      'name: bn-prosey',
+      'description: "a worker"',
+      'model: sonnet',
+      'tools: Read',
+      '---',
+      '',
+      'Your parent spawns a panel of these in parallel; you yourself spawn nothing.',
+    ].join('\n'),
+    'bn-prosey.md',
+  );
+  assert.equal(worker.isPanelLead, false, 'a roster<2 agent must never be a panel lead');
+  assert.ok(
+    !worker.developerInstructions.includes(REAP_RESPAWN_MARKER),
+    'a roster<2 agent must not carry the reap-respawn loop despite panel prose',
+  );
+});
+
+// F7: the tomlLiteralBlock ''' delimiter guard is load-bearing — a body containing
+// the literal-string delimiter must throw, never silently produce corrupt TOML.
+test("tomlLiteralBlock throws on a ''' delimiter and wraps a clean body", () => {
+  assert.throws(
+    () => tomlLiteralBlock("a body with ''' inside"),
+    /literal-string delimiter/,
+  );
+  const wrapped = tomlLiteralBlock('clean body\nwith a trailing backslash \\');
+  assert.equal(wrapped, "'''\nclean body\nwith a trailing backslash \\\n'''");
+});
+
+test("renderAgentToml propagates the ''' guard", () => {
+  assert.throws(
+    () =>
+      renderAgentToml({
+        name: 'bn-x',
+        description: 'd',
+        modelReasoningEffort: 'high',
+        developerInstructions: "body with ''' inside",
+      }),
+    /literal-string delimiter/,
+  );
+});
+
+// F9: a missing/empty agent description must fail loud, not emit the bareword
+// `description = undefined` (invalid TOML) into committed dist.
+test('buildAgent throws when an agent description is missing', () => {
+  assert.throws(
+    () =>
+      buildAgent(
+        ['---', 'name: bn-nodesc', 'model: opus', 'tools: Read', '---', '', 'Body.'].join('\n'),
+        'bn-nodesc.md',
+      ),
+    /missing a description/,
+  );
+});
+
+test('buildAgent throws when an agent description is empty', () => {
+  assert.throws(
+    () =>
+      buildAgent(
+        ['---', 'name: bn-emptydesc', 'description: ""', 'model: opus', 'tools: Read', '---', '', 'Body.'].join(
+          '\n',
+        ),
+        'bn-emptydesc.md',
+      ),
+    /missing a description/,
+  );
+});
+
+test('no rendered agent TOML emits the bareword description = undefined', () => {
+  for (const agent of result.agents) {
+    assert.doesNotMatch(
+      agent.toml,
+      /^description = undefined$/m,
+      `${agent.name}: emitted invalid bareword description`,
+    );
+  }
+});
+
+// F8: the skills-catalog char cap must throw when exceeded, never silently
+// truncate the skills list Codex shows at discovery time (R14).
+test('render throws when the skills catalog exceeds SKILLS_LIST_CHAR_CAP', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-skillcap-'));
+  const agentsDir = path.join(root, 'plugin', 'agents');
+  const skillsDir = path.join(root, 'plugin', 'skills');
+  fs.mkdirSync(agentsDir, { recursive: true });
+  fs.mkdirSync(skillsDir, { recursive: true });
+
+  // One valid agent so render() has a well-formed agent surface to build.
+  fs.writeFileSync(
+    path.join(agentsDir, 'bn-a.md'),
+    ['---', 'name: bn-a', 'description: "a"', 'model: opus', 'tools: Read', '---', '', 'Body.'].join('\n'),
+  );
+
+  // Seed skill descriptions that sum past the cap. Each catalog line is
+  // `name: description`; size the descriptions from the imported constant so the
+  // test tracks the cap rather than a magic number.
+  const perDesc = 'x'.repeat(2000);
+  const skillCount = Math.ceil(SKILLS_LIST_CHAR_CAP / perDesc.length) + 2;
+  for (let i = 0; i < skillCount; i++) {
+    const name = `bn-s${i}`;
+    const dir = path.join(skillsDir, name);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, 'SKILL.md'),
+      ['---', `name: ${name}`, `description: "${perDesc}"`, '---', '', 'Body.'].join('\n'),
+    );
+  }
+
+  // A minimal AGENTS.md carrying the markers buildAgentsMd's transform requires,
+  // so render() reaches the cap check rather than failing on the AGENTS.md transform.
+  fs.writeFileSync(
+    path.join(root, 'plugin', 'AGENTS.md'),
+    [
+      '# AGENTS',
+      '',
+      '**How this rule reaches you.** placeholder reach paragraph.',
+      '',
+      '  - `plugin/hooks/` — `hooks.json` placeholder bullet.',
+      '',
+    ].join('\n'),
+  );
+
+  assert.throws(() => render(root), /over the .*-char cap/);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+// F5: the rendered Codex AGENTS.md must not claim a live action-time hook backstops
+// the consent rule, and must state the no-hook reality exactly once.
+test('rendered Codex AGENTS.md makes no live-hook consent claim', () => {
+  const md = result.agentsMd;
+
+  // The source §2.4 paragraph asserting a live UserPromptSubmit hook injects a
+  // reminder must not survive into the Codex render.
+  assert.doesNotMatch(
+    md,
+    /injects a short reminder of this rule into the trunk's context/,
+    'Codex AGENTS.md retained the source live-hook reach paragraph',
+  );
+  assert.ok(
+    !md.includes('The hook is the *reminder*; this'),
+    'Codex AGENTS.md retained the source "hook is the reminder" claim',
+  );
+  // The §3 bullet must not point at §2.4 for "the one shipped hook".
+  assert.ok(
+    !md.includes('See §2.4 for the one shipped hook.'),
+    'Codex AGENTS.md retained the source one-shipped-hook bullet',
+  );
+
+  // The no-hook reality is stated: the reach paragraph and the appended doctrine
+  // both name the absent hook surface.
+  assert.match(md, /no `UserPromptSubmit` hook surface/);
+  assert.match(md, /Invoked-procedure consent \(Codex render\)/);
+});
+
+test('buildAgentsMd fails loud when its source markers go stale', () => {
+  // Missing §2.4 reach marker.
+  assert.throws(
+    () => buildAgentsMd('# AGENTS\n\n  - `plugin/hooks/` — `hooks.json` bullet.\n'),
+    /reach marker/,
+  );
+  // Missing §3 hooks bullet marker.
+  assert.throws(
+    () => buildAgentsMd('# AGENTS\n\n**How this rule reaches you.** paragraph.\n'),
+    /hooks bullet marker/,
+  );
 });

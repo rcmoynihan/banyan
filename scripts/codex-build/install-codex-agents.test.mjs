@@ -1,7 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, readdirSync, rmSync } from "node:fs";
+import {
+  mkdtempSync,
+  mkdirSync,
+  writeFileSync,
+  readdirSync,
+  rmSync,
+  copyFileSync,
+  realpathSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -162,6 +170,55 @@ test("$CODEX_HOME plumbs through when --codex-home is absent", () => {
     run(["--source", source], { CODEX_HOME: home });
     const installed = readdirSync(join(home, "agents")).sort();
     assert.deepEqual(installed, ["bn-alpha.toml", "bn-beta.toml"]);
+  } finally {
+    rmSync(source, { recursive: true, force: true });
+    rmSync(home, { recursive: true, force: true });
+  }
+});
+
+test("the entry-point guard fires when the script path contains a space", () => {
+  // F3: the guard must run main() even from a directory whose name contains a space, where the
+  // percent-encoded import.meta.url would not string-equal an un-encoded `file://${argv[1]}`.
+  // realpathSync collapses platform temp symlinks (e.g. macOS /tmp -> /private/tmp) so the spaced
+  // path is the only difference under test, not an unrelated symlink mismatch.
+  const base = realpathSync(tempDir("u8 spaced-"));
+  const scriptDir = join(base, "sub");
+  const source = join(base, "src");
+  const home = join(base, "home");
+  try {
+    mkdirSync(scriptDir, { recursive: true });
+    copyFileSync(SCRIPT, join(scriptDir, "install-codex-agents.mjs"));
+    seedSource(source);
+    const out = execFileSync(
+      "node",
+      [join(scriptDir, "install-codex-agents.mjs"), "--source", source, "--codex-home", home, "--dry-run"],
+      { encoding: "utf8", env: { ...process.env } },
+    );
+    assert.match(out, /\[dry-run\] would install 2 agents/);
+  } finally {
+    rmSync(base, { recursive: true, force: true });
+  }
+});
+
+test("a mid-batch copy failure exits non-zero with a partial-store signal", () => {
+  // F6: when a destination cannot be written mid-loop, the installer must report how many of N
+  // landed and warn that the store is partial, rather than silently leaving a half-populated store.
+  const source = tempDir("u8-src-");
+  const home = tempDir("u8-home-");
+  try {
+    seedSource(source);
+    // Block the second copy: occupy its destination with a directory so copyFileSync throws.
+    const blocked = join(home, "agents", "bn-beta.toml");
+    mkdirSync(blocked, { recursive: true });
+    let captured;
+    try {
+      run(["--source", source, "--codex-home", home]);
+      assert.fail("expected the install to exit non-zero");
+    } catch (err) {
+      captured = `${err.stderr ?? ""}${err.message ?? ""}`;
+    }
+    assert.match(captured, /installed 1 of 2 before failing/);
+    assert.match(captured, /the agent store is now partial — re-run after resolving/);
   } finally {
     rmSync(source, { recursive: true, force: true });
     rmSync(home, { recursive: true, force: true });

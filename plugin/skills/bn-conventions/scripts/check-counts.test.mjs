@@ -172,6 +172,41 @@ test('an AGENTS.md mismatch is flagged but does not fail', () => {
   }
 });
 
+test('a decoy "<n> agents" instruction phrase is not flagged; the real count claim is', () => {
+  // disk = 3 agents. The README pairs a decoy install-instruction line whose
+  // "register the 99 agents into the Codex agent store" must NOT be read as a
+  // count claim with a genuine "ships 3 agents" claim that must pass, plus a
+  // real mismatching skill claim that must fail.
+  const root = syntheticRoot({
+    agents: 3,
+    skills: 2,
+    readme:
+      'The plugin ships 3 agents, 2 skills.\n' +
+      'register the 99 agents into the Codex agent store\n' +
+      'coordinate 99 agents across the panel\n',
+    pluginReadme: '3 agents, 99 skills.\n',
+  });
+  try {
+    const report = check(root);
+    assert.ok(
+      !report.failures.some((f) => f.found === 99 && f.kind === 'agents'),
+      `decoy "99 agents into/across ..." prose must not be flagged, got:\n${JSON.stringify(report.failures, null, 2)}`,
+    );
+    assert.ok(
+      report.failures.some(
+        (f) => f.file === 'plugin/README.md' && f.kind === 'skills' && f.found === 99,
+      ),
+      'the genuine "99 skills" count claim must still fail',
+    );
+    assert.ok(
+      !report.failures.some((f) => f.file === 'README.md' && f.kind === 'agents'),
+      'the matching "ships 3 agents" claim must pass',
+    );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test('the CLI exits 0 on the real repo (prose == disk)', () => {
   const out = execFileSync('node', [SCRIPT_PATH, '--root', REPO_ROOT], {
     encoding: 'utf8',

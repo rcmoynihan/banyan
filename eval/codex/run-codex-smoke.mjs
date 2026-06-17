@@ -43,14 +43,15 @@
 //                    is unset for the driven child.
 //   --json           Emit the result object as JSON instead of the human GO/NO-GO summary.
 
-import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
-import { dirname, join, basename } from "node:path";
+import { readdirSync, readFileSync, existsSync, statSync, realpathSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const TOML_NAME_RE = /^name\s*=\s*"([^"]+)"/m;
 const SKILL_NAME_RE = /^name:\s*(\S+)\s*$/m;
 const ROSTER_RE = /declared spawn roster is:\s*([^.]+?)\.(?:\s|$)/;
-const LEAD_REF_RE = /\bbn-[a-z0-9-]+-lead\b/g;
+const COMPONENT_REF_RE = /\bbn-[a-z0-9-]+\b/g;
+const FENCED_CODE_RE = /```[\s\S]*?```/g;
 
 export function parseArgs(argv) {
   const opts = { dist: null, buildDir: null, repoRoot: null, driveCodex: false, json: false };
@@ -93,18 +94,25 @@ export function spawnRosterFromToml(tomlText) {
     .filter((s) => /^bn-[a-z0-9-]+$/.test(s));
 }
 
-// The lead agents a delegating skill body names (skill -> lead edge of the closure). A skill that
-// names no lead is a non-delegating skill (e.g. bn-hello, bn-doctor) and contributes no closure.
-export function leadsReferencedBySkill(skillText) {
-  const found = skillText.match(LEAD_REF_RE);
+// Every Banyan component a skill body references (skill -> component edges of the closure), with
+// fenced code blocks stripped first so a `bn-...` token that is a temp-file name or shell literal
+// inside ``` fences (e.g. the bn-pr-body mktemp template in bn-ship) is not read as a delegation.
+// The closure does NOT lean on the -lead naming convention: a skill that delegates DIRECTLY to a
+// non-lead worker or reviewer (bn-mock -> bn-mock-builder, bn-spec-stress -> bn-spec-*-reviewer,
+// bn-resolve-pr -> bn-pr-comment-resolver) names that agent in prose and MUST be checked. Each
+// referenced token is resolved against the installed surface (agents and skills) by the closure
+// below; the skill's own name is dropped as a self-reference.
+export function componentsReferencedBySkill(skillText, skillName) {
+  const prose = skillText.replace(FENCED_CODE_RE, "");
+  const found = prose.match(COMPONENT_REF_RE);
   if (!found) return [];
-  return [...new Set(found)];
+  return [...new Set(found)].filter((t) => t !== skillName);
 }
 
 // Read the package: the set of installed agent names, the set of skill names, and the per-skill
-// lead references and per-lead rosters. Pure over the filesystem so the closure logic below is
+// component references and per-lead rosters. Pure over the filesystem so the closure logic below is
 // unit-testable against fixture dirs.
-export function readPackage(distDir, read = readFileSync, listdir = readdirSync) {
+export function readPackage(distDir, read = readFileSync, listdir = readdirSync, exists = existsSync) {
   const agentsDir = join(distDir, "agents");
   const skillsDir = join(distDir, "skills");
 
@@ -120,53 +128,81 @@ export function readPackage(distDir, read = readFileSync, listdir = readdirSync)
     }
   }
 
-  const skillDirs = listdir(skillsDir).filter((d) => existsSync(join(skillsDir, d, "SKILL.md")));
-  const skills = []; // { name, dir, leads }
+  const skillDirs = listdir(skillsDir).filter((d) => exists(join(skillsDir, d, "SKILL.md")));
+  const installedSkills = new Set();
+  const skillTexts = []; // { name, dir, text }
   for (const d of skillDirs) {
     const text = read(join(skillsDir, d, "SKILL.md"), "utf8");
-    skills.push({ name: skillNameFromMarkdown(text) ?? d, dir: d, leads: leadsReferencedBySkill(text) });
+    const name = skillNameFromMarkdown(text) ?? d;
+    installedSkills.add(name);
+    skillTexts.push({ name, dir: d, text });
   }
 
-  return { installedAgents, rosters, skills, agentFileCount: agentFiles.length, skillDirCount: skillDirs.length };
+  // The skill -> component edges resolve once the full installed surface is known, so a token that
+  // names another skill (cross-skill routing) is distinguished from one that names an agent.
+  const skills = skillTexts.map(({ name, dir, text }) => ({
+    name,
+    dir,
+    refs: componentsReferencedBySkill(text, name),
+  }));
+
+  return {
+    installedAgents,
+    installedSkills,
+    rosters,
+    skills,
+    agentFileCount: agentFiles.length,
+    skillDirCount: skillDirs.length,
+  };
 }
 
-// The R25 check, computed over a read package. For every delegating skill (one that names a lead),
-// walk the closure skill -> lead -> roster (transitively, since a roster member may itself be a
-// lead with its own roster) and collect any referenced agent that is NOT in the installed set.
-// An empty `missing` list means every delegating skill finds its agent.
+// The R25 check, computed over a read package. The closure does not assume the -lead naming
+// convention: for every skill, walk each Banyan component it references. A reference that names an
+// installed agent is a delegation edge whose roster is walked transitively (a roster member may
+// itself be a lead with its own roster); a reference that names another installed skill is valid
+// cross-skill routing and contributes no agent-store requirement; a reference that resolves to
+// NEITHER is a gap — a delegate (direct worker/reviewer or transitive roster member) missing from
+// the agent store. A skill is delegating when at least one reference resolves to an installed
+// agent. An empty `missing` list means every delegating skill finds its agent.
 export function delegationClosureGaps(pkg) {
-  const { installedAgents, rosters, skills } = pkg;
-  const delegating = skills.filter((s) => s.leads.length > 0);
+  const { installedAgents, installedSkills, rosters, skills } = pkg;
   const missing = []; // { skill, chain: string[], missingAgent }
+  let delegatingSkillCount = 0;
 
-  for (const skill of delegating) {
+  for (const skill of skills) {
     const seen = new Set();
-    const stack = skill.leads.map((lead) => ({ agent: lead, chain: [skill.name, lead] }));
+    let delegates = false;
+    const stack = skill.refs.map((ref) => ({ token: ref, chain: [skill.name, ref], rootRef: true }));
     while (stack.length) {
-      const { agent, chain } = stack.pop();
-      if (seen.has(agent)) continue;
-      seen.add(agent);
-      if (!installedAgents.has(agent)) {
-        missing.push({ skill: skill.name, chain, missingAgent: agent });
-        continue; // a missing agent has no readable roster to recurse into
+      const { token, chain, rootRef } = stack.pop();
+      if (seen.has(token)) continue;
+      seen.add(token);
+      if (installedAgents.has(token)) {
+        delegates = true;
+        for (const member of rosters.get(token) ?? []) {
+          if (!seen.has(member)) stack.push({ token: member, chain: [...chain, member] });
+        }
+        continue;
       }
-      for (const member of rosters.get(agent) ?? []) {
-        if (!seen.has(member)) stack.push({ agent: member, chain: [...chain, member] });
-      }
+      // A top-level reference to another installed skill is cross-skill routing, not a delegation
+      // to an agent; it resolves cleanly. Roster members, by contrast, are always agent names, so a
+      // roster member that is not an installed agent is a gap regardless of the skill namespace.
+      if (rootRef && installedSkills.has(token)) continue;
+      missing.push({ skill: skill.name, chain, missingAgent: token });
     }
+    if (delegates) delegatingSkillCount += 1;
   }
 
-  return { delegatingSkillCount: delegating.length, missing };
+  return { delegatingSkillCount, missing };
 }
 
 // The full discoverability arm over the Codex package. The render output (agents/, skills/,
 // AGENTS.md) lives under distDir; the packaging manifest and agent-install step live under
 // buildDir (scripts/codex-build/). Returns a structured result with one boolean per GO condition
 // plus the gap detail; pure over the filesystem.
-export function discoverabilityResult(distDir, buildDir, deps = {}) {
-  const read = deps.read ?? readFileSync;
-  const listdir = deps.listdir ?? readdirSync;
-  const exists = deps.exists ?? existsSync;
+export function discoverabilityResult(distDir, buildDir) {
+  const read = readFileSync;
+  const exists = existsSync;
 
   const checks = [];
   const note = (name, pass, detail) => checks.push({ name, pass, detail });
@@ -211,7 +247,7 @@ export function discoverabilityResult(distDir, buildDir, deps = {}) {
     return finalize(distDir, buildDir, checks, null, null);
   }
 
-  const pkg = readPackage(distDir, read, listdir);
+  const pkg = readPackage(distDir);
   note(
     "54 agent TOMLs discoverable",
     pkg.agentFileCount === 54 && pkg.installedAgents.size === 54,
@@ -286,9 +322,7 @@ function repoRootFromSelf() {
   return dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 }
 
-function codexOnPath(deps = {}) {
-  const which = deps.which;
-  if (which) return which();
+function codexOnPath() {
   const dirs = (process.env.PATH ?? "").split(":");
   for (const d of dirs) {
     if (d && existsSync(join(d, "codex"))) {
@@ -377,6 +411,22 @@ function main() {
   process.exit(go ? 0 : 1);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// True when this module is the process entry point. Compares canonicalized real paths so the guard
+// fires regardless of spaces in the path (no file:// percent-encoding round-trip) or a symlinked
+// invocation dir (e.g. macOS /tmp -> /private/tmp, where argv[1] keeps the symlink but
+// import.meta.url is the realpath).
+export function isEntryPoint(argv1, importMetaUrl) {
+  if (!argv1) return false;
+  const canon = (p) => {
+    try {
+      return realpathSync(p);
+    } catch {
+      return resolve(p);
+    }
+  };
+  return canon(argv1) === canon(fileURLToPath(importMetaUrl));
+}
+
+if (isEntryPoint(process.argv[1], import.meta.url)) {
   main();
 }

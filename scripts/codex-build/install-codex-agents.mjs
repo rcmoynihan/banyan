@@ -28,7 +28,7 @@
 
 import { readdirSync, readFileSync, mkdirSync, copyFileSync, existsSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, join, basename } from "node:path";
+import path, { dirname, join, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const AGENT_TOML_PATTERN = /\.toml$/;
@@ -121,13 +121,23 @@ function main() {
   }
 
   mkdirSync(storeDir, { recursive: true });
+  let installed = 0;
   for (const { from, to } of plan) {
-    readFileSync(from); // surfaces an unreadable source before any write
-    copyFileSync(from, to);
+    try {
+      readFileSync(from); // surfaces an unreadable source before any write
+      copyFileSync(from, to);
+    } catch (err) {
+      console.error(
+        `installed ${installed} of ${plan.length} before failing at ${to}: ${err.message}; ` +
+          `the agent store is now partial — re-run after resolving`,
+      );
+      process.exit(1);
+    }
+    installed++;
   }
   console.log(`installed ${plan.length} Banyan agents into ${storeDir}`);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   main();
 }

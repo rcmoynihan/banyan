@@ -24,8 +24,15 @@ const REQUIRED_MATCH = ['README.md', 'plugin/README.md'];
 // check: authoring-only surfaces fixed elsewhere.
 const FLAG_ONLY = ['AGENTS.md'];
 
-const AGENT_COUNT_RE = /(\d+)\s+agents/gi;
-const SKILL_COUNT_RE = /(\d+)\s+skills/gi;
+// A count claim states a quantity-of-the-whole ("ships 54 agents", "(19 skills)",
+// "currently 54 agents, 19 skills"), so the noun closes the phrase. A bare
+// "<n> agents" that heads a prepositional phrase ("register the 54 agents into the
+// Codex agent store") is an instruction about the set, not a claim of its size; the
+// trailing negative lookahead drops those continuations so unrelated prose does not
+// false-fire the gate.
+const COUNT_TAIL = '(?!\\s+(?:into|per|across|from|in|to|of|store|elsewhere))';
+const AGENT_COUNT_RE = new RegExp(`(\\d+)\\s+agents\\b${COUNT_TAIL}`, 'gi');
+const SKILL_COUNT_RE = new RegExp(`(\\d+)\\s+skills\\b${COUNT_TAIL}`, 'gi');
 
 export function diskCounts(root) {
   const agentsDir = path.join(root, 'plugin', 'agents');

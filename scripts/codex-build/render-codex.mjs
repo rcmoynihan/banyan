@@ -108,14 +108,14 @@ function parseRoster(toolsLine) {
     .filter((s) => s.length > 0);
 }
 
-const PANEL_FANOUT_RE = /\b(in parallel|parallel|panel|fan out|fan-out|concurrent)\b/i;
-
-// A panel-fanning lead: declares a roster of two or more spawnable types AND its
-// body describes launching a parallel panel. These are the bodies that must carry
-// the spawn-reap-respawn loop; single recursive-self spawners (roster of one) are
-// not panels and do not.
-function isPanelFanningLead(roster, body) {
-  return roster.length >= 2 && PANEL_FANOUT_RE.test(body);
+// A panel-fanning lead is the structural fact of a roster of two or more spawnable
+// types: such a lead can fan siblings wider than agents.max_threads and therefore
+// must carry the spawn-reap-respawn loop. Single recursive-self spawners (roster of
+// one) are not panels. Detection keys on the roster, not on prose wording, so a
+// reworded lead body cannot silently drop out of the panel set and a worker that
+// merely mentions parallelism in prose cannot be mistaken for a lead.
+function isPanelFanningLead(roster) {
+  return roster.length >= 2;
 }
 
 const REAP_RESPAWN_MARKER = 'Codex spawn model — spawn-reap-respawn panel loop';
@@ -188,6 +188,9 @@ function buildAgent(raw, fileName) {
     throw new Error(`agent name "${name}" does not match file stem "${stem}"`);
   }
   const description = unquote(frontmatter.description);
+  if (description === undefined || description === '') {
+    throw new Error(`agent "${name}" is missing a description in frontmatter`);
+  }
   const model = unquote(frontmatter.model);
   const modelReasoningEffort = REASONING_EFFORT_BY_MODEL[model];
   if (!modelReasoningEffort) {
@@ -195,8 +198,10 @@ function buildAgent(raw, fileName) {
   }
   const roster = parseRoster(frontmatter.tools);
 
+  const isPanelLead = isPanelFanningLead(roster);
+
   let developerInstructions = rewritePaths(body).trimEnd();
-  if (isPanelFanningLead(roster, body)) {
+  if (isPanelLead) {
     developerInstructions = `${developerInstructions}\n\n${reapRespawnBlock(roster)}`;
   }
 
@@ -206,7 +211,7 @@ function buildAgent(raw, fileName) {
     model,
     modelReasoningEffort,
     roster,
-    isPanelLead: isPanelFanningLead(roster, body),
+    isPanelLead,
     developerInstructions,
     toml: null,
   };
@@ -246,8 +251,81 @@ function consentReminderDoctrine() {
   ].join('\n');
 }
 
+// The source §2.4 "How this rule reaches you" paragraph documents a Claude Code
+// `UserPromptSubmit` plugin hook that does not exist on Codex. Carried verbatim it
+// tells a Codex agent a live action-time backstop fires when none does — the exact
+// consent-skip the rule guards against. The Codex render replaces the source claim
+// with the no-hook reality, keyed on the paragraph's lead marker so a source
+// reword fails loud (CONSENT_REACH_MARKER absent => throw) rather than silently
+// shipping the contradiction again.
+const CONSENT_REACH_MARKER = '**How this rule reaches you.**';
+
+const CONSENT_REACH_CODEX = [
+  '**How this rule reaches you.** This file auto-loads as Codex doctrine, but there',
+  'is no action-time backstop: Codex exposes no `UserPromptSubmit` hook surface, so',
+  'no hook injects a reminder at the moment a procedure is invoked. Adherence is',
+  'entirely your responsibility. See "Invoked-procedure consent (Codex render)"',
+  'below for the prompt-level discipline that stands in for the absent hook.',
+].join('\n');
+
+// The §3 plugin/hooks/ bullet describes a Claude Code hook directory and points at
+// §2.4 for "the one shipped hook" — neither exists on Codex. Replace the bullet
+// with the no-hook reality, keyed on its leading token so a source reword fails
+// loud rather than re-shipping the dangling claim.
+const HOOKS_BULLET_MARKER = '  - `plugin/hooks/` — `hooks.json`';
+
+const HOOKS_BULLET_CODEX = [
+  '  - `plugin/hooks/` — Claude Code only. Codex exposes no hook surface, so no hook',
+  '    ships in the Codex render; the consent reminder §2.4 describes lives entirely',
+  '    as doctrine here (see "Invoked-procedure consent (Codex render)" below).',
+].join('\n');
+
+// Replace the source §2.4 reach paragraph (a blank-line-delimited block whose first
+// line carries CONSENT_REACH_MARKER) and the §3 hooks bullet with their no-hook
+// Codex equivalents. Each transform asserts its marker is present so a future source
+// reword surfaces as a loud build failure instead of a silently re-shipped
+// live-hook claim (F5).
+function reconcileConsentHook(text) {
+  if (!text.includes(CONSENT_REACH_MARKER)) {
+    throw new Error(
+      `Codex AGENTS.md render: §2.4 reach marker "${CONSENT_REACH_MARKER}" not found; ` +
+        'the consent-hook reconciliation transform is stale relative to plugin/AGENTS.md.',
+    );
+  }
+  if (!text.includes(HOOKS_BULLET_MARKER)) {
+    throw new Error(
+      `Codex AGENTS.md render: §3 hooks bullet marker "${HOOKS_BULLET_MARKER}" not found; ` +
+        'the consent-hook reconciliation transform is stale relative to plugin/AGENTS.md.',
+    );
+  }
+
+  const blocks = text.split('\n\n');
+  const reconciled = blocks.map((block) =>
+    block.startsWith(CONSENT_REACH_MARKER) ? CONSENT_REACH_CODEX : block,
+  );
+  if (!reconciled.includes(CONSENT_REACH_CODEX)) {
+    throw new Error(
+      'Codex AGENTS.md render: §2.4 reach paragraph did not isolate to a single ' +
+        'blank-line-delimited block; the reconciliation transform needs revisiting.',
+    );
+  }
+
+  let withReach = reconciled.join('\n\n');
+
+  const bulletLines = withReach.split('\n');
+  const start = bulletLines.findIndex((line) => line.startsWith(HOOKS_BULLET_MARKER));
+  let end = start + 1;
+  while (end < bulletLines.length && /^\s{4,}\S/.test(bulletLines[end])) {
+    end++;
+  }
+  bulletLines.splice(start, end - start, ...HOOKS_BULLET_CODEX.split('\n'));
+
+  return bulletLines.join('\n');
+}
+
 function buildAgentsMd(raw) {
-  const rewritten = rewritePaths(raw).trimEnd();
+  const reconciled = reconcileConsentHook(raw);
+  const rewritten = rewritePaths(reconciled).trimEnd();
   return `${rewritten}\n\n${consentReminderDoctrine()}\n`;
 }
 
@@ -345,6 +423,7 @@ export {
   parseRoster,
   isPanelFanningLead,
   rewritePaths,
+  tomlLiteralBlock,
   renderAgentToml,
   buildAgent,
   buildSkill,

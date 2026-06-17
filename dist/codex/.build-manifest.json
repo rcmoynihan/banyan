@@ -8,7 +8,7 @@
   "files": {
     "AGENTS.md": {
       "source": "plugin/AGENTS.md",
-      "sha256": "1cb9c646ae8c3f22c5a3b01a19aea63983ac6e80812533e6a2b572f31a8010c6"
+      "sha256": "e240d0d15c08a5d2412222388030c8ca6baa8dd2dee3330dce6ef06764743026"
     },
     "agents/bn-adversarial-reviewer.toml": {
       "source": "plugin/agents/bn-adversarial-reviewer.md",

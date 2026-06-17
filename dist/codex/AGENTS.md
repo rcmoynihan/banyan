@@ -223,13 +223,11 @@ Two narrow cases are *already* consent and need no re-ask:
 - **The skill routes itself elsewhere.** A skill may define its own thresholds that hand off,
   no-op, or downgrade; following the skill's *written* branch is adherence, not deviation.
 
-**How this rule reaches you.** This file is never auto-loaded, so the rule is also delivered at
-the moment of action by a plugin hook: `plugin/hooks/invoked-procedure-consent.mjs` (a
-`UserPromptSubmit` hook, §3) injects a short reminder of this rule into the trunk's context
-whenever the user explicitly invokes a heavy Banyan skill (`/bn-grow`, `/bn-plan`, `/bn-review`,
-`/bn-work`, `/bn-debug`, `/bn-onboard`, `/bn-spec-stress`). The hook is the *reminder*; this
-section is the *rule*. The hook is best-effort and trunk-only — it never fires inside a subagent
-and can never block a prompt — so adherence is still your responsibility, not the hook's.
+**How this rule reaches you.** This file auto-loads as Codex doctrine, but there
+is no action-time backstop: Codex exposes no `UserPromptSubmit` hook surface, so
+no hook injects a reminder at the moment a procedure is invoked. Adherence is
+entirely your responsibility. See "Invoked-procedure consent (Codex render)"
+below for the prompt-level discipline that stands in for the absent hook.
 
 ---
 
@@ -242,10 +240,9 @@ and can never block a prompt — so adherence is still your responsibility, not 
   - `plugin/skills/bn-*/SKILL.md` — one skill per directory, with optional `references/`,
     `scripts/`, `assets/` subdirectories (same convention as compound-engineering).
   - `plugin/schemas/` — vendored/shared schema files (e.g. findings schema, solution frontmatter).
-  - `plugin/hooks/` — `hooks.json` (auto-discovered by Claude Code; no `plugin.json` key needed)
-    plus the node scripts it invokes. Hooks are **trunk-level doctrine reminders only**: each is
-    best-effort and MUST be incapable of blocking or perturbing a prompt (never exit 2; emit
-    nothing and exit 0 on any error). See §2.4 for the one shipped hook.
+  - `plugin/hooks/` — Claude Code only. Codex exposes no hook surface, so no hook
+    ships in the Codex render; the consent reminder §2.4 describes lives entirely
+    as doctrine here (see "Invoked-procedure consent (Codex render)" below).
   - `plugin/AGENTS.md` — this file.
 - **Run artifacts** live in the *target repo*, not the plugin: `.banyan/runs/<run-id>/`
   (see `skills/bn-conventions/references/ledger.md`). They are local run state; durable

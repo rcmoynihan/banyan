@@ -186,6 +186,18 @@ A clean install passes when **both** halves landed:
    `bn-resolve-pr`, `bn-learn`, `bn-evolve`, `bn-conventions`, `bn-doctor`, `bn-mock`, `bn-poc`,
    `bn-runbook` (19 skills).
 
+   > **`/bn-doctor` is a Claude-Code-host health check, not a Codex one.** `bn-doctor` ships in
+   > the Codex render for completeness, but its checks are Claude-Code-host-specific and do **not**
+   > constitute a Codex health check. On a Codex host its results are not meaningful: Check 1 runs
+   > `claude --version` and REDs below 2.1.172 (no `claude` binary exists on a Codex host), Check 3
+   > writes its probe scratch into `.claude/banyan-doctor/` (a Claude-Code path) and grades an
+   > `Agent(...)` spawn-type allowlist that Codex does not enforce by design (parity register Row 5:
+   > prompt-level, not runtime-enforced — the same posture as Claude Code), and Check 4 locates the
+   > per-agent transcript at the undocumented Claude Code path rather than the Codex
+   > `<CODEX_HOME>/sessions/**` rollout substrate (parity register Row 4). To verify a Codex install,
+   > use the steps in this section, not `/bn-doctor`. This is a documented Codex gap (see the
+   > [parity-gap register](decisions/codex-parity-gap-register.md)).
+
 2. **Agents registered.** Confirm the 54 agent definitions landed in the store:
 
    ```bash
