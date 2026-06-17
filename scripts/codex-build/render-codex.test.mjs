@@ -201,6 +201,54 @@ test('golden fixture pins the instruction-injection payload and reap loop shape'
   );
 });
 
+// R2-1: each skill's scripts/ and references/ subdirectories are carried into the
+// render so the ~/.codex/skills/banyan/skills/<name>/scripts|references/... paths
+// that rendered SKILL.md and agent bodies invoke actually resolve at the install
+// root, instead of ENOENT-ing.
+test('skill scripts/ and references/ files are carried into the render', () => {
+  const conventions = result.skills.find((s) => s.name === 'bn-conventions');
+  assert.ok(conventions, 'bn-conventions skill not rendered');
+  const assetPaths = new Set(conventions.assets.map((a) => a.relPath));
+  assert.ok(
+    assetPaths.has('scripts/new-run.mjs'),
+    'bn-conventions render missing scripts/new-run.mjs (run-scaffold ENOENT)',
+  );
+  assert.ok(
+    assetPaths.has('references/envelope.md'),
+    'bn-conventions render missing references/envelope.md',
+  );
+});
+
+test('copied skill assets carry no residual ${CLAUDE_PLUGIN_ROOT} token', () => {
+  for (const skill of result.skills) {
+    for (const asset of skill.assets) {
+      assert.ok(
+        !asset.content.includes(PLUGIN_ROOT_TOKEN),
+        `${skill.name}/${asset.relPath}: leaked ${PLUGIN_ROOT_TOKEN}`,
+      );
+    }
+  }
+});
+
+test('writeDist materializes the copied assets on disk after render', () => {
+  const scriptPath = path.join(SCRIPT_DIR, 'render-codex.mjs');
+  execFileSync('node', [scriptPath, '--root', REPO_ROOT], { cwd: REPO_ROOT });
+  const newRun = path.join(
+    REPO_ROOT,
+    'dist',
+    'codex',
+    'skills',
+    'bn-conventions',
+    'scripts',
+    'new-run.mjs',
+  );
+  assert.ok(fs.existsSync(newRun), 'dist/codex/.../scripts/new-run.mjs not written by render');
+  assert.ok(
+    !fs.readFileSync(newRun, 'utf8').includes(PLUGIN_ROOT_TOKEN),
+    'written new-run.mjs carries a residual plugin-root token',
+  );
+});
+
 // (6) DI1 regression gate: running the generator does not modify any plugin/ file.
 test('DI1 gate: rendering does not modify any plugin/ file', () => {
   const scriptPath = path.join(SCRIPT_DIR, 'render-codex.mjs');

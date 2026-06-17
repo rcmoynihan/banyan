@@ -35,6 +35,26 @@ Near-1:1. Frontmatter `name`, `description`, optional `argument-hint` are preser
 is path-rewritten. The combined skills catalog (`name: description` per skill) is capped at
 8000 characters — the build fails loudly rather than silently truncating if the cap is exceeded.
 
+### Skill subdirectories: `plugin/skills/<name>/{scripts,references}/**` → `dist/codex/skills/<name>/{scripts,references}/**`
+
+Each skill's `scripts/` and `references/` trees are copied recursively into the render so the
+`~/.codex/skills/banyan/skills/<name>/scripts/*.mjs` invocations and `references/*.md` citations
+in rendered SKILL.md bodies and agent TOMLs resolve at the install root instead of ENOENT-ing.
+The relative tree is preserved exactly, so the conventions scripts' same-directory relative
+imports (`./entry-point.mjs`, `./validate-consult-artifacts.mjs`, …) keep resolving. Text
+content is `${CLAUDE_PLUGIN_ROOT}`-rewritten in the copy (the source is never touched); the
+source file mode is preserved, so executable helper scripts stay executable.
+
+**Residual — authoring-only cross-tree import.** `bn-conventions/scripts/check-codex-drift.mjs`
+and the `*.test.mjs` files are authoring/CI scripts, not paths a Codex agent invokes at runtime.
+`check-codex-drift.mjs` imports `../../../../scripts/codex-build/render-codex.mjs`, and the
+`*.test.mjs` files import `node:test`; those paths do not exist at the Codex install root. They
+ship as static assets for tree completeness and to keep the same-dir relative imports of the
+runtime scripts intact, but are not runnable under the install layout and are not meant to be —
+the runtime-referenced scripts (`new-run.mjs`, `locate-transcript.mjs`, `transcript-pointer.mjs`,
+`validate-consult-artifacts.mjs`, `consult-budget.mjs`, `check-consult-chain.mjs`) import only
+`node:*` and same-directory siblings, all of which resolve.
+
 ## Doctrine: `plugin/AGENTS.md` → `dist/codex/AGENTS.md`
 
 Path-rewritten, plus an appended **invoked-procedure consent** section: Codex exposes no

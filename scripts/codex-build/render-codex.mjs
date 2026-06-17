@@ -217,7 +217,45 @@ function buildAgent(raw, fileName) {
   };
 }
 
-function buildSkill(raw, dirName) {
+// The skill subdirectories carried into the Codex render alongside SKILL.md. A
+// rendered SKILL.md or agent body invokes scripts/*.mjs and cites references/*.md
+// at the ~/.codex/skills/banyan/skills/<name>/... install root, so those trees must
+// ship or the invocations ENOENT.
+const SKILL_ASSET_DIRS = ['scripts', 'references'];
+
+// Recursively collect a skill's scripts/ and references/ files as POSIX-relative
+// paths under the skill directory, content path-rewritten to the install root, with
+// the source file mode preserved so executable scripts stay executable. The relative
+// tree is preserved exactly so the conventions scripts' same-directory relative
+// imports keep resolving at the install root.
+function collectSkillAssets(skillDir) {
+  const assets = [];
+  for (const sub of SKILL_ASSET_DIRS) {
+    const subAbs = path.join(skillDir, sub);
+    if (!fs.existsSync(subAbs)) continue;
+    walkAssetDir(subAbs, sub, assets);
+  }
+  assets.sort((a, b) => (a.relPath < b.relPath ? -1 : a.relPath > b.relPath ? 1 : 0));
+  return assets;
+}
+
+function walkAssetDir(dirAbs, relPrefix, out) {
+  for (const entry of fs.readdirSync(dirAbs, { withFileTypes: true }).sort((a, b) =>
+    a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+  )) {
+    const abs = path.join(dirAbs, entry.name);
+    const rel = `${relPrefix}/${entry.name}`;
+    if (entry.isDirectory()) {
+      walkAssetDir(abs, rel, out);
+    } else if (entry.isFile()) {
+      const content = rewritePaths(fs.readFileSync(abs, 'utf8'));
+      const mode = fs.statSync(abs).mode;
+      out.push({ relPath: rel, content, mode });
+    }
+  }
+}
+
+function buildSkill(raw, dirName, skillDir) {
   const { frontmatter, body } = parseFrontmatter(raw);
   const name = unquote(frontmatter.name);
   if (name !== dirName) {
@@ -232,7 +270,9 @@ function buildSkill(raw, dirName) {
   fmLines.push('---');
   const skillMd = `${fmLines.join('\n')}\n\n${rewritePaths(body).trimStart()}`;
 
-  return { name, description, skillMd };
+  const assets = skillDir ? collectSkillAssets(skillDir) : [];
+
+  return { name, description, skillMd, assets };
 }
 
 // The consent-reminder doctrine that the absent Codex hook surface can no longer
@@ -358,8 +398,9 @@ export function render(root = DEFAULT_ROOT) {
 
   const skillDirs = listSkillDirs(root);
   const skills = skillDirs.map((dir) => {
-    const raw = fs.readFileSync(path.join(root, 'plugin', 'skills', dir, 'SKILL.md'), 'utf8');
-    return buildSkill(raw, dir);
+    const skillDir = path.join(root, 'plugin', 'skills', dir);
+    const raw = fs.readFileSync(path.join(skillDir, 'SKILL.md'), 'utf8');
+    return buildSkill(raw, dir, skillDir);
   });
 
   // The Codex skills list is capped ~8000 chars (R14). Compute the catalog line
@@ -397,6 +438,12 @@ function writeDist(root, result) {
     const dir = path.join(skillsDir, skill.name);
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, 'SKILL.md'), skill.skillMd);
+    for (const asset of skill.assets) {
+      const assetPath = path.join(dir, ...asset.relPath.split('/'));
+      fs.mkdirSync(path.dirname(assetPath), { recursive: true });
+      fs.writeFileSync(assetPath, asset.content);
+      fs.chmodSync(assetPath, asset.mode);
+    }
   }
   fs.writeFileSync(path.join(distRoot, 'AGENTS.md'), result.agentsMd);
 }

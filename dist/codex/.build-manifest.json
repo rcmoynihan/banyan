@@ -230,17 +230,217 @@
       "source": "plugin/skills/bn-ask/SKILL.md",
       "sha256": "ecd3ea8c623c0831884c6f07bbb4b586eeb8434b3e2bfaf2404f3406a000e4c6"
     },
+    "skills/bn-ask/references/answer-contract.md": {
+      "source": "plugin/skills/bn-ask/references/answer-contract.md",
+      "sha256": "f0e86fb9ab9c06d1e6a30a7701a0e76ea1bf8da8a458c48cfee57b37b19da973"
+    },
     "skills/bn-brainstorm/SKILL.md": {
       "source": "plugin/skills/bn-brainstorm/SKILL.md",
       "sha256": "7ef46fa3a32b85162eb90ee75781f478b438d55864c9b8be1a619f45244d4b45"
+    },
+    "skills/bn-brainstorm/references/brainstorm-sections.md": {
+      "source": "plugin/skills/bn-brainstorm/references/brainstorm-sections.md",
+      "sha256": "9c895fdd9c8c152e759e30d7ca39d932dce1b283b8fce7bbd912f73a554b1974"
+    },
+    "skills/bn-brainstorm/references/handoff.md": {
+      "source": "plugin/skills/bn-brainstorm/references/handoff.md",
+      "sha256": "f70c0594d374ebc95de711fc65a807287455886014e7406f17820099054226a5"
+    },
+    "skills/bn-brainstorm/references/markdown-rendering.md": {
+      "source": "plugin/skills/bn-brainstorm/references/markdown-rendering.md",
+      "sha256": "a28da842ebf8541cf689e51567cfee99021a460153f8a0d31c2c65fd144e8675"
+    },
+    "skills/bn-brainstorm/references/synthesis-summary.md": {
+      "source": "plugin/skills/bn-brainstorm/references/synthesis-summary.md",
+      "sha256": "5f7bfdd11edfb783aa17e9357334a8106174fa085ef3136184ac00495f08ebb7"
+    },
+    "skills/bn-brainstorm/references/universal-brainstorming.md": {
+      "source": "plugin/skills/bn-brainstorm/references/universal-brainstorming.md",
+      "sha256": "0025f1096a0fd26fbb2fbd614dbca2c80fff92e3077376bcbd1ef1e3bb3ac4de"
     },
     "skills/bn-conventions/SKILL.md": {
       "source": "plugin/skills/bn-conventions/SKILL.md",
       "sha256": "aa46882d0ba20806c53757d1310faab615f43e4527425c625eb20bce749daa8a"
     },
+    "skills/bn-conventions/references/concepts-vocabulary.md": {
+      "source": "plugin/skills/bn-conventions/references/concepts-vocabulary.md",
+      "sha256": "d932d18e1679edbc622c0a2ec707e892107208ed2da8923450b271cbae7fe3a8"
+    },
+    "skills/bn-conventions/references/consult-budget.md": {
+      "source": "plugin/skills/bn-conventions/references/consult-budget.md",
+      "sha256": "22a1971c8bfda78a7fe4623e762182c53051715a5727ce3bdbf96b755c439f62"
+    },
+    "skills/bn-conventions/references/consult-protocol.md": {
+      "source": "plugin/skills/bn-conventions/references/consult-protocol.md",
+      "sha256": "ed740cad14b82907fc35837c9ca5adc212629ff21d6520e8c694d6fb6d6d8a51"
+    },
+    "skills/bn-conventions/references/envelope-test-plan.md": {
+      "source": "plugin/skills/bn-conventions/references/envelope-test-plan.md",
+      "sha256": "e7cb45670eee6e7234750361cf21d5dc52d058a8423abebd5d3963ecbfa46f6f"
+    },
+    "skills/bn-conventions/references/envelope.md": {
+      "source": "plugin/skills/bn-conventions/references/envelope.md",
+      "sha256": "ded340090a3aef155a547c4d648d387fe595bb63ec5e1ad2ae90858caa15c7b4"
+    },
+    "skills/bn-conventions/references/knowledge-store.md": {
+      "source": "plugin/skills/bn-conventions/references/knowledge-store.md",
+      "sha256": "449addc24f5b79844600611d2202ab52d2731ac91dd0f8f19113b80b3eba89da"
+    },
+    "skills/bn-conventions/references/ledger.md": {
+      "source": "plugin/skills/bn-conventions/references/ledger.md",
+      "sha256": "af93902a11c40a5c08446bcec835ecdabdd77cde1f21bed658cb6ad593458b22"
+    },
+    "skills/bn-conventions/references/process-pitfalls.md": {
+      "source": "plugin/skills/bn-conventions/references/process-pitfalls.md",
+      "sha256": "b5f8dd3ac7a4f26eac0dbea95b7848a61f3409aec85f66b962f0bf08c1ffe5b9"
+    },
+    "skills/bn-conventions/references/resume-protocol.md": {
+      "source": "plugin/skills/bn-conventions/references/resume-protocol.md",
+      "sha256": "f206199ade7b64f08c2be99f1c43bab12fd953c2cd5a4f01fc7f2e1e34558757"
+    },
+    "skills/bn-conventions/scripts/check-boundary.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/check-boundary.mjs",
+      "sha256": "54b7a8a27f29ef7cc4207a2d881e7211905f4c409c9ea3b76e978fff1088388c"
+    },
+    "skills/bn-conventions/scripts/check-boundary.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/check-boundary.test.mjs",
+      "sha256": "c9962daab763cc6f22f12d892dac4b499f98cd174657d0758f2fd340aab49d8f"
+    },
+    "skills/bn-conventions/scripts/check-codex-drift.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/check-codex-drift.mjs",
+      "sha256": "cac11403bbb7fdee05eed570291efadd8899f81c589100078947f518069436be"
+    },
+    "skills/bn-conventions/scripts/check-codex-drift.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/check-codex-drift.test.mjs",
+      "sha256": "e3cd1788a9db504f7b69e494a0582612f15ff65648d437a8d1966910ae8837b8"
+    },
+    "skills/bn-conventions/scripts/check-consult-chain.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/check-consult-chain.mjs",
+      "sha256": "b40acc266e6d32b5b709c94926c0d975d25e4d147471225a7bbe94f3619bec46"
+    },
+    "skills/bn-conventions/scripts/check-consult-chain.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/check-consult-chain.test.mjs",
+      "sha256": "383ec265237cb4d36eb5b47a70bf3f2419557471c98db594d39ee6340b6cbbb5"
+    },
+    "skills/bn-conventions/scripts/check-counts.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/check-counts.mjs",
+      "sha256": "381d8df58d0271275380e9186b5272194768b1e8078af5d8fb7324f29ccea440"
+    },
+    "skills/bn-conventions/scripts/check-counts.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/check-counts.test.mjs",
+      "sha256": "2aa84c9a21a448f50b399d996c4ef0a5a4e69a2ba03477419e0b6bbecb5029a6"
+    },
+    "skills/bn-conventions/scripts/consult-budget.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/consult-budget.mjs",
+      "sha256": "e9288d9fafb40568f12243a76a20907a28776f85a3becac22a4e3440cb56f193"
+    },
+    "skills/bn-conventions/scripts/consult-budget.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/consult-budget.test.mjs",
+      "sha256": "e95b842c8d7b890826305c38d6dac0ed1ac76c179e1c1ed37a7d77013d3f8e0b"
+    },
+    "skills/bn-conventions/scripts/consult-metrics.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/consult-metrics.mjs",
+      "sha256": "413b24c1693b8463e2ffb2c0d591b95b7cc079eeddb95c6c36f853b8c13ea4c5"
+    },
+    "skills/bn-conventions/scripts/consult-metrics.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/consult-metrics.test.mjs",
+      "sha256": "51a985919e49cc436b1983019000710a8ba6190b29233022231475a0b0955d73"
+    },
+    "skills/bn-conventions/scripts/entry-point.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/entry-point.mjs",
+      "sha256": "050886b0c3bb9038ed22b3d938a8106e808f5c5e76eac843864e68049343cdd6"
+    },
+    "skills/bn-conventions/scripts/entry-point.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/entry-point.test.mjs",
+      "sha256": "1d0030cc31b5a2d35855ea3df09e49bdd60e23c01f579098fa450482c7c06865"
+    },
+    "skills/bn-conventions/scripts/heartbeat.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/heartbeat.mjs",
+      "sha256": "d8c85a1331d825acab1aafd5c8f8d813d690886b67a5fada0197b060c2dde6c6"
+    },
+    "skills/bn-conventions/scripts/heartbeat.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/heartbeat.test.mjs",
+      "sha256": "155388350a76caf9ddf9fe7467069242033b40d242d52af52e76c1952254954a"
+    },
+    "skills/bn-conventions/scripts/locate-transcript.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/locate-transcript.mjs",
+      "sha256": "9d82517676055011ef0109f5e06c0859aab6916d1726d71f31afeffa8a67a42f"
+    },
+    "skills/bn-conventions/scripts/locate-transcript.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/locate-transcript.test.mjs",
+      "sha256": "8d85f2cd829a5841b528a8e32e672fa810eddf665cdddd5b3f85af1f91d240f5"
+    },
+    "skills/bn-conventions/scripts/new-run.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/new-run.mjs",
+      "sha256": "d4c724d75059ad7d87855d94cef1945e4581d47aaedc41cacfad90095dd3702f"
+    },
+    "skills/bn-conventions/scripts/new-run.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/new-run.test.mjs",
+      "sha256": "10e39d42e25b0adefeb8823f8ebc3847817cccd0286857d2a51dcd89abf5f32a"
+    },
+    "skills/bn-conventions/scripts/recovery-contract.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/recovery-contract.test.mjs",
+      "sha256": "d18b9651c593fb13231ae619e207fe26f63b2b7c0d7c9cb5fd627316f1ae72c2"
+    },
+    "skills/bn-conventions/scripts/resolve-resume-mode.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/resolve-resume-mode.mjs",
+      "sha256": "97eddca9968e58ebdc87a7f9176025cf1e7cbd14aa00a7efdd6b427900f85150"
+    },
+    "skills/bn-conventions/scripts/resolve-resume-mode.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/resolve-resume-mode.test.mjs",
+      "sha256": "10d5884618e5ca81bea758015a228092423b21c320e70fb67b5c4d3b22997bb5"
+    },
+    "skills/bn-conventions/scripts/transcript-pointer.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/transcript-pointer.mjs",
+      "sha256": "7e96d6a8a302b7cf92248f5850b415e4d1fe9bc4601d82dfdbde0048bfb58cf8"
+    },
+    "skills/bn-conventions/scripts/transcript-pointer.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/transcript-pointer.test.mjs",
+      "sha256": "21ded5f300c5817212eb1dc9cfacdae927fe209028fbe2e8cb6ba7169b4a7281"
+    },
+    "skills/bn-conventions/scripts/transcript-slicer.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/transcript-slicer.mjs",
+      "sha256": "a68b3e10abb1158e54c760b4c5e34d7e7fa07b0af231cb598c6cc73354c8586a"
+    },
+    "skills/bn-conventions/scripts/transcript-slicer.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/transcript-slicer.test.mjs",
+      "sha256": "2b7504100990f204f9dc00dbd6a7b2abfdf2aa953f8573196c23c4fd27c5a32d"
+    },
+    "skills/bn-conventions/scripts/validate-consult-artifacts.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/validate-consult-artifacts.mjs",
+      "sha256": "8ea4fa0d79f218b9a18784b501929868cecc34f0cf632477036c48751e2f50cf"
+    },
+    "skills/bn-conventions/scripts/validate-consult-artifacts.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/validate-consult-artifacts.test.mjs",
+      "sha256": "2cdd3c7aa42e057fc7bded381150c6a85d8a229c1b24ebc74ca7adbf95d86280"
+    },
+    "skills/bn-conventions/scripts/validate-drive-recipe.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/validate-drive-recipe.mjs",
+      "sha256": "fb73b9bc2237a1a89eac0fb6fb57f674532be90f30419f443ac3cebc270b3181"
+    },
+    "skills/bn-conventions/scripts/validate-drive-recipe.test.mjs": {
+      "source": "plugin/skills/bn-conventions/scripts/validate-drive-recipe.test.mjs",
+      "sha256": "67453a7a9bd7c4fb4a26f0a5f91f17a09c78272a8363fc169c35de01d3620271"
+    },
+    "skills/bn-conventions/scripts/validate-frontmatter.py": {
+      "source": "plugin/skills/bn-conventions/scripts/validate-frontmatter.py",
+      "sha256": "a2c3db3543106c64983062438c8ebc56bdc41d86f3ffd94e177bd0060d060bee"
+    },
     "skills/bn-debug/SKILL.md": {
       "source": "plugin/skills/bn-debug/SKILL.md",
       "sha256": "2f7d958f514a4b8c5086a0da3fa311aed5418a2d13257a5664cd1ad54d34c001"
+    },
+    "skills/bn-debug/references/anti-patterns.md": {
+      "source": "plugin/skills/bn-debug/references/anti-patterns.md",
+      "sha256": "9597012ed66df7e52caa38bfaaaab886e2e48b3807f1aa89640139b907976e6b"
+    },
+    "skills/bn-debug/references/defense-in-depth.md": {
+      "source": "plugin/skills/bn-debug/references/defense-in-depth.md",
+      "sha256": "56211e8ff51d10df8b46b58d04420ab65f1fd02ec4e4588be4b5af246cc7e046"
+    },
+    "skills/bn-debug/references/investigation-techniques.md": {
+      "source": "plugin/skills/bn-debug/references/investigation-techniques.md",
+      "sha256": "4a3f9b18622d4724ac6f259dccffbc416799e572e7b1e6e7091c0b9bd11298af"
     },
     "skills/bn-doctor/SKILL.md": {
       "source": "plugin/skills/bn-doctor/SKILL.md",
@@ -249,6 +449,10 @@
     "skills/bn-evolve/SKILL.md": {
       "source": "plugin/skills/bn-evolve/SKILL.md",
       "sha256": "41152fbaea6bdeccd7b590c77bb6e6f6875ea44f8a0c544c523b20e991a332b5"
+    },
+    "skills/bn-evolve/references/message-grading-rubric.md": {
+      "source": "plugin/skills/bn-evolve/references/message-grading-rubric.md",
+      "sha256": "be700ec998a1c302bb5ec04020a441f9aba6512485f5d510a476a9b003ba5edf"
     },
     "skills/bn-grow/SKILL.md": {
       "source": "plugin/skills/bn-grow/SKILL.md",
@@ -266,9 +470,33 @@
       "source": "plugin/skills/bn-mock/SKILL.md",
       "sha256": "e733213759e9deeed73b00e3ad68f8cbf5498b06596c574d95b17db73cc36344"
     },
+    "skills/bn-mock/references/fidelity-doctrine.md": {
+      "source": "plugin/skills/bn-mock/references/fidelity-doctrine.md",
+      "sha256": "7212ae845c4f9b2fa64f71156eae478cb337b28d3c385d27a7b0a18d3f98e85f"
+    },
+    "skills/bn-mock/references/handoff.md": {
+      "source": "plugin/skills/bn-mock/references/handoff.md",
+      "sha256": "989f7666a0630f2ad987f0b1ac28ecfe0432b1b3dc1060ee65b38396ab8a7080"
+    },
+    "skills/bn-mock/references/mock-notes-schema.md": {
+      "source": "plugin/skills/bn-mock/references/mock-notes-schema.md",
+      "sha256": "e513879327c68e34c05309b235bf28b92addc526d3ab3c61c1ca15c6b4c288f6"
+    },
+    "skills/bn-mock/references/overwrite-safety.md": {
+      "source": "plugin/skills/bn-mock/references/overwrite-safety.md",
+      "sha256": "aee4be401c30ffd61e117f41acfc2d800c2701c9b3b623422dea6cac8994be4d"
+    },
     "skills/bn-onboard/SKILL.md": {
       "source": "plugin/skills/bn-onboard/SKILL.md",
       "sha256": "eeacfa3825f2569a5f783d4e3d9448dfe13ba6ccbe17ece24a2b04ccc27f0785"
+    },
+    "skills/bn-onboard/references/classification.md": {
+      "source": "plugin/skills/bn-onboard/references/classification.md",
+      "sha256": "46fa1f250c7bba895f0c89205bc702bd307cf5d55c481eec794f7dcb59ff9699"
+    },
+    "skills/bn-onboard/references/manifest.md": {
+      "source": "plugin/skills/bn-onboard/references/manifest.md",
+      "sha256": "888efcc21f6b542dab546a64dcefe8b440699df70ddc18e68317a149b2a45690"
     },
     "skills/bn-plan/SKILL.md": {
       "source": "plugin/skills/bn-plan/SKILL.md",
@@ -278,9 +506,49 @@
       "source": "plugin/skills/bn-poc/SKILL.md",
       "sha256": "390ce997a4a2e924ad721317e03360f844b00489224896ba32c15cc9d08abdae"
     },
+    "skills/bn-poc/references/fidelity-doctrine.md": {
+      "source": "plugin/skills/bn-poc/references/fidelity-doctrine.md",
+      "sha256": "d98baf453ffd63b23593a652f33716623cd59dfac1e142cfa316e36dd54b2249"
+    },
+    "skills/bn-poc/references/handoff.md": {
+      "source": "plugin/skills/bn-poc/references/handoff.md",
+      "sha256": "ada2b123498e44d80e6674f72636268c2011490e0adcd00fb0b157edf8bdfd35"
+    },
+    "skills/bn-poc/references/overwrite-safety.md": {
+      "source": "plugin/skills/bn-poc/references/overwrite-safety.md",
+      "sha256": "68e6347c43c677a3167f2176474195aa2086afd5850eac06d1bb1c1d05df857e"
+    },
+    "skills/bn-poc/references/poc-notes-schema.md": {
+      "source": "plugin/skills/bn-poc/references/poc-notes-schema.md",
+      "sha256": "ba59ba2e63cc22962e448c74973bbe7c4624dd0d68bd2774d7c06809ac3f544c"
+    },
     "skills/bn-resolve-pr/SKILL.md": {
       "source": "plugin/skills/bn-resolve-pr/SKILL.md",
       "sha256": "8d2df08492cb19bad2d3cbdf35d7345a6694ae18c83cff59fcad5eecf769a6d4"
+    },
+    "skills/bn-resolve-pr/references/full-mode.md": {
+      "source": "plugin/skills/bn-resolve-pr/references/full-mode.md",
+      "sha256": "283684215c1640e4a7799fe9b86944e16d8804fdcc29dac30fe0644c2deaac8c"
+    },
+    "skills/bn-resolve-pr/references/targeted-mode.md": {
+      "source": "plugin/skills/bn-resolve-pr/references/targeted-mode.md",
+      "sha256": "d583ffccb06663091d3d18f7c196910ffe1a6f0693a8e01307396a80845cffb3"
+    },
+    "skills/bn-resolve-pr/scripts/get-pr-comments": {
+      "source": "plugin/skills/bn-resolve-pr/scripts/get-pr-comments",
+      "sha256": "7fc07a83c0818e2aeaefba23f4a87eead62a53cf6c36e7c6dc8376de6cbf5b17"
+    },
+    "skills/bn-resolve-pr/scripts/get-thread-for-comment": {
+      "source": "plugin/skills/bn-resolve-pr/scripts/get-thread-for-comment",
+      "sha256": "e00c170907f5b62de1e9bf559e826b39c917b34f8cb1428bfcfc63af054c7f08"
+    },
+    "skills/bn-resolve-pr/scripts/reply-to-pr-thread": {
+      "source": "plugin/skills/bn-resolve-pr/scripts/reply-to-pr-thread",
+      "sha256": "cbe0f6ff8331857ec8a27e2765d9abda08e166e63e32d1378787e6654b5ed1d3"
+    },
+    "skills/bn-resolve-pr/scripts/resolve-pr-thread": {
+      "source": "plugin/skills/bn-resolve-pr/scripts/resolve-pr-thread",
+      "sha256": "a2582a71110c49ad66e66c4954d0647d0ab0597838409e1f4896ac8f6b90d83f"
     },
     "skills/bn-review/SKILL.md": {
       "source": "plugin/skills/bn-review/SKILL.md",
@@ -290,9 +558,33 @@
       "source": "plugin/skills/bn-runbook/SKILL.md",
       "sha256": "07e646ae141efa4aff81d5bd0b18d6f13a6fd6b78d4830ef7c24cd682265e872"
     },
+    "skills/bn-runbook/references/execute-validate.md": {
+      "source": "plugin/skills/bn-runbook/references/execute-validate.md",
+      "sha256": "20573cf1c4f3ef51e130cbebd50ea7e2c9bcf9a75c5671d7edefc38ecea21d15"
+    },
+    "skills/bn-runbook/references/plan-handoff.md": {
+      "source": "plugin/skills/bn-runbook/references/plan-handoff.md",
+      "sha256": "f29aa6c24f9160b986e9d3381d429df36c138e260c89b024f4981d44a637f2b3"
+    },
+    "skills/bn-runbook/references/recipe-write.md": {
+      "source": "plugin/skills/bn-runbook/references/recipe-write.md",
+      "sha256": "0d9258a6272ab24fd2851fe82f57f0e5c9ea6356d161d395c1c89eed92e9654f"
+    },
+    "skills/bn-runbook/references/tiering.md": {
+      "source": "plugin/skills/bn-runbook/references/tiering.md",
+      "sha256": "f9b11c26d9b5e48ab38e0aa6694d1fc54d42e84342f05a7c6f492c48b6cd340c"
+    },
     "skills/bn-ship/SKILL.md": {
       "source": "plugin/skills/bn-ship/SKILL.md",
       "sha256": "3e918e765f81a992573245afbe6157ccd055104f8ff552549c140aa0e3b836f7"
+    },
+    "skills/bn-ship/references/branch-creation.md": {
+      "source": "plugin/skills/bn-ship/references/branch-creation.md",
+      "sha256": "5864b9a60d01d78acaa8d927d03a38ce398ce6f13d9fa662b6dc760520467c7a"
+    },
+    "skills/bn-ship/references/pr-description-writing.md": {
+      "source": "plugin/skills/bn-ship/references/pr-description-writing.md",
+      "sha256": "03688c89c53997470b0c809e54af97fca0b030fc3c23061da814bb8c0a59ab1b"
     },
     "skills/bn-spec-stress/SKILL.md": {
       "source": "plugin/skills/bn-spec-stress/SKILL.md",

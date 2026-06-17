@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+"""Validate .banyan/solutions frontmatter for parser-safety issues.
+
+Usage:
+    python3 validate-frontmatter.py <doc-path-or-dir>
+
+Exit codes:
+    0: frontmatter passes all checks.
+    1: validation failure, with diagnostics on stderr.
+    2: usage error, such as a missing argument or missing path.
+"""
+
+from pathlib import Path
+import re
+import sys
+from typing import NoReturn
+
+
+EXIT_VALIDATION_FAILURE = 1
+EXIT_USAGE_ERROR = 2
+FRONTMATTER_DELIMITER = "---"
+SPACE_HASH_PATTERN = re.compile(r"\s#")
+COLON_SPACE_PATTERN = re.compile(r":\s")
+INDENT_PREFIXES = (" ", "\t")
+QUOTED_OR_STRUCTURED_PREFIXES = ('"', "'", "[", "{", "|", ">")
+
+# Banyan-internal bookkeeping that lives only on candidate lessons under a run
+# ledger's lessons-staging/ dir. The curator strips each one on promotion so the
+# curated knowledge store stays byte-for-byte v1-compatible (AGENTS.md
+# invariant 8). The clean-store guard rejects any of these as a top-level key on
+# a doc inside .banyan/solutions/, so a staging-only key can never leak in.
+STAGING_ONLY_KEYS = ("status", "claim_type", "intervention")
+SOLUTIONS_DIR_NAME = "solutions"
+
+
+def usage_fail(message: str) -> NoReturn:
+    """Exit with a usage diagnostic.
+
+    Args:
+        message: Diagnostic text to print after the command name.
+    """
+    sys.stderr.write(f"validate-frontmatter: {message}\n")
+    sys.exit(EXIT_USAGE_ERROR)
+
+
+def is_curated_solution(doc_path: Path) -> bool:
+    """Report whether a doc lives in the curated knowledge store.
+
+    A staged candidate lives under a run ledger's lessons-staging/ dir and may
+    carry staging-only keys; a curated doc lives in the .banyan/solutions/ tree and
+    may not. The clean-store guard only applies to the latter.
+
+    The curated store is identified by an adjacent ``.banyan``/``solutions`` pair, so
+    an unrelated path such as ``app/solutions/foo.md`` is not treated as the store.
+
+    Args:
+        doc_path: Markdown file being validated.
+
+    Returns:
+        True when the path is inside .banyan/solutions/ and not a lessons-staging/ candidate.
+    """
+    parts = doc_path.resolve().parts
+    in_store = any(
+        parts[i] == ".banyan" and parts[i + 1] == SOLUTIONS_DIR_NAME
+        for i in range(len(parts) - 1)
+    )
+    return in_store and "lessons-staging" not in parts
+
+
+def is_in_validator_scope(target: Path) -> bool:
+    """Report whether target sits in this validator's scope.
+
+    This tool checks ONLY YAML parser-safety of frontmatter under .banyan/solutions/
+    (curated docs) and lessons-staging/ (candidates the curator validates before
+    promotion). Pointed anywhere else it still parses, so it can manufacture false
+    confidence (e.g. exiting 0 on plugin/agents/ as if it had verified name==stem or
+    Agent(...) allowlists, which it never inspects). Callers use this to warn.
+
+    Args:
+        target: File or directory the CLI was given.
+
+    Returns:
+        True when the resolved path is inside .banyan/solutions/ or a lessons-staging/ area.
+    """
+    parts = target.resolve().parts
+    in_store = any(
+        parts[i] == ".banyan" and parts[i + 1] == SOLUTIONS_DIR_NAME
+        for i in range(len(parts) - 1)
+    )
+    return in_store or "lessons-staging" in parts
+
+
+def validate_file(doc_path: Path) -> int:
+    """Validate one markdown file's YAML frontmatter parser safety.
+
+    Args:
+        doc_path: Markdown file to validate.
+
+    Returns:
+        Process-style status code: 0 for pass, 1 for validation failure.
+    """
+    text = doc_path.read_text(encoding="utf-8")
+    issues: list[str] = []
+    guard_curated = is_curated_solution(doc_path)
+
+    lines = text.split("\n")
+    if not lines or lines[0].rstrip() != FRONTMATTER_DELIMITER:
+        sys.stderr.write(
+            f"FAIL: {doc_path}\n"
+            "  file does not start with '---' frontmatter delimiter line\n"
+        )
+        return EXIT_VALIDATION_FAILURE
+
+    end_idx: int | None = None
+    for index in range(1, len(lines)):
+        if lines[index].rstrip() == FRONTMATTER_DELIMITER:
+            end_idx = index
+            break
+
+    if end_idx is None:
+        sys.stderr.write(
+            f"FAIL: {doc_path}\n"
+            "  frontmatter not closed (no '---' line after the opening delimiter)\n"
+        )
+        return EXIT_VALIDATION_FAILURE
+
+    frontmatter_text = "\n".join(lines[1:end_idx])
+    for lineno, line in enumerate(frontmatter_text.split("\n"), start=2):
+        stripped = line.lstrip()
+        if not stripped or stripped.startswith("#") or ":" not in line:
+            continue
+        if line.startswith(INDENT_PREFIXES) or stripped.startswith("- "):
+            continue
+
+        key, _separator, value = line.partition(":")
+        if guard_curated and key.strip() in STAGING_ONLY_KEYS:
+            issues.append(
+                f"line {lineno}: '{key.strip()}' is a staging-only key and must "
+                "not appear on a .banyan/solutions/ doc -- the curator strips it on "
+                "promotion to keep the curated store byte-for-byte v1 "
+                "(AGENTS.md invariant 8)."
+            )
+        stripped_value = value.strip()
+        if not stripped_value:
+            continue
+        if stripped_value[0] in QUOTED_OR_STRUCTURED_PREFIXES:
+            continue
+
+        if SPACE_HASH_PATTERN.search(stripped_value):
+            issues.append(
+                f"line {lineno}: '{key.strip()}' value contains ' #' -- quote it. "
+                "YAML treats space-then-# as a comment delimiter and silently "
+                "drops the rest of the value."
+            )
+        if COLON_SPACE_PATTERN.search(stripped_value):
+            issues.append(
+                f"line {lineno}: '{key.strip()}' value contains ': ' -- quote it. "
+                "Strict YAML parsers may treat this as a nested mapping."
+            )
+
+    if issues:
+        sys.stderr.write(f"FAIL: {doc_path}\n")
+        for issue in issues:
+            sys.stderr.write(f"  {issue}\n")
+        return EXIT_VALIDATION_FAILURE
+
+    sys.stdout.write(f"OK: {doc_path}\n")
+    return 0
+
+
+def iter_markdown_files(target: Path) -> list[Path]:
+    """Return markdown files under a target directory in deterministic order.
+
+    Args:
+        target: Directory to scan recursively.
+
+    Returns:
+        Sorted markdown file paths.
+    """
+    return sorted(path for path in target.rglob("*.md") if path.is_file())
+
+
+def main(argv: list[str]) -> int:
+    """Run the frontmatter validator CLI.
+
+    Args:
+        argv: Command-line argument vector.
+
+    Returns:
+        Process exit code.
+    """
+    if len(argv) != 2:
+        usage_fail(f"usage: {Path(argv[0]).name} <doc-path-or-dir>")
+
+    target = Path(argv[1])
+    if target.exists() and not is_in_validator_scope(target):
+        sys.stderr.write(
+            "validate-frontmatter: NOTE -- this tool checks ONLY .banyan/solutions "
+            "(and lessons-staging) YAML parser-safety. It does NOT verify agent "
+            "name==stem or that Agent(...) allowlists parse; use /bn-doctor Check 2 "
+            f"for those. Target is outside that scope: {target}\n"
+        )
+    if target.is_file():
+        return validate_file(target)
+
+    if target.is_dir():
+        markdown_files = iter_markdown_files(target)
+        if not markdown_files:
+            usage_fail(f"no .md files found under directory: {target}")
+
+        worst_status = 0
+        for path in markdown_files:
+            status = validate_file(path)
+            if status != 0:
+                worst_status = EXIT_VALIDATION_FAILURE
+        return worst_status
+
+    usage_fail(f"file not found: {target}")
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
