@@ -14,7 +14,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 ```
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
-  agents/                      one agent per file: bn-*.md (50 agents)
+  agents/                      one agent per file: bn-*.md (54 agents)
   skills/                      one skill per directory: bn-*/SKILL.md (18 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
@@ -73,10 +73,10 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
   and returns a humble feasibility verdict; routes it back through the owning skills
   (propose-never-patch).
 - **Reviewer panel** — 7 always-on reviewers (correctness, testing, maintainability,
-  YAGNI, project standards, agent-native, learnings) and 8 conditional reviewers
-  (security, performance, API contract, data migration, reliability, adversarial, spec
-  fidelity, plus previous-comments for PR-mode reviews). All read-only — `bn-review-lead`
-  produces findings, it does not fix.
+  YAGNI, project standards, agent-native, learnings) and 9 conditional reviewers
+  (security, performance, API contract, data migration, reliability, architecture,
+  adversarial, spec fidelity, plus previous-comments for PR-mode reviews). All read-only —
+  `bn-review-lead` produces findings, it does not fix.
   `bn-finding-owner` fixes-and-verifies one confirmed finding — spawned by `bn-delivery-lead`
   during `/bn-work`'s review→fix loop (not by the read-only review subtree).
 - **Researchers & investigators** — repo, best-practices, framework-docs, and web
@@ -92,9 +92,12 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 - **Planning subtree** — `bn-plan-lead` writes durable plans; `bn-plan-generator` (one draft
   per prior: mvp / risk / ops), `bn-plan-judge` (independent rubric scoring), and
   `bn-plan-checker` (repo-grounded precheck of the winning draft).
-- **Spec stress lenses** — `bn-spec-scenario-reviewer`, `bn-spec-assumption-reviewer`,
-  and `bn-spec-threat-reviewer` pressure-test requirements before planning when their
-  triggers are present.
+- **Spec stress lenses** — six requirements-stage lenses that pressure-test a spec before
+  planning when their triggers are present: `bn-spec-scenario-reviewer`,
+  `bn-spec-assumption-reviewer`, and `bn-spec-threat-reviewer`, plus
+  `bn-spec-design-reviewer`, `bn-spec-product-reviewer`, and `bn-spec-coherence-reviewer`
+  (ported from compound-engineering's design-lens, product-lens, and coherence document
+  reviewers).
 - **Compounding loop** — `bn-lesson-harvester` (the bounded leaf every lead spawns
   before returning) and `bn-knowledge-curator` (consolidates staged lessons into
   `.banyan/solutions/`).

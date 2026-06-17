@@ -88,3 +88,27 @@ bugs is judgment-heavy work that benefits from the strongest model:
 - **bn-data-migration-reviewer:** `sonnet` -> `opus`.
 - **bn-reliability-reviewer:** `sonnet` -> `opus`.
 - **bn-adversarial-reviewer:** `inherit` -> `opus`.
+
+---
+
+## 2026-06-17 — architecture reviewer ported + enrichments cross-pollinated
+
+### bn-architecture-reviewer (<- ce-architecture-strategist)
+
+New conditional reviewer ported from `plugins/compound-engineering/agents/ce-architecture-strategist.md`.
+
+- **Frontmatter `name`:** `ce-architecture-strategist` -> `bn-architecture-reviewer` (matches stem).
+- **Frontmatter `model`:** `inherit` -> `opus` (invariant 7; system-level structural judgment is reasoning-heavy).
+- **Frontmatter `tools`:** unchanged class (`Read, Grep, Glob, Bash`) + `Write` for the findings artifact; `color: blue`. No `Agent(...)` — read-only leaf.
+- **Persona body:** the systematic approach (understand architecture, analyze change context, identify violations, long-term implications), the SOLID/dependency-cycle/boundary checks, and the architectural-smell list (inappropriate intimacy, leaky abstractions, dependency-rule violations, pattern inconsistency, missing boundaries) preserved as hunting heuristics.
+- **Lane separation added (Banyan-specific):** an explicit "your lane" block carves system-level structure (cross-module dependency direction, cycles, boundary/interface integrity, SOLID erosion with coupling impact, pattern consistency) away from `bn-maintainability-reviewer`'s local complexity/naming/dead-code focus, so the two personas do not double-report. Added a greenfield carve-out ("no established pattern to violate") and a principle-citing-without-impact suppression to the "what you don't flag" section.
+- **Output-contract swap:** upstream's 5-section prose report ("Architecture Overview / Change Assessment / Compliance Check / Risk Analysis / Recommendations") replaced with the canonical Banyan REVIEWER block: findings JSON per `schemas/findings-schema.json`, `reviewer: architecture`, anchored confidence rubric, standalone path `./bn-findings-architecture.json`, verdict line `architecture: ...`.
+- **Wiring:** added to `bn-review-lead`'s `Agent(...)` allowlist and its Step 2 conditional selection matrix (spawn-gate: diff crosses a module/package/service boundary, adds a new cross-layer import/dependency direction, introduces a new layer/abstraction, or restructures responsibilities). The review-panel `max_children` cap was raised 15 -> 16 (in `bn-review/SKILL.md` and the `bn-delivery-lead` review-lead spawn) to seat a 9th conditional.
+
+### Enrichments cross-pollinated from sibling compound-engineering agents
+
+These are Banyan-owned divergences: each enriches a reviewer ported from one `ce-*` agent with hunting expertise from a *different*, deeper `ce-*` agent covering the same domain. The existing persona bodies, confidence anchors, and "what you don't flag" suppression discipline are preserved; only additive hunting lenses and severity-calibration notes were added.
+
+- **bn-performance-reviewer** <- enriched from `ce-performance-oracle`: added algorithmic-complexity (Big-O, 10x/100x projection), chatty-network/round-trip, and frontend-bundle-size hunting bullets, plus a "Scale projection and calibration benchmarks" note that re-homes the oracle's numeric standards (O(n log n) bar, ~hundreds-of-ms request budget, indexed-query expectation, bounded memory, bundle budget) **as severity calibration gated by the existing higher-threshold suppression** — explicitly not as standards that emit a finding per deviation. The oracle's 5-section prose output format was NOT imported (the canonical findings JSON contract is kept).
+- **bn-security-reviewer** <- enriched from `ce-security-sentinel`: added a mass-assignment/unsafe-redirect hunting bullet and an "OWASP coverage sweep" subsection mapping the Top-10 classes as a where-to-look guide. Kept Banyan's "no generic hardening advice" rule: a category emits a finding only on a concrete diff-visible exploitable gap, never on "category not addressed." The sentinel's shell `grep -r` recipes were NOT imported (native Grep/Glob per tool-selection policy); its executive-summary/risk-matrix report format was NOT imported.
+- **bn-data-migration-reviewer** <- enriched from `ce-data-integrity-guardian`: added a "Data integrity (constraints, transactions, referential integrity)" subsection covering single-sided constraints, uniqueness race conditions, transaction-boundary/isolation gaps, referential integrity (FK/cascade/orphan/polymorphic), and deadlock-prone lock ordering, scoped to `review_focus` `migration`/`both` and any persistence/model change. Confidence anchors, the privacy lane, and the output contract are unchanged.

@@ -57,6 +57,10 @@ path within the pinned compound-engineering checkout.
 | plugin/agents/bn-data-migration-reviewer.md | plugins/compound-engineering/agents/ce-data-migration-reviewer.md | conditional |
 | plugin/agents/bn-reliability-reviewer.md | plugins/compound-engineering/agents/ce-reliability-reviewer.md | conditional |
 | plugin/agents/bn-adversarial-reviewer.md | plugins/compound-engineering/agents/ce-adversarial-reviewer.md | conditional |
+| plugin/agents/bn-architecture-reviewer.md | plugins/compound-engineering/agents/ce-architecture-strategist.md | conditional |
+| plugin/agents/bn-spec-design-reviewer.md | plugins/compound-engineering/agents/ce-design-lens-reviewer.md | document-review |
+| plugin/agents/bn-spec-product-reviewer.md | plugins/compound-engineering/agents/ce-product-lens-reviewer.md | document-review |
+| plugin/agents/bn-spec-coherence-reviewer.md | plugins/compound-engineering/agents/ce-coherence-reviewer.md | document-review |
 | plugin/agents/bn-repo-researcher.md | plugins/compound-engineering/agents/ce-repo-research-analyst.md | researcher |
 | plugin/agents/bn-best-practices-researcher.md | plugins/compound-engineering/agents/ce-best-practices-researcher.md | researcher |
 | plugin/agents/bn-framework-docs-researcher.md | plugins/compound-engineering/agents/ce-framework-docs-researcher.md | researcher |
@@ -108,7 +112,8 @@ this wave is in flight.
 | Edit log | Covers |
 |---|---|
 | [`edits/agents-always-on.md`](./edits/agents-always-on.md) | The 6 always-on reviewers: correctness, testing, maintainability, project-standards, agent-native, learnings-researcher. |
-| [`edits/agents-conditional.md`](./edits/agents-conditional.md) | The 6 conditional reviewers: security, performance, api-contract, data-migration, reliability, adversarial. |
+| [`edits/agents-conditional.md`](./edits/agents-conditional.md) | The conditional reviewers: security, performance, api-contract, data-migration, reliability, adversarial, and architecture (ported from `ce-architecture-strategist`). |
+| [`edits/document-review.md`](./edits/document-review.md) | The 3 spec-stress document-review lenses ported from compound-engineering's document reviewers: design (`ce-design-lens-reviewer`), product (`ce-product-lens-reviewer`), coherence (`ce-coherence-reviewer`). |
 | [`edits/agents-researchers.md`](./edits/agents-researchers.md) | The 5 researcher/utility agents: repo-researcher, best-practices-researcher, framework-docs-researcher, web-researcher, deployment-verifier. |
 | [`edits/persistence.md`](./edits/persistence.md) | The persistence layer: solution-frontmatter.yaml + findings-schema.json (verbatim) and validate-frontmatter.py (ported — directory-walk plumbing edit). |
 | [`edits/lifecycle.md`](./edits/lifecycle.md) | The lifecycle skill bn-ship (+ its two references). |

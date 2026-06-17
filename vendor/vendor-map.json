@@ -76,6 +76,30 @@
       "group": "conditional"
     },
     {
+      "local": "plugin/agents/bn-architecture-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-architecture-strategist.md",
+      "mode": "ported",
+      "group": "conditional"
+    },
+    {
+      "local": "plugin/agents/bn-spec-design-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-design-lens-reviewer.md",
+      "mode": "ported",
+      "group": "document-review"
+    },
+    {
+      "local": "plugin/agents/bn-spec-product-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-product-lens-reviewer.md",
+      "mode": "ported",
+      "group": "document-review"
+    },
+    {
+      "local": "plugin/agents/bn-spec-coherence-reviewer.md",
+      "upstream": "plugins/compound-engineering/agents/ce-coherence-reviewer.md",
+      "mode": "ported",
+      "group": "document-review"
+    },
+    {
       "local": "plugin/agents/bn-repo-researcher.md",
       "upstream": "plugins/compound-engineering/agents/ce-repo-research-analyst.md",
       "mode": "ported",

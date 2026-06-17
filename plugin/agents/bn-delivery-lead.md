@@ -332,7 +332,7 @@ mergeable to review), record why, and carry the integration failure to the repor
                     lessons-staging/. Never edit source, fix, commit, push, or touch protected
                     artifacts. Does not own a ledger row (you own them).
    budget:
-     max_children:    15
+     max_children:    16
      depth_remaining: 2
    effort_class:    <your effort_class>
    === END ENVELOPE ===

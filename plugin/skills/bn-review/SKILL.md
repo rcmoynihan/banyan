@@ -133,7 +133,7 @@ tool_guidance:   Read, Grep, Glob, read-only Bash (git diff/show/blame/log, gh p
                  Agent(...) to spawn its reviewer panel per its own dispatch policy (no
                  finding-owners -- it does not fix).
 budget:
-  max_children:    15
+  max_children:    16
   depth_remaining: 3
 effort_class:    <lightweight | standard | deep>
 === END ENVELOPE ===

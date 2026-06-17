@@ -204,12 +204,121 @@ effort_class:    <standard | deep>
 === END ENVELOPE ===
 ```
 
+### Design lens
+
+Spawn `bn-spec-design-reviewer` only when the feature has a **user-facing surface** (a screen,
+view, page, flow, or other UX the requirements commit to) AND effort is `standard` or `deep`.
+Skip it for backend-only, library, CLI-internal, or data-pipeline requirements with no
+user-observable interface.
+
+Envelope:
+
+```text
+=== BANYAN ENVELOPE ===
+objective:       Read the requirements for missing design decisions (information architecture,
+                 interaction states, user-flow completeness, accessibility commitments, and
+                 AI-slop risk) that would block or derail implementation.
+artifact_path:   .banyan/runs/<run-id>/briefs/spec-design-stress.md
+output_format:   Candidate list with Source, Trigger, Gap, and Disposition.
+inputs:
+  requirements_doc:     <.banyan/brainstorms/...-requirements.md, or "none">
+  requirements_summary: <summary text, or "none">
+  research_brief:       <.banyan/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <.banyan/runs/.../briefs/brainstorm-grounding.md, or "none">
+  repo_root:            <repo root>
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
+boundaries:      Read-only against the repo except artifact_path. Do not edit source,
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or other .banyan/runs files.
+tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
+budget:
+  max_children:    0
+  depth_remaining: 1
+effort_class:    <standard | deep>
+=== END ENVELOPE ===
+```
+
+### Product lens
+
+Spawn `bn-spec-product-reviewer` at `standard` or `deep` effort when the requirements carry
+product weight: a premise/motivation to test, strategic consequences, priority tiers, stated
+goals to align against, or a plausibly cheaper alternative. Pass `requirements_origin` so the
+reviewer calibrates premise scrutiny: set it to `brainstorm` when the input is a
+`.banyan/brainstorms/*-requirements.md` doc or came from `/bn-brainstorm` intake (premise already
+validated upstream — the reviewer suppresses premise and prioritization re-litigation), and
+`external` for a pasted summary, an external doc, or a greenfield bootstrap.
+
+Envelope:
+
+```text
+=== BANYAN ENVELOPE ===
+objective:       Read the requirements as a senior product leader and emit product-level gaps
+                 (premise, strategic consequences, alternatives, goal-requirement alignment,
+                 prioritization) that would change scope, sequencing, or direction.
+artifact_path:   .banyan/runs/<run-id>/briefs/spec-product-stress.md
+output_format:   Candidate list with Source, Trigger, Gap, and Disposition.
+inputs:
+  requirements_doc:     <.banyan/brainstorms/...-requirements.md, or "none">
+  requirements_summary: <summary text, or "none">
+  requirements_origin:  <brainstorm | external>
+  research_brief:       <.banyan/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <.banyan/runs/.../briefs/brainstorm-grounding.md, or "none">
+  repo_root:            <repo root>
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
+boundaries:      Read-only against the repo except artifact_path. Do not edit source,
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or other .banyan/runs files.
+tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
+budget:
+  max_children:    0
+  depth_remaining: 1
+effort_class:    <standard | deep>
+=== END ENVELOPE ===
+```
+
+### Coherence lens
+
+Spawn `bn-spec-coherence-reviewer` when the requirements span **four or more requirements** or
+multiple sections (where internal contradictions, terminology drift, and broken references become
+likely) AND effort is `standard` or `deep`.
+
+Envelope:
+
+```text
+=== BANYAN ENVELOPE ===
+objective:       Read the requirements for internal consistency (contradictions, terminology
+                 drift, structural gaps, broken references, ambiguity) where two implementers
+                 would build different things from the same text.
+artifact_path:   .banyan/runs/<run-id>/briefs/spec-coherence-stress.md
+output_format:   Candidate list with Source, Trigger, Gap, and Disposition.
+inputs:
+  requirements_doc:     <.banyan/brainstorms/...-requirements.md, or "none">
+  requirements_summary: <summary text, or "none">
+  research_brief:       <.banyan/runs/.../briefs/research-brief.md, or "none">
+  supplemental_grounding: <.banyan/runs/.../briefs/brainstorm-grounding.md, or "none">
+  repo_root:            <repo root>
+doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
+                 ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
+boundaries:      Read-only against the repo except artifact_path. Do not edit source,
+                 .banyan/brainstorms, .banyan/plans, .banyan/solutions, or other .banyan/runs files.
+tool_guidance:   Read, Grep, Glob, and Write only to artifact_path. No Agent spawns.
+budget:
+  max_children:    0
+  depth_remaining: 1
+effort_class:    <standard | deep>
+=== END ENVELOPE ===
+```
+
 ## Step 5 -- Synthesize findings
 
 READ every triggered leaf artifact. Drop vague findings. A retained item must include:
 
 - a source requirement ID, acceptance example ID, or explicit `whole document` source;
-- the scenario, assumption, premortem, asset, actor, or threat trigger;
+- the lens trigger: scenario, assumption, premortem, asset, actor, or threat; design
+  decision (information architecture, interaction state, user flow, accessibility, AI-slop);
+  product gap (premise, strategic consequence, alternative, goal alignment, prioritization);
+  or coherence issue (contradiction, terminology drift, structural gap, broken reference,
+  ambiguity);
 - the insufficiency in the current requirements text;
 - a required disposition.
 

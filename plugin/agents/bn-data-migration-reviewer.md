@@ -74,6 +74,28 @@ If neither dump file is in the diff, skip this step.
 - **Hot-table index changes** — large-table indexes without concurrent/online creation where available.
 - **Silent data loss** — `text` → `varchar(n)` truncation, float → integer precision loss.
 
+## Data integrity (constraints, transactions, referential integrity)
+
+Run this hunt when `review_focus` is `migration` or `both`, and over any persistence/model change
+in the diff — the same deploy-window paranoia, one layer in toward the data model itself. Hunt for:
+
+- **Missing or single-sided constraints** — a uniqueness/format/presence rule enforced only in
+  app code with no database constraint behind it (so a concurrent writer or a second code path
+  violates it), or a new non-null business field with no `NOT NULL` / validation.
+- **Uniqueness race conditions** — a check-then-insert ("does it exist? no -> create") with no
+  unique index, where two concurrent requests both pass the check and both insert.
+- **Transaction-boundary gaps** — a multi-row or multi-table write that must be atomic but runs
+  outside a transaction (a partial failure leaves inconsistent state), or a transaction whose
+  isolation level is too weak for the invariant it protects.
+- **Referential integrity** — a new association with no foreign key or cascade/`nullify`/restrict
+  behavior decided, so deleting a parent orphans children or leaves dangling references; a
+  polymorphic association with no integrity guard.
+- **Deadlock-prone ordering** — two paths that lock the same rows/tables in opposite order.
+
+Confidence and the output contract are unchanged; `reviewer` stays `"data-migration"`. These are
+real findings only when the diff shows the gap — a model write with no transaction, an
+association with no FK decision — not a blanket "add more constraints" wish.
+
 ## Privacy & data governance (when the diff persists or moves user data)
 
 Run this hunt when `review_focus` is `privacy` or `both`. Privacy lifecycle *is* persistent-data governance — the same mental model as migration safety, one layer out. The trigger is the diff persisting or moving user/PII data (a model/entity/ORM field, a serializer or DTO exposing user attributes, a persistence write of personal data, a deletion/export/retention path), with or without a migration artifact.
