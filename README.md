@@ -8,6 +8,7 @@ A banyan tree's branches drop aerial roots that become new trunks — a single t
 
 - **Subtrees with contracts, not waves.** Lead agents (`bn-review-lead`, `bn-research-lead`, `bn-delivery-lead`) own whole domains and orchestrate their own children; the main session stays a near-empty trunk that talks to the user.
 - **Leads answer; they don't just relay.** When a child hits a goal/intent question it can't resolve, it returns a bounded *ask* and leaves its full transcript on disk. The lead re-states the goal, answers from the ask alone — never reading the transcript — and a fresh continuation peer rehydrates from that transcript and proceeds. Questions resolve at the lowest competent layer; the human is the last rung, not the first.
+- **Leads drive skeptically.** Standing in for the human at the wheel means more than answering questions: a lead reads a worker's returned artifact the way a wary driver would, alert to the usual agent failure modes — goal drift, fixing the wrong problem, scope creep, overengineering, hallucinated context, tool misuse — and re-dispatches or escalates when a trajectory has slipped instead of trusting a confident-looking verdict. Catching those slips at the layer that spawned the work is a large part of what makes a single pass usually good enough to keep.
 - **Fractal compounding.** Lessons are harvested at the leaves, where context is fresh, and consolidated by a background curator — compounding as metabolism, not a command you remember to run.
 - **The ledger is the ground truth.** Coordination happens through files (`.banyan/runs/<run-id>/`); final messages are verdicts plus paths.
 - **Delegation envelopes.** Every spawn carries an objective, an artifact path, boundaries, and a budget (children, model tier, remaining depth).
@@ -55,11 +56,14 @@ however deep the tree goes. The full run nests four more stages — research, sp
 and a background curator — the same way.
 
 So why does that beat one agent doing everything? **The loop.** A lead acts less like
-a relay and more like a *human driving the tool*: when a worker hits a question it
+a relay and more like a *skeptical human driving the tool*: when a worker hits a question it
 shouldn't answer alone, it hands the lead a small, focused question and leaves its
 work behind; the lead answers from its broader view, and a fresh worker picks up where
-the last one stopped. Questions resolve at the lowest layer that actually can — so
-**you sit at the top of that ladder and are reached only as a last resort.**
+the last one stopped. And when work comes back, the lead reads it the way a wary driver
+would — catching goal drift, scope creep, or a confident-but-wrong verdict before it
+compounds, and re-driving the work rather than passing the slip upward. Questions resolve
+at the lowest layer that actually can — so **you sit at the top of that ladder and are
+reached only as a last resort,** and what reaches you has already been driven, not just relayed.
 
 ```mermaid
 sequenceDiagram
