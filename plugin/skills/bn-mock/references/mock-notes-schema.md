@@ -41,10 +41,14 @@ builder appends a new `## Iteration N` block; prior iterations are never rewritt
 - <the exact copy-pasteable per-medium run/open command — see the per-medium command list in
   fidelity-doctrine / handoff>
 
-### Chosen modality + omitted surfaces
+### Chosen modality + surface inventory
 - **Primary medium:** GUI | CLI | API | agent-transcript
 - **Why this medium:** <one line>
-- **Omitted surfaces:** <other surfaces the idea also has, named but not built — or "none">
+- **Surface inventory:** every surface of the idea, each in exactly one tier:
+
+| surface | tier | note |
+|---------|------|------|
+| <surface> | built-to-fidelity \| navigable-placeholder \| omitted-with-rationale | <one line: scenarios covered, or why placeholder/omitted> |
 
 ### Hardcoded scenarios
 - <scenario 1 — happy path: what it shows>
@@ -86,6 +90,11 @@ builder appends a new `## Iteration N` block; prior iterations are never rewritt
 - **Disposition values** are exactly one of: `fold into requirements`, `send to
   spec-stress`, `replan`, `safe to plan/work`, `mock-only`. The routing for each lives in
   `handoff.md`.
+- **Surface tiers** are exactly one of: `built-to-fidelity`, `navigable-placeholder`,
+  `omitted-with-rationale` (`fidelity-doctrine.md` §1.5). Every surface of the idea appears in the
+  surface inventory in exactly one tier; control surfaces (onboarding, cold-start, auth, profile,
+  billing, settings) are navigable-placeholders rather than prose omissions whenever they are
+  needed to see the whole app.
 - **Plan-impact column** is populated ONLY when the input was a plan path; each finding gets
   one of `no replan needed`, `requirements revision needed`, `replan before work`, so a
   known-wrong plan is never silently carried into `/bn-work`.

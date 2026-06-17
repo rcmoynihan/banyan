@@ -1,0 +1,220 @@
+/*
+ * Banyan mock — baseline legibility floor.
+ *
+ * Shipped with /bn-mock and copied verbatim into mock/<slug>/mock.css by bn-mock-builder.
+ * Its only job is to make a mock pleasant enough to navigate that looking at it is not painful,
+ * WITHOUT crossing the anti-real-machine boundary (fidelity-doctrine.md §2):
+ *   - visual legibility is encouraged at a floor;
+ *   - fake-real fidelity is NOT — unbuilt surfaces stay labeled .mock-placeholder panels;
+ *   - the .mock-banner is the boundary's visible signature and must stay visible.
+ *
+ * Hard constraints: system fonts only, NO @import, NO external url(...) (a web font would breach
+ * the no-network rule). Plain CSS, no build step. Self-contained: rm -rf mock/<slug>/ removes it.
+ */
+
+:root {
+  --mock-bg: #f7f7f8;
+  --mock-surface: #ffffff;
+  --mock-border: #d8d8de;
+  --mock-text: #1c1c20;
+  --mock-muted: #6b6b76;
+  --mock-accent: #2f5bea;
+  --mock-banner-bg: #2b2b33;
+  --mock-banner-fg: #ffd23f;
+  --mock-placeholder-bg: #fbf4e6;
+  --mock-placeholder-border: #e0b94d;
+  --mock-radius: 8px;
+  --mock-gap: 16px;
+  --mock-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --mock-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--mock-font);
+  color: var(--mock-text);
+  background: var(--mock-bg);
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+/* --- Persistent mock banner: the boundary's visible signature. Do not style it away. --- */
+.mock-banner {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--mock-banner-bg);
+  color: var(--mock-banner-fg);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.mock-banner::before {
+  content: "▲";
+}
+
+/* --- App shell: a nav strip + content area so multi-surface mocks are navigable. --- */
+.mock-shell {
+  display: flex;
+  min-height: calc(100vh - 37px);
+}
+
+.mock-nav {
+  flex: 0 0 200px;
+  padding: var(--mock-gap);
+  border-right: 1px solid var(--mock-border);
+  background: var(--mock-surface);
+}
+
+.mock-nav a,
+.mock-nav button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  margin-bottom: 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--mock-text);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.mock-nav a:hover,
+.mock-nav button:hover {
+  background: var(--mock-bg);
+}
+
+.mock-nav a.is-active,
+.mock-nav button.is-active {
+  background: var(--mock-accent);
+  color: #fff;
+}
+
+.mock-main {
+  flex: 1 1 auto;
+  padding: 24px;
+  max-width: 880px;
+}
+
+/* --- Content primitives --- */
+.mock-card {
+  background: var(--mock-surface);
+  border: 1px solid var(--mock-border);
+  border-radius: var(--mock-radius);
+  padding: var(--mock-gap);
+  margin-bottom: var(--mock-gap);
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0 0 0.5em;
+}
+
+a {
+  color: var(--mock-accent);
+}
+
+.mock-muted {
+  color: var(--mock-muted);
+}
+
+button,
+.mock-button {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid var(--mock-accent);
+  border-radius: 6px;
+  background: var(--mock-accent);
+  color: #fff;
+  cursor: pointer;
+}
+
+button.secondary,
+.mock-button.secondary {
+  background: transparent;
+  color: var(--mock-accent);
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  padding: 8px 10px;
+  border: 1px solid var(--mock-border);
+  border-radius: 6px;
+  background: var(--mock-surface);
+  color: var(--mock-text);
+  width: 100%;
+  max-width: 360px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--mock-border);
+}
+
+code,
+.mock-code {
+  font-family: var(--mock-mono);
+  font-size: 0.9em;
+}
+
+/*
+ * --- Labeled placeholder: an unbuilt surface or capability. Legible, but unmistakably
+ * unfinished. NEVER replace this with a fake-real artifact (a chart wired to fake data, an
+ * invented price). Use for navigable-placeholder screens and high-blast-radius TBDs (§4).
+ */
+.mock-placeholder {
+  background: var(--mock-placeholder-bg);
+  border: 2px dashed var(--mock-placeholder-border);
+  border-radius: var(--mock-radius);
+  padding: 24px;
+  color: #7a5b16;
+  text-align: center;
+  font-weight: 600;
+}
+
+.mock-placeholder::before {
+  content: "MOCK PLACEHOLDER — ";
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.mock-tbd {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px dashed var(--mock-placeholder-border);
+  border-radius: 4px;
+  background: var(--mock-placeholder-bg);
+  color: #7a5b16;
+  font-family: var(--mock-mono);
+  font-size: 0.85em;
+}

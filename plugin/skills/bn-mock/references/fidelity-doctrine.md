@@ -51,18 +51,85 @@ write boundary above. It holds **only if `<slug>` is a validated slug.** Therefo
   first Write** and returns `blocked` (without writing anything) if it does not match — it never
   trusts an unvalidated slug just because the envelope supplied it.
 
-## 2. Functional over polished
+## 1.5 Surface coverage — one medium, a connected surface set
 
-Build the structure and the flow, not the finish. Styling, theming, animation, and pixel polish
-are OMITTED **unless the idea is itself about polish** (a redesign, a visual-language test, a
-motion study) — in which case the polish *is* the surface under test and gets built. Default:
-plain, legible, obviously-a-mock. A gray box labeled "chart goes here" beats a real chart wired
-to fake data, because the fake-real chart hides the boundary.
+"Build ONE medium" is a rule about *medium*, not about *screen count*. Building a GUI **and** a
+CLI **and** an API as three parallel half-mocks is the anti-pattern that rule forbids. Within the
+one chosen medium, the scope unit is the **app-shell surface set**: the connected screens that make
+the app legible as a whole. Mocking one screen and naming the rest in prose is the breadth failure
+this section corrects — a human cannot see design holes in an app they cannot navigate.
+
+Take a **surface inventory** of the idea and classify every surface into exactly one tier:
+
+- **built-to-fidelity** — interactive, exercised by the 2–3 scenarios of §3. The primary flow, and
+  any surface whose interaction is itself a design hole, belongs here.
+- **navigable-placeholder** — a real screen **reachable from the nav shell**, with correct labels
+  and structure but static/stub content and **no scenarios**. The control surfaces an app needs to
+  be legible — onboarding, cold-start / empty-state entry, an auth/login facade, the profile /
+  canvas editor, plan / subscription / billing, channel + settings — are navigable-placeholders
+  unless one of them is the primary flow under test. A navigable-placeholder is a labeled stub
+  screen reachable from the shell; it is **not** a half-mock and carries **no fake-real machinery**.
+- **omitted-with-rationale** — genuinely not built; named with a one-line why.
+
+The bound that keeps the mock disposable: **one medium; the 2–3-scenario DEPTH cap of §3 applies
+per built-to-fidelity surface, not as a cap on the number of surfaces; navigable-placeholders stay
+cheap because they carry no scenarios and no fake-real content.** Prefer a navigable-placeholder
+over an omission whenever a control surface is needed to see the whole app.
+
+A navigable-placeholder screen that *also* contains a high-blast-radius unknown still obeys §4: a
+billing placeholder shows the tier structure with a visible `PRICE: TBD` (per §4), never an
+invented price wired to look complete. "Navigable-placeholder" never licenses inventing a
+product-defining value to make a screen look finished.
+
+This tiering is a GUI/medium concern about *surface breadth*. For non-GUI media (CLI, API,
+agent-transcript) the equivalent is covering the idea's main commands / routes / turns; the
+legibility floor there is clean, readable output, not CSS (§2).
+
+## 2. A legibility floor, without fake-real fidelity
+
+Build the structure and the flow. A mock should be **pleasant enough to navigate that looking at
+it is not painful** — a baseline legibility floor — while staying **obviously a mock**. Two things
+are separate and must never be conflated:
+
+- **Visual legibility is encouraged at a floor.** Readable typography, sane spacing, a neutral
+  palette, a coherent layout, and a clear nav shell are *allowed and expected*. They cost nothing,
+  they make design holes easier to see, and they do not touch the boundary. The shared baseline
+  stylesheet (`assets/mock.css`, copied into `mock/<slug>/` — see §2.1) provides this floor so the
+  builder is not reinventing CSS per mock.
+- **Fake-real fidelity stays forbidden.** Dressing an *unbuilt capability* to look implemented is a
+  §1 boundary violation regardless of styling. A chart wired to fake data, a priced table that
+  implies pricing is decided, a search box that returns plausibly-real results — these hide the
+  boundary and are prohibited. An unbuilt surface stays a **labeled placeholder panel** (e.g.
+  "chart goes here — mock"), which may be cleanly styled but must read as unmistakably unfinished.
+
+The line: **make the mock legible, never make the unbuilt look built.** Polish that is *itself the
+surface under test* — a redesign, a visual-language test, a motion study — is still built as the
+surface; that case is unchanged.
+
+The "obviously-a-mock" identity is preserved by a **persistent mock banner**, not by ugliness.
+Every GUI mock renders a persistent, non-dismissable banner (a top strip reading "BANYAN MOCK —
+fake by design") so legibility never lets a viewer mistake the mock for a real build. The banner
+is the boundary's visible signature; the baseline stylesheet must not let it be styled away. The
+old "ugliness as a safety signal" rule is retired: that job now belongs to the persistent banner
+plus the labeled-placeholder rule, which is why visual legibility is free to rise to a floor.
+
+### 2.1 The baseline stylesheet is a copy, not an install
+
+The builder copies the shipped `${CLAUDE_PLUGIN_ROOT}/skills/bn-mock/assets/mock.css` into
+`mock/<slug>/mock.css` and links it relatively (`<link rel="stylesheet" href="mock.css">`, which
+works under `file://` with no server). **Copying a shipped static stylesheet into `mock/<slug>/`
+is a Write inside the write boundary — it is NOT an install and NOT a new runtime dependency** (it
+is a vendored static file, exactly like the README the builder already writes), so §1's "no
+installs / no new runtime dependency" does not forbid it. The stylesheet is plain CSS with a system
+font stack and **no `@import` and no external `url(...)`** (a web font would breach the no-network
+rule). The mock stays self-contained: `rm -rf mock/<slug>/` removes it whole.
 
 ## 3. The 2–3 telling-scenarios heuristic
 
-A mock covers **2–3 scenarios chosen to surface design holes**, not exhaustive coverage. Default
-heuristic, unless the input clearly warrants otherwise:
+A mock covers each **built-to-fidelity** surface (§1.5) with **2–3 scenarios chosen to surface
+design holes**, not exhaustive coverage. This caps the DEPTH of each built surface, not the NUMBER
+of surfaces in the inventory; **navigable-placeholder** surfaces carry no scenarios. Default
+heuristic for each built surface, unless the input clearly warrants otherwise:
 
 1. **One happy path** — the core flow working as intended.
 2. **One edge / empty / error state** — empty list, validation failure, "no results", a rejected
