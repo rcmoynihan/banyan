@@ -35,6 +35,12 @@ Inspect only requirements-level surfaces:
 - actor confusion, privilege boundaries, cross-tenant access, replay, injection of external
   content, and unsafe default visibility.
 
+Ground each candidate against the codebase before emitting it. Use Grep and Glob against
+`repo_root` to check whether an existing convention already enforces the boundary -- a shared
+tenant-scoping guard, central auth middleware, an established input-validation layer. A boundary
+the codebase already enforces by convention is not a requirements gap; suppress it and name the
+convention in `## Suppressed`.
+
 If the feature has no relevant surface, write `none` under candidates and return.
 
 ## Candidate bar
@@ -49,6 +55,11 @@ Keep a candidate only when it has all of:
 
 Drop implementation-only controls, generic security advice, and risks that do not affect
 requirements, sequencing, scope, or verification.
+
+Name the asset, the actor, and the missing boundary. Bad: "consider security / add rate
+limiting." Good: "R-4 lets any authenticated user fetch a report by ID but never scopes it to
+their tenant -- a cross-tenant read. Resolve Before Planning: is report visibility tenant-scoped
+or org-shared?"
 
 ## Output
 

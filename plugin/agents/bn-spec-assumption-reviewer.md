@@ -36,6 +36,11 @@ Pressure-test:
 - downstream implications for sequencing, verification, rollout, data retention, migration-like
   effects, or operational ownership.
 
+Ground each candidate against the codebase before emitting it. Use Grep and Glob against
+`repo_root` to check whether an existing implementation or established pattern already settles
+or constrains the assumption. An assumption the codebase already settles is not a risk; suppress
+it and name what settles it in `## Suppressed`.
+
 ## Candidate bar
 
 Keep a candidate only when it has all of:
@@ -49,6 +54,10 @@ Keep a candidate only when it has all of:
 Drop generic "clarify assumptions" advice and implementation preferences. Do not ask for proof
 of a harmless assumption; focus on assumptions that can change scope, sequencing, risk, or
 verification.
+
+Name the assumption and what breaks if it is false. Bad: "clarify the assumptions." Good: "A-2
+assumes the export finishes inside the request timeout; for a large tenant it won't, turning R-5
+from synchronous into async work -- Resolve Before Planning."
 
 ## Output
 

@@ -91,6 +91,10 @@ The trunk always performs an inline pass over:
 - acceptance and verification gaps;
 - downstream implications that would affect planning.
 
+For the inline pass, ground each apparent gap against the codebase first: use Grep/Glob to check
+whether an existing convention already resolves it -- a gap the codebase already handles is not a
+gap.
+
 Spawn leaf reviewers only when their trigger is present. Spawn all triggered reviewers in
 parallel.
 

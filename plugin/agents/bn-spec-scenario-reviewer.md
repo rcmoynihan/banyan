@@ -35,6 +35,12 @@ Walk the feature as concrete scenarios:
 - acceptance examples that do not prove the stated requirement;
 - requirements that can be technically satisfied while missing the intended user outcome.
 
+Ground each candidate against the codebase before emitting it. Use Grep and Glob against
+`repo_root` to check whether an existing convention already resolves the branch -- a shared
+empty-state component, global error-handling middleware, an established retry/idempotency
+pattern. A branch the codebase already handles by convention is not a gap; suppress it and name
+the convention in `## Suppressed`.
+
 ## Candidate bar
 
 Keep a candidate only when it has all of:
@@ -48,6 +54,10 @@ Keep a candidate only when it has all of:
 Drop generic concerns, implementation preferences, and test-design advice. Do not emit a
 finding just because another scenario exists; emit it only when the missing branch can change
 scope, sequencing, risk, or verification.
+
+Name the scenario, the actor, and the data state so the gap is concrete. Bad: "what about
+errors?" Good: "R-3 specifies the success toast on upload but not what the user sees when the
+upload fails mid-stream -- does the partial file persist, and is there a retry affordance?"
 
 ## Output
 
