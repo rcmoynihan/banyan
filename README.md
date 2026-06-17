@@ -135,8 +135,8 @@ Each stage is also independently invocable:
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel fresh-context investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description — the one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolvers fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
-| `/bn-curate` | Consolidate harvested lessons into `.banyan/solutions/` (sleep-time compute; receives the `/bn-grow` curation handoff). |
-| `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself — proposals only, a human applies them. |
+| `/bn-learn` | Consolidate harvested lessons into `.banyan/solutions/` (sleep-time compute; receives the `/bn-grow` curation handoff). |
+| `/bn-evolve` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself — proposals only, a human applies them. |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and live depth-2 nested-spawn, allowlist, and nested user-question probes. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
@@ -319,16 +319,16 @@ test-fix loop and mini-review, and a single integrator merging in dependency ord
 ### Keep the harness compounding
 
 ```
-/bn-curate    # consolidate staged lessons into .banyan/solutions/
-/bn-tune      # once ~5 runs have accumulated: propose improvements to Banyan itself
+/bn-learn     # consolidate staged lessons into .banyan/solutions/
+/bn-evolve    # once ~5 runs have accumulated: propose improvements to Banyan itself
 ```
 
 Every lead stages candidate lessons before it returns; curation promotes the keepers into
 the `.banyan/solutions/` knowledge store, where future runs retrieve them. `/bn-grow` ends
-with a non-blocking curation handoff: it starts `/bn-curate <run-id>` only when a real
+with a non-blocking curation handoff: it starts `/bn-learn <run-id>` only when a real
 background mechanism is available, otherwise it gives you that follow-up command. Run
-`/bn-curate` manually after standalone `/bn-review`, `/bn-work`, `/bn-debug`, or
-`/bn-resolve-pr` runs. `/bn-tune` mines accumulated run ledgers and transcripts for
+`/bn-learn` manually after standalone `/bn-review`, `/bn-work`, `/bn-debug`, or
+`/bn-resolve-pr` runs. `/bn-evolve` mines accumulated run ledgers and transcripts for
 recurring harness failures and writes evidence-cited proposals to `.banyan/harness-proposals/`;
 it never edits the plugin itself — you review and apply.
 
@@ -361,7 +361,7 @@ and development context. The split, and the rules for keeping the two apart, are
 | `.banyan/solutions/` | Curated knowledge store used by future runs. Entries live in category subdirectories and use the solution frontmatter schema. |
 | `.banyan/brainstorms/` | Requirements and intake documents produced by `/bn-brainstorm` or the fuzzy-intake stage of `/bn-grow`. |
 | `.banyan/plans/` | Durable implementation plans produced by `/bn-plan` or `/bn-grow`, named with stable unit IDs for `/bn-work`. |
-| `.banyan/harness-proposals/` | Evidence-cited `/bn-tune` proposals for improving Banyan itself. |
+| `.banyan/harness-proposals/` | Evidence-cited `/bn-evolve` proposals for improving Banyan itself. |
 | `.banyan/memory/` | Derived memory indexes and other generated retrieval state. |
 | `.banyan/onboarding-manifest.md` | `/bn-onboard` manifest describing the local artifact graph and curation handoff paths. |
 

@@ -141,7 +141,7 @@ Then:
   `/bn-ship`).
 
 - **Diagnosis only** → mark U1 done in the ledger, present the run-dir path, and suggest
-  `/bn-curate` later so the diagnosis lesson compounds even without a fix.
+  `/bn-learn` later so the diagnosis lesson compounds even without a fix.
 
 - **Rethink design** → the bug is a symptom of a design problem (see the escalation
   table in `references/anti-patterns.md`). Hand off to `/bn-brainstorm`, passing the

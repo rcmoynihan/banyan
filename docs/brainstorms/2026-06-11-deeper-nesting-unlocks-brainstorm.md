@@ -90,7 +90,7 @@ Two objections cap it in practice. First, where a strong verifier exists, a sing
 - Plan-frontmatter `sampling: N` honored by `bn-delivery-lead` at `deep` effort only.
 - Pre-gate: sample only when the unit's done-condition includes currently-red tests or an executable invariant, *and* the spec admits genuinely different strategies. Diversify attempt priors (mvp / risk / ops, as the plan generators do) to partially decorrelate.
 - Verifier is a leaf agent that **pre-registers 4–6 spec-derived mutants before reading any attempt** ("drop the invalidation on write", "invalidate the wrong key") and scores suite kills per attempt alongside suite / lint / diff size / boundary compliance. Real mutation tooling (install + minutes of runtime) is impractical mid-run; pre-registered mutants are the affordable substitute, and registering them spec-first avoids biasing toward any attempt's structure.
-- Abort path: a scorecard that ties on all hard signals picks smallest-diff and **records that sampling bought nothing**, feeding `/bn-tune` so the contested-unit heuristic improves.
+- Abort path: a scorecard that ties on all hard signals picks smallest-diff and **records that sampling bought nothing**, feeding `/bn-evolve` so the contested-unit heuristic improves.
 - Losing attempts' staged lessons are discarded with them.
 
 ### 5. Test generation before implementation — do not build as a subtree

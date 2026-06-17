@@ -1,10 +1,10 @@
 ---
-name: bn-curate
-description: "Consolidate staged candidate lessons into the .banyan/solutions knowledge store via the bn-knowledge-curator. Run manually, or dispatched in the background at the end of a run (e.g. by /bn-grow)."
+name: bn-learn
+description: "Object-level memory: consolidate staged candidate lessons into the .banyan/solutions knowledge store via bn-knowledge-curator (dedup, merge, promote with causal claims gated on tested evidence, mark stale) -- curates what Banyan learned about your codebase. Meta-level counterpart: /bn-evolve. Runs manually, or dispatched in the background at the end of a run (e.g. by /bn-grow)."
 argument-hint: "[blank = curate all pending across runs | a run-id | --refresh [scope] | --concepts]"
 ---
 
-# bn-curate
+# bn-learn
 
 Thin trunk-side entry to the Banyan **sleep-time curator**. This skill does a few cheap
 things -- locate the pending candidate lessons, build one envelope with a pre-granted write
@@ -31,10 +31,8 @@ The argument selects the curator's mode:
 - **`--concepts`** → `concepts`: bootstrap `CONCEPTS.md` from the repo's declared domain model.
   **Foreground only** (see Step 6). Normal consolidation never edits it.
 
-`--refresh` and `--concepts` are **never** auto-fired in the background: a background dispatch
-auto-denies prompts (permission cliff), and both modes can want a foreground-only escalation (a
-user-confirmed delete, a domain-model write). A background dispatch is always plain
-`consolidate`.
+`--refresh` and `--concepts` are **never** auto-fired in the background — a background dispatch is
+always plain `consolidate` (see the Permission cliff section for why).
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`,
@@ -161,14 +159,12 @@ Present the refresh summary as in Step 4 (reviewed / updated / marked-stale / RE
 
 ## Step 6: `--concepts` (foreground only)
 
-When the argument is `--concepts`, dispatch the curator in **`concepts` mode** to bootstrap
-`CONCEPTS.md` from the repo's declared domain model (schema, core types, primary models,
-top-level domain docs), per the curator's CONCEPTS doctrine. This is the **only** path that
-creates or updates `CONCEPTS.md`. Normal consolidation never edits it. It is **foreground only**.
-
-Build the envelope as in Step 3 with `mode: concepts`, no `staging_dirs`, an objective of
-"bootstrap/seed CONCEPTS.md from the declared domain model per concepts-vocabulary.md", and the
-summary artifact path. Present the result by pointing the user at the seeded `CONCEPTS.md`.
+An aside from lesson consolidation: dispatch the curator in **`concepts` mode** to bootstrap
+`CONCEPTS.md` from the repo's declared domain model. Build the envelope as in Step 3 with
+`mode: concepts`, no `staging_dirs`, and an objective of "bootstrap/seed CONCEPTS.md from the
+declared domain model per concepts-vocabulary.md". This is the only path that creates or updates
+`CONCEPTS.md`; normal consolidation never touches it. Foreground only. Present the seeded
+`CONCEPTS.md`.
 
 ## Permission cliff (invariant 6)
 

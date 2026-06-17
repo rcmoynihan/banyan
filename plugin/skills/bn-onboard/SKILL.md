@@ -20,7 +20,7 @@ Read these first (skip any already in your context):
 - `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/knowledge-store.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/bn-onboard/references/classification.md`
 - `${CLAUDE_PLUGIN_ROOT}/skills/bn-onboard/references/manifest.md`
-- `/bn-curate`'s skill instructions
+- `/bn-learn`'s skill instructions
 
 ## Permission Cliff
 
@@ -324,8 +324,8 @@ effort_class:    lightweight
 === END ENVELOPE ===
 ```
 
-Then dispatch `bn-knowledge-curator` by reference to `/bn-curate`'s steps, pinned to this
-run ID and foreground. Use `/bn-curate`'s envelope and write scope exactly: pre-granted
+Then dispatch `bn-knowledge-curator` by reference to `/bn-learn`'s steps, pinned to this
+run ID and foreground. Use `/bn-learn`'s envelope and write scope exactly: pre-granted
 `.banyan/solutions/`, `CONCEPTS.md`, `CLAUDE.md`, clearing this run's
 `lessons-staging/`, and `.banyan/runs/<run-id>/curation-summary.md`. Read
 `curation-summary.md` to fold each candidate's fate into the manifest.
@@ -346,7 +346,7 @@ Write `.banyan/runs/<run-id>/onboarding-report.md` with:
 - deferred docs;
 - contradictions;
 - next paths for the user, such as `/bn-plan` on a derived requirements doc,
-  `/bn-curate` if candidates stayed staged, or `/bn-ship` to push.
+  `/bn-learn` if candidates stayed staged, or `/bn-ship` to push.
 
 Commit safety:
 

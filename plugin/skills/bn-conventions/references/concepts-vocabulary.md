@@ -5,7 +5,7 @@
 repo root. Terms enter two ways — accretion and seeding (below). The Banyan curator is the single
 sanctioned writer of this file: it accretes and scrubs entries during normal `consolidate`
 curation when a promoted lesson surfaces a qualifying term, and it bootstraps the file from the
-declared domain model only in the foreground `concepts` mode (`/bn-curate --concepts`) or, when
+declared domain model only in the foreground `concepts` mode (`/bn-learn --concepts`) or, when
 onboarding ran, from the approval-gated `/bn-onboard` draft.
 
 ## How terms enter: accretion and seeding
@@ -37,7 +37,7 @@ defined" test), never a fixed quantity.
 - A **scoped accretion** — a single promoted lesson during `consolidate` curation — touches only
   the term that lesson surfaced, and only against code it was grounded in. It does not reach for
   repo-wide nouns it never touched, and it never creates `CONCEPTS.md` if the file is absent.
-- A **repo-wide bootstrap** — the explicit foreground `/bn-curate --concepts` request (or the
+- A **repo-wide bootstrap** — the explicit foreground `/bn-learn --concepts` request (or the
   `/bn-onboard` draft) — seeds the whole area's declared domain model. This is the only path that
   produces a coherent "what is this project" glossary and the only path that *creates* the file;
   a scoped accretion cannot, and should not pretend to.

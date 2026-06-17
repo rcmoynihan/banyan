@@ -3,10 +3,10 @@
 These names are canonical. Every other layer quotes them byte-identically; do not synonymize.
 
 This file is the single source for the message-grading lens `bn-harness-engineer` applies to each
-subagent call within a `bn-tune` corpus scope. It defines: every axis name, the field each axis
+subagent call within a `bn-evolve` corpus scope. It defines: every axis name, the field each axis
 targets, the backbone tag each maps to, which direction's authoring agent each grade attributes to,
 whether each axis is transcript-dependent or artifact-derivable, the bound on the misleading axis,
-and the recurrence floor. The downstream layers — the `bn-tune` SKILL grading instruction and
+and the recurrence floor. The downstream layers — the `bn-evolve` SKILL grading instruction and
 Step-4 read-back, and the `bn-harness-engineer` catalog bullet and proposal template — quote the
 axis names from here verbatim.
 
@@ -85,33 +85,18 @@ each downstream proposal's Target file is the correct `plugin/` body.
 ## Evidence-requirement tagging
 
 Each axis is either artifact-derivable (gradable from the persisted envelope in `progress/` and the
-brief in `briefs/` alone) or transcript-dependent (requires the child's transcript to grade
-honestly):
+brief in `briefs/` alone) or transcript-dependent (needs the child's transcript to grade honestly).
+**Artifact-derivable:** `objective-clarity`, `boundary-right-sizing`, `budget-fit`,
+`answers-the-objective`, `artifacts-over-prose`, `token-economy`, and the envelope-vs-brief case of
+`context-accuracy`. **Transcript-dependent:** `doctrine-relevance` (the "doctrine the child never
+opened" signal is knowable only from the transcript), a strong `confidence-calibration` claim (the
+supporting evidence trail is fuller there), and any `context-accuracy` contradiction that surfaces in
+transcript turns rather than the brief. Consults are transcript-only — graded only when the
+transcript is present.
 
-- `objective-clarity` — artifact-derivable (reads the echoed envelope `objective`).
-- `boundary-right-sizing` — artifact-derivable (reads the echoed envelope `boundaries`).
-- `budget-fit` — artifact-derivable (reads the echoed envelope `budget`).
-- `doctrine-relevance` — transcript-dependent. The "doctrine the child never opened" signal —
-  whether a passed doctrine path was actually read — is knowable only from the child's transcript.
-  In degraded mode (no transcripts) this axis is WITHHELD or its confidence is LOWERED; non-use is
-  NEVER asserted from the absence of transcript evidence.
-- `context-accuracy` — artifact-derivable for envelope-vs-brief contradiction (both persisted);
-  transcript-dependent only where the contradiction surfaces in transcript turns rather than the
-  brief.
-- `answers-the-objective` — artifact-derivable (compares the persisted brief to the echoed
-  objective).
-- `artifacts-over-prose` — artifact-derivable (inspects the returned brief shape).
-- `confidence-calibration` — artifact-derivable for the verdict's stated confidence; the supporting
-  evidence trail it should rest on is fuller in the transcript, so a strong claim of
-  miscalibration is transcript-dependent.
-- `token-economy` — artifact-derivable (measures the persisted brief).
-
-Consults are transcript-only: a consult message is graded ONLY when its transcript is present, and
-in degraded mode consult grading is withheld, not inferred.
-
-The governing degraded-mode rule: in degraded mode the lens lowers confidence on or
-withholds any transcript-dependent axis; it never converts an absence of evidence into an assertion
-of a weakness.
+The governing degraded-mode rule: with no transcripts the lens lowers confidence on or withholds
+every transcript-dependent axis; it **never** converts an absence of evidence into an assertion of a
+weakness.
 
 ## Misleading axis bound
 
@@ -127,9 +112,9 @@ verification is out of scope for this axis.
 A message-quality proposal fires only when a weakness recurs `>=2` occurrences for the same
 `(agent, axis)` within the scoped corpus. A single low-graded message produces no proposal.
 
-One occurrence = one graded call inside the current `bn-tune` scope. Per-call grades are working
-evidence that exist only within a run; nothing persists across `bn-tune` runs. So "three runs" in an
-acceptance example means three graded calls inside one `bn-tune` scope, not three separate `bn-tune`
+One occurrence = one graded call inside the current `bn-evolve` scope. Per-call grades are working
+evidence that exist only within a run; nothing persists across `bn-evolve` runs. So "three runs" in an
+acceptance example means three graded calls inside one `bn-evolve` scope, not three separate `bn-evolve`
 invocations over time.
 
 ## Failure taxonomy

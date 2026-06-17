@@ -48,7 +48,7 @@ Table form (equivalent) for a quick scan:
 
 ## How this works
 
-1. **Propose.** `/bn-tune` dispatches `bn-harness-engineer`, which mines `.banyan/runs/` ledgers
+1. **Propose.** `/bn-evolve` dispatches `bn-harness-engineer`, which mines `.banyan/runs/` ledgers
    (and subagent transcripts where present) for RECURRING harness failures and writes one
    PR-style, evidence-cited proposal per pattern into `.banyan/harness-proposals/`. Every proposal
    needs >=2 cited occurrences (run-ids + file:line); one-offs are dropped. The agent has no

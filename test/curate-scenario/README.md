@@ -1,6 +1,6 @@
 # Curate verification scenario
 
-This standalone target exercises `/bn-curate` and `bn-knowledge-curator`.
+This standalone target exercises `/bn-learn` and `bn-knowledge-curator`.
 
 The scenario contains one existing `.banyan/solutions/` entry and one run with two
 staged candidates:
@@ -13,7 +13,7 @@ staged candidates:
 Run from this directory with the Banyan plugin loaded:
 
 ```text
-/bn-curate 2026-06-11-001-curate-fixture
+/bn-learn 2026-06-11-001-curate-fixture
 ```
 
 Pass criteria:

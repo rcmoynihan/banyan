@@ -67,6 +67,6 @@ the handoffs to Banyan skills. `references/html-rendering.md` is **not vendored*
 - Removed: `ce-doc-review` agent review (+ post-review nudge), both Proof options and
   the whole Proof HITL return-status protocol, "Open in browser" (HTML mode), the
   5+-option numbered-list overflow rule (≤4 options -> always `AskUserQuestion`).
-- Added: a Compounding note (lessons flow through staged harvest + `/bn-curate`, no
+- Added: a Compounding note (lessons flow through staged harvest + `/bn-learn`, no
   capture step in this skill) and a simplified closing-summary template (markdown path
   only).

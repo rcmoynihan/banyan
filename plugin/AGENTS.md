@@ -344,7 +344,7 @@ Two narrowly-bounded exceptions exist, both belonging to the `bn-knowledge-curat
   untouchable.
 - **Deleting a drifted solution.** The curator may delete a drifted `.banyan/solutions/*.md` entry,
   and only when **all** of these hold: the curator is the actor; it is running **foreground**
-  under `/bn-curate --refresh` (never in background or sleep-time curation); and the user has
+  under `/bn-learn --refresh` (never in background or sleep-time curation); and the user has
   **explicitly confirmed that specific document** — carried into a follow-up curator pass as a
   `confirmed_delete_paths` entry after a prior report-only pass presented its inbound-link
   analysis. Until a document is so confirmed, a drifted entry is a `RECOMMEND-DELETE` report line

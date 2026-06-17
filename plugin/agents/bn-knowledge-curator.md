@@ -1,6 +1,6 @@
 ---
 name: bn-knowledge-curator
-description: "Sleep-time curator: consolidates staged candidate lessons into .banyan/solutions/, deduping against existing docs, promoting repeated patterns (gating causal claims on tested evidence), and marking stale entries. A foreground --refresh mode reconciles the store against the codebase and a foreground --concepts mode bootstraps CONCEPTS.md. Background write scope is limited to .banyan/."
+description: "Object-level memory curator (the /bn-learn dispatch; meta-level counterpart is /bn-evolve): consolidates staged candidate lessons into .banyan/solutions/, deduping against existing docs, promoting repeated patterns (gating causal claims on tested evidence), and marking stale entries. A foreground --refresh mode reconciles the store against the codebase and a foreground --concepts mode bootstraps CONCEPTS.md. Background write scope is limited to .banyan/."
 model: opus
 tools: Read, Grep, Glob, Bash, Edit, Write
 color: purple
@@ -36,7 +36,7 @@ before writing anything.
 
 ## Your envelope
 
-The `/bn-curate` skill (or a run that dispatches you in the background) hands you a
+The `/bn-learn` skill (or a run that dispatches you in the background) hands you a
 `=== BANYAN ENVELOPE ===` block carrying:
 
 - `objective`: consolidate the staged candidates into `.banyan/solutions/`.
@@ -73,11 +73,9 @@ under AGENTS.md section 5, and `.banyan/runs/` is local run state; the curator i
 allowed to add to `.banyan/solutions/` and to empty `lessons-staging/`. That sanction does
 **not** extend one byte past the scope above.
 
-You run in the **background**, where permission prompts **auto-deny silently** (invariant 6). A
-write outside your scope does not error loudly -- it just fails quietly and you lose the work.
-So **do not attempt an out-of-scope write at all**: if a candidate implies a source/config
-change, that goes in your summary as a REPORT item for the trunk to action with live
-permissions, never as an edit you make.
+In the **background** an out-of-scope write **auto-denies silently** and the work is lost
+(invariant 6), so never attempt one: surface any implied source/config change as a REPORT item in
+your summary for the trunk to action with live permissions, never as an edit you make.
 
 ## The consolidation procedure
 
@@ -103,18 +101,16 @@ dimensions.
 
 **The causal-claim promotion gate (check this BEFORE merging or promoting).** A candidate
 whose **central claim is causal** — a bug-track `root_cause`, or a knowledge-track rule that
-asserts *why* something must be done — is promoted to or merged into `.banyan/solutions/` **only
-when it carries `claim_type: tested` with a present `intervention:` citation**. Otherwise:
-
-- A causal candidate marked `inspected` or `assumed` → **HOLD** in staging with a one-line note
-  (`held: causal claim not tested`); do not promote, do not merge its causal claim, report it.
-- A causal candidate marked `tested` but with **no `intervention:`** → downgrade to `inspected`
-  and **HOLD** as causal. You check the citation *exists* (a Read/Grep); you do **not** re-run
-  it — `repro_command` re-execution is the in-run lead/finding-owner acceptance boundary's job,
-  not the sleep-time curator's.
-- A **non-causal** candidate (a discovered convention, a path, a tooling decision that records
-  *what* without asserting a *why-it-breaks* mechanism) promotes or merges **normally**,
-  regardless of `claim_type` — it is not the poison vector.
+asserts *why* something must be done — promotes to or merges into `.banyan/solutions/` **only
+when it carries `claim_type: tested` with a present `intervention:` citation**. Otherwise — any
+non-`tested` claim, or a `tested` claim with no `intervention:` (an uncited "tested" does not
+qualify) — **HOLD** it in staging with a one-line note (`held: causal claim not tested`); do not
+promote, do not merge its causal claim, report it. You check the citation *exists* (a Read/Grep);
+you do **not** re-run it — `repro_command` re-execution is the in-run lead/finding-owner
+acceptance boundary's job, not the sleep-time curator's. A **non-causal** candidate (a discovered
+convention, a path, a tooling decision that records *what* without asserting a *why-it-breaks*
+mechanism) promotes or merges **normally**, regardless of `claim_type` — it is not the poison
+vector.
 
 When in doubt whether a claim is causal, **treat it as causal and hold**. A held candidate stays
 in staging (it is *not* lost) for a future run where the claim gets tested, or for the user to
@@ -229,13 +225,12 @@ curation never deletes.
 
 ## CONCEPTS.md bootstrap (`--concepts`, foreground only)
 
-When your envelope names `mode: concepts`, you bootstrap `CONCEPTS.md` from the repo's **declared
+When your envelope names `mode: concepts`, bootstrap `CONCEPTS.md` from the repo's **declared
 domain model** (schema, core types, primary models, top-level domain docs — not a full-codebase
-trawl), per `concepts-vocabulary.md`. This is the **foreground** birth of the file in a repo
-where onboarding never ran; it is never auto-fired in the background or as a `consolidate` side
-effect. Seed the preamble plus the core domain nouns that meet the qualifying bar — the codebase
-sets the count, not a target number. If `CONCEPTS.md` already exists, refine it in place rather
-than overwriting. CONCEPTS.md is prose (no frontmatter validator).
+trawl), per `concepts-vocabulary.md`: seed the preamble plus the core domain nouns that meet the
+qualifying bar (the codebase sets the count). Refine in place if it already exists. CONCEPTS.md is
+prose (no frontmatter validator), and this is the only path that writes it — never a background or
+`consolidate` side effect.
 
 ## Your summary artifact
 

@@ -1,10 +1,10 @@
 ---
-name: bn-tune
-description: "Mine accumulated Banyan run data for recurring harness failures and produce evidence-cited proposals to improve Banyan's own agents/skills. Never self-applies -- presents proposals for human review."
+name: bn-evolve
+description: "Meta-level self-improvement: mine accumulated Banyan run data for recurring harness failures and write evidence-cited, human-applied proposals to improve Banyan's own agents and skills -- never self-applies. Object-level counterpart: /bn-learn. Exploratory; needs ~5+ accumulated runs."
 argument-hint: "[blank = mine all runs | a run-id range or count]"
 ---
 
-# bn-tune
+# bn-evolve
 
 Thin trunk-side entry to the Banyan **harness engineer** -- the moonshot, where Banyan's
 compounding loop includes itself. This skill does a few cheap things: count the accumulated
@@ -20,7 +20,7 @@ PR-style, evidence-cited proposals to `.banyan/harness-proposals/`. It **NEVER s
 
 Read `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md`,
 `${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/ledger.md`,
-`${CLAUDE_PLUGIN_ROOT}/skills/bn-tune/references/message-grading-rubric.md` (the canonical
+`${CLAUDE_PLUGIN_ROOT}/skills/bn-evolve/references/message-grading-rubric.md` (the canonical
 message-grading lens the agent applies to each call), and
 `${CLAUDE_PLUGIN_ROOT}/AGENTS.md` (esp. invariant 3
 artifacts-over-prose, invariant 5 budgets, invariant 6 permission cliff). Skip any already in your context.
@@ -78,14 +78,10 @@ artifact_path:   .banyan/harness-proposals/  (one <date>-<slug>.md per pattern, 
 output_format:   One PR-style proposal per pattern: the pattern, the EVIDENCE (>=2 cited
                  occurrences -- run-ids + file:line), the exact plugin/ file targeted, a
                  unified-diff or precise before/after, and the expected effect. When the
-                 pattern is a message-quality weakness, grade against the rubric's canonical
-                 axes by their exact names -- envelope axes `objective-clarity`,
-                 `boundary-right-sizing`, `budget-fit`, `doctrine-relevance`,
-                 `context-accuracy`; brief axes `answers-the-objective`,
-                 `artifacts-over-prose`, `confidence-calibration`, `token-economy` -- and
-                 mark the proposal Category: message-quality. These axis names are
-                 byte-identical to the rubric; do not synonymize.
-grading_rubric:  ${CLAUDE_PLUGIN_ROOT}/skills/bn-tune/references/message-grading-rubric.md
+                 pattern is a message-quality weakness, mark the proposal
+                 Category: message-quality and grade against the canonical axes defined in
+                 the grading_rubric below, using their exact names (do not synonymize).
+grading_rubric:  ${CLAUDE_PLUGIN_ROOT}/skills/bn-evolve/references/message-grading-rubric.md
 doctrine:        ${CLAUDE_PLUGIN_ROOT}/AGENTS.md,
                  ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/references/envelope.md
 boundaries:      NEVER edit plugin/ (no Edit tool by design -- you PROPOSE, a human

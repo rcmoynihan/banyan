@@ -96,7 +96,7 @@ this menu again.
 ## Compounding
 
 Lessons worth keeping beyond the requirements doc flow through Banyan's normal curation:
-runs that spawn subtrees stage candidates automatically, and `/bn-curate` promotes them.
+runs that spawn subtrees stage candidates automatically, and `/bn-learn` promotes them.
 There is no separate capture step in this skill.
 
 ## Closing summary

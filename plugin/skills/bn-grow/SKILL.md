@@ -284,10 +284,10 @@ staging is already populated; curation is sleep-time consolidation, not a grow g
 Use the lightest available handoff:
 
 - If the runtime provides a real detached/background invocation mechanism, dispatch
-  `/bn-curate <run-id>` (or the `bn-knowledge-curator` agent with `/bn-curate`'s envelope)
+  `/bn-learn <run-id>` (or the `bn-knowledge-curator` agent with `/bn-learn`'s envelope)
   through that mechanism and do not wait for it.
 - If no detached/background mechanism is available, append the handoff to the ledger and
-  present `/bn-curate <run-id>` as the follow-up command.
+  present `/bn-learn <run-id>` as the follow-up command.
 
 Do not claim a background curator is running unless one was actually started. Curation
 consolidates knowledge files only and pushes nothing.
@@ -298,7 +298,7 @@ Give the user a SHORT narrative: what was built, the phase outcomes (requirement
 when present -> research brief -> spec-stress gate when present -> plan -> delivery including
 the full-panel review loop), any recovery attempts that materially changed the path, the ship
 gate (the delivery report's commit + review status, NOT pushed -- ship is yours), and the
-curation handoff state (background started, or run `/bn-curate <run-id>`). Point at the
+curation handoff state (background started, or run `/bn-learn <run-id>`). Point at the
 ledger path `.banyan/runs/<run-id>/ledger.md` -- it tells the full story; the brief, plan,
 and delivery report (with its review section) all live under that run dir.
 

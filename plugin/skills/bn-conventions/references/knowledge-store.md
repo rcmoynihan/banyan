@@ -207,7 +207,7 @@ broken. Omit process exhaust (no "captured at phase X", no "next steps").
 - `.banyan/solutions/*.md` is a protected artifact (AGENTS.md section 5): no agent
   may delete or "clean up" these files, and a reviewer finding
   proposing removal is discarded during synthesis. The one exception is the
-  `bn-knowledge-curator` deleting a drifted entry under `/bn-curate --refresh`,
+  `bn-knowledge-curator` deleting a drifted entry under `/bn-learn --refresh`,
   foreground, after explicit per-doc user confirmation; AGENTS.md section 5 is
   authoritative for that carve-out, and background curation never deletes.
 - Search `.banyan/solutions/` before writing a new solution so memory compounds
@@ -247,8 +247,8 @@ Rules every producer and the curator share:
 - **The curator's promotion gate** (in `bn-knowledge-curator.md`): a *causal*
   candidate promotes to `.banyan/solutions/` **only** when `claim_type: tested` with
   a present `intervention:`. A causal candidate that is `inspected`/`assumed`, or
-  `tested` with no `intervention:` (downgraded to `inspected`), is **held in
-  staging** and reported — not promoted as an established cause, never lost.
+  `tested` with no `intervention:` (an uncited "tested" does not qualify), is **held
+  in staging** and reported — not promoted as an established cause, never lost.
   *Non-causal* candidates promote normally regardless of `claim_type`. When unsure
   whether a claim is causal, treat it as causal and hold.
 - `claim_type` and `intervention` are **stripped on promotion** exactly as

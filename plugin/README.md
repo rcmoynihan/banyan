@@ -47,8 +47,8 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-debug` | The debug subtree: reproduce, rank hypotheses, test them with parallel investigators, confirm the causal chain, then fix test-first on your say-so. |
 | `/bn-ship` | Commit → push → PR with an adaptive, value-first description. The one place in Banyan allowed to push. |
 | `/bn-resolve-pr` | Resolve PR review feedback: parallel resolver agents fix locally; the trunk validates, commits, pushes, replies, and resolves threads. |
-| `/bn-curate` | Consolidate harvested lessons into `.banyan/solutions/`. |
-| `/bn-tune` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself (human-applied only). |
+| `/bn-learn` | Consolidate harvested lessons into `.banyan/solutions/`. |
+| `/bn-evolve` | Mine accumulated run data for recurring harness failures and propose evidence-cited diffs to Banyan itself (human-applied only). |
 | `/bn-conventions` | Index of the ledger, envelope, and knowledge-store conventions. |
 | `/bn-doctor` | Capability check: environment floor, asset integrity, and live depth-2 nested-spawn, allowlist, and nested user-question probes. |
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |

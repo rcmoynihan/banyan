@@ -27,7 +27,7 @@ process.stdout.on("error", () => {});
 
 // Heavy pipeline/subtree skills where "this is overkill, I'll just do it myself" is a
 // realistic temptation. Lightweight/conversational skills (bn-hello, bn-conventions,
-// bn-doctor, bn-curate, bn-tune) are intentionally excluded — over-invoking them is cheap.
+// bn-doctor, bn-learn, bn-evolve) are intentionally excluded — over-invoking them is cheap.
 // bn-ask runs a research subtree but is excluded too: it is a deliberate Q&A entry point, and
 // a consent nag on every codebase question would be noise rather than a useful guardrail.
 // Adding a future heavy skill = one entry here, the single place this list lives.
