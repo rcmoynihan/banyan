@@ -22,3 +22,4 @@ eval/review-ab/results/*/
 
 # run-visualizer tool deps (committed: package.json + package-lock.json; ignored: node_modules)
 tools/run-visualizer/node_modules/
+poc/
