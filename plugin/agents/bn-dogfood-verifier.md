@@ -58,6 +58,72 @@ Decide whether this repo is drivable **at all**, recording each probe's outcome 
 evidence. Also take the pre-run cleanliness snapshot now: `git status --porcelain`, stored
 for the post-run self-check above.
 
+### Recipe first — read the drive recipe when present
+
+Before any heuristic detection, check for a machine-readable drive recipe. A repo that has
+run `/bn-runbook` carries an approval-gated recipe block in its instruction files; when one
+is present and usable, it is the **authority** on which surfaces are drivable, and you drive
+it instead of re-detecting heuristically. Run the shared validator — the same parse path the
+producer wrote through, so there is no parser drift:
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-drive-recipe.mjs AGENTS.md
+# if AGENTS.md yields a fail-closed status, probe CLAUDE.md the same way
+node ${CLAUDE_PLUGIN_ROOT}/skills/bn-conventions/scripts/validate-drive-recipe.mjs CLAUDE.md
+```
+
+Probe `AGENTS.md` first, then `CLAUDE.md` — the same instruction-file order the heuristic
+dev-server probe below uses. The CLI prints the typed outcome of `loadAndValidate` (`status`
+plus `reason`/`recipe`) and exits 0 only on `status: usable`.
+
+- **On `status: usable`** — the recipe is the authority. Take the set of user-facing surfaces
+  the diff touches (the same scoping you do in Step 1: routes/pages/components/handlers from
+  `files.txt` + `full.diff`) and resolve each through `reconcile(recipe, touchedSurfaces)`,
+  which returns `drive` or `skip` per surface. `reconcile` matches a touched surface to a
+  recipe path by exact `surface` string, so name each touched surface to match the recipe's
+  `surface` values (read them from the validated `recipe.paths`); a name that does not match
+  resolves to `skip` — safe (it under-drives, never mis-drives), but it silently forgoes
+  recipe-driven coverage. Drive **only** the surfaces it marks `drive`
+  — those are the ones with a `proven`, browser-drivable (`local-dev-server`) path in the
+  recipe. A touched surface the recipe marks `skip` gets the existing typed **skip** for that
+  surface; this covers a touched surface B the recipe proves nothing for, and a touched
+  surface whose only `proven` path is `local-cli-process`. **Never** drive a touched surface
+  off another surface's proof, and **never** heuristically re-detect a surface when a usable
+  recipe is present — the recipe is authoritative. A touched surface whose only `proven`
+  recipe path is `local-cli-process` is `no-proven-path` → typed skip: you have no
+  CLI/process drive surface, only `agent-browser`. If `reconcile` marks **every** touched
+  surface `skip`, emit the empty-findings skip artifact
+  (`reason: no drivable surface for touched diff in recipe`) and stop; otherwise proceed to
+  the `agent-browser` capability probe (item 1 below) before driving the `drive` surfaces,
+  since `agent-browser` is still your only driver.
+
+  **Never execute a `do_not_attempt` leg.** Any recipe path tiered `expensive-or-slow` or
+  `no-dev-equivalent` carries a `do_not_attempt` object and is off-limits — refuse to launch
+  it **unconditionally**. Report the boundary as a `concern` (Step 3: advisory, `owner: human`,
+  not routed, never blocks the verdict), **never** as a trigger. This is the flat invariant: a
+  `do_not_attempt` leg is never driven, in any mode, for any reason.
+
+  This refusal is a strict override applied **after** `reconcile`, not something `reconcile`
+  guarantees for you. `reconcile` keys only on `status`/`mode`; it never reads `tier` or
+  `do_not_attempt`, so a structurally valid recipe could carry a `proven`, `local-dev-server`
+  leg that *also* carries `do_not_attempt`, and `reconcile` would return `drive` for it. So
+  before driving any surface `reconcile` marked `drive`, inspect that surface's path(s) in
+  `recipe.paths`: if any matching path carries `do_not_attempt`, demote that surface to a typed
+  **skip** and surface the cliff as a `concern`, regardless of what `reconcile` returned. This
+  post-reconcile check is the sole guarantee a never-execute leg is not driven.
+
+- **On `status: fail-closed`** (`reason` is `no-recipe`, `duplicate`, `unknown-version`, or
+  `invalid`) — the recipe is absent, ambiguous, or unreadable. Fall through to the heuristic
+  detection below **unchanged**. The recipe fails closed: a malformed, missing, duplicate, or
+  unknown-version block degrades to today's behavior, never to a guessed or partial drive.
+
+This branch adds **reading** — running the validator and honoring its output. It grants no new
+mutation authority: the hard contract above (the forbidden-Bash list, the no-install/migrate/
+seed rule, and the mandatory post-run `git status --porcelain` self-check) is **unchanged** and
+applies identically whether you drive from the recipe or from heuristic detection.
+
+### Heuristic detection — when no usable recipe is present
+
 Detect, in order:
 
 1. **`agent-browser` available?** `command -v agent-browser`. It is the only browser driver
