@@ -15,7 +15,7 @@ This directory (`plugin/`) is the plugin root: the manifest lives at
 plugin/
   .claude-plugin/plugin.json   plugin manifest (name, version, metadata)
   agents/                      one agent per file: bn-*.md (54 agents)
-  skills/                      one skill per directory: bn-*/SKILL.md (18 skills)
+  skills/                      one skill per directory: bn-*/SKILL.md (19 skills)
     bn-conventions/            conventions index + references/ (ledger, envelope,
                                knowledge-store specs) + scripts/ (run scaffolder,
                                boundary check + its tests, frontmatter validator)
@@ -54,6 +54,7 @@ Invoke as `/bn-<name>` (namespaced as `/banyan:bn-<name>` under `--plugin-dir`):
 | `/bn-hello` | Install check: confirms the plugin loaded and prints its version. |
 | `/bn-mock` | Turn an idea, requirements doc, or plan into a deliberately-fake, semi-functional mock under a disposable `mock/<slug>/` so design holes surface before an MVP; routes findings back through the owning skills (propose-never-patch). |
 | `/bn-poc` | Prove whether an idea's central IP/capability can actually work by building its core machine *for real* into a disposable `poc/<slug>/` within a user-confirmed scope, returning a humble feasibility verdict (`confirmed` / `confirmed-with-caveats` / `could-not-confirm`); routes the verdict back through the owning skills (propose-never-patch). |
+| `/bn-runbook` | Read-only, re-runnable drive-recipe producer: probes a repo for its drive entry points and external dependencies, tiers each dependency, execute-validates only the cheap/drivable surface under a budget ceiling (marking what it ran `proven`), declares expensive or no-dev-equivalent legs without running them, and writes an approval-gated, machine-readable drive-recipe block into `AGENTS.md`/`CLAUDE.md`; routes enabling work to `/bn-plan` and never builds it itself. |
 
 ## Agents
 
