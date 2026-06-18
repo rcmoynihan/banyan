@@ -6,11 +6,11 @@ Banyan runs on OpenAI Codex in addition to Claude Code. The Codex artifacts ship
 load-bearing `[agents]` config block, the auth boundary, and the parity caveats an installer
 accepts going in.
 
-> **Version pin.** Every command, config key, and capability below is verified on
-> **codex-cli 0.139.0**. codex-cli 0.140.0 is available but is **UNVERIFIED — re-verify before
-> bumping**: the `multi_agent_v1` tool surface (`spawn_agent` / `wait` / `close_agent`) and the
-> `agents.*` config keys may shift across versions. Do not raise the pin without re-running the
-> 0.140.0 re-verify of those surfaces. Until that passes, this contract is pinned to 0.139.0.
+> **Version.** Every command, config key, and capability below is verified on **codex-cli 0.139.0
+> and 0.140.0** — the `multi_agent_v1` tool surface (`spawn_agent` / `wait` / `close_agent`) and the
+> `agents.*` config keys were re-checked live on 0.140.0. Treat later patch/minor bumps as
+> compatible by default; re-check only if a Codex release note calls out a change to the
+> multi-agent surface or the `agents.*` keys.
 
 ## Requirements
 
@@ -96,16 +96,16 @@ explicit when you used a non-default profile in Step 1.
 
 ## The `[agents]` config contract
 
-Banyan's recursion and fan-out **do not run** without experimental multi-agent enabled and the
-`[agents]` config below. This block is a **load-bearing contract**, not a suggestion. Each key is
-proven on codex-cli 0.139.0:
+Banyan's recursion and fan-out require multi-agent support and the `[agents]` config below. This
+block is a **load-bearing contract**, not a suggestion. On codex-cli 0.140.0 `multi_agent` is a
+stable, default-enabled feature; each key is proven on codex-cli 0.139.0 and 0.140.0:
 
 | Key | Value | Why it is load-bearing |
 |---|---|---|
 | `agents.max_depth` | `3` | Banyan's lead pattern nests trunk → lead → unit-lead → child/reviewer (depth 3). **Proven:** a `max_depth=1` control of the identical chain stalls at depth 1 and never reaches the deeper spawn. |
 | `agents.max_threads` | `8` | Bounds panel concurrency. Set **at least as high as the widest declared panel** so a lead's siblings overlap. **Proven:** at `max_threads=2` against 3 siblings the runtime *rejects* the surplus spawn (see the reslot caveat); at `max_threads=8` all three overlap. Banyan's widest standing panel (the review panel) fits within 8. |
 | `agents.job_max_runtime_seconds` | set a ceiling (e.g. `1800`) | Bounds a single agent job's wall time so a stuck spawn cannot run unbounded. Tune to the longest legitimate unit/review. |
-| experimental multi-agent | **ENABLED** | The `multi_agent_v1` tool surface (`spawn_agent` / `wait` / `close_agent`) is the spawn mechanism. The port does not run without it. |
+| multi-agent support | **available** | The `multi_agent_v1` tool surface (`spawn_agent` / `wait` / `close_agent`) is the spawn mechanism. It is a **stable, default-enabled** feature on codex-cli 0.140.0 (experimental in older builds); confirm `codex features list` shows `multi_agent` enabled. The port does not run without it. |
 
 ### How to apply the config — never the global `config.toml`
 

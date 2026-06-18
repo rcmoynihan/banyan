@@ -288,5 +288,7 @@ with documented fallbacks; the consult/transcript loop lands FAITHFUL (revising 
 and nested-user-questions degrade to the prompt-level / trunk-only postures Banyan already runs
 on Claude Code, with no regression. No row claims parity for an unproven item: the residual
 breadth items (Q1 width, Q2 nested fan-out, Q3 reslot-under-load) are carried as not-yet-parity
-and deferred to follow-up, and the codex-cli 0.140.0 re-verify (Q4, R23) gates the U8 config-
-contract commitment — until it passes, the contract is pinned to codex-cli 0.139.0.
+and deferred to follow-up. The codex-cli 0.140.0 re-verify (Q4, R23) has been run live — the
+`multi_agent_v1` surface (`spawn_agent`/`wait`/`close_agent`) and the two-step install were
+confirmed on 0.140.0 — so the config contract is verified on codex-cli 0.139.0 and 0.140.0, not
+pinned to a single version.

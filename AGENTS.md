@@ -170,8 +170,8 @@ generated from it; the two hosts are never hand-forked.
   agents (shipped compound-engineering precedent). Banyan therefore installs in two steps — the native
   marketplace/TUI skills install, then `scripts/codex-build/install-codex-agents.mjs` to register the
   55 agents into the Codex agent store — or a delegating skill reports missing agents. The flow,
-  the load-bearing `[agents]` config contract (`max_depth=3`, `max_threads`, experimental multi-agent
-  enabled), and the subscription-auth boundary (`~/.codex/auth.json`, `OPENAI_API_KEY` unset, config via
+  the load-bearing `[agents]` config contract (`max_depth=3`, `max_threads`; multi-agent is a
+  stable, default-enabled feature on current Codex), and the subscription-auth boundary (`~/.codex/auth.json`, `OPENAI_API_KEY` unset, config via
   `-c` overrides / project-local config, never the global `~/.codex/config.toml`) live in
   `docs/codex-install.md`; the parity stance is `docs/decisions/codex-parity-gap-register.md`.
 - **CLI-absent verification falls back, like the Claude Code smoke.** `eval/codex/run-codex-smoke.mjs`

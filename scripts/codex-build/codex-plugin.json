@@ -8,8 +8,8 @@
   "agents": {
     "source": "../../dist/codex/agents",
     "install": "node ./install-codex-agents.mjs",
-    "note": "Codex native plugin install registers skills only. Run the agent-install step above to register the 54 agent definitions into <CODEX_HOME>/agents/, or delegating skills report missing agents (see docs/codex-install.md)."
+    "note": "Codex native plugin install registers skills only. Run the agent-install step above to register the 55 agent definitions into <CODEX_HOME>/agents/, or delegating skills report missing agents (see docs/codex-install.md)."
   },
-  "codex_cli_pin": "0.139.0",
+  "codex_cli_pin": "0.140.0",
   "unverified": "Exact native marketplace manifest filename and schema are confirm-by against the current Codex skills/marketplace docs; see docs/codex-install.md."
 }
