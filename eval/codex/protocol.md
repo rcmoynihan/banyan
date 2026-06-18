@@ -34,7 +34,7 @@ internally consistent. The render output (`agents/`, `skills/`, `AGENTS.md`) liv
 2. **Agent-install step present** — `scripts/codex-build/install-codex-agents.mjs` exists (the
    step the manifest points at, plan R25/U8).
 3. **Codex doctrine present** — `dist/codex/AGENTS.md` exists.
-4. **54 agent TOMLs discoverable** — 54 `agents/*.toml`, each declaring a `name`.
+4. **55 agent TOMLs discoverable** — 55 `agents/*.toml`, each declaring a `name`.
 5. **19 skills discoverable** — 19 skill directories each with a `SKILL.md` (the count is
    asserted dynamically against what is on disk, not hardcoded into the package).
 6. **R25 — every delegating skill finds its agent.** This is the load-bearing condition, not a

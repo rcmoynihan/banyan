@@ -40,13 +40,13 @@ const result = render(REPO_ROOT);
 
 // (1) one TOML per shipped agent, one Codex skill dir per skill; the skill count
 // is computed dynamically from SKILL.md on disk, not hardcoded.
-test('one TOML per shipped agent (count == 54)', () => {
+test('one TOML per shipped agent (count == 55)', () => {
   const agentFilesOnDisk = listAgentFiles(REPO_ROOT);
-  assert.equal(agentFilesOnDisk.length, 54, 'expected 54 shipped agents on disk');
-  assert.equal(result.agents.length, 54, 'expected 54 rendered agent TOMLs');
+  assert.equal(agentFilesOnDisk.length, 55, 'expected 55 shipped agents on disk');
+  assert.equal(result.agents.length, 55, 'expected 55 rendered agent TOMLs');
   assert.equal(
     new Set(result.agents.map((a) => a.name)).size,
-    54,
+    55,
     'agent names must be unique',
   );
 });
@@ -54,7 +54,7 @@ test('one TOML per shipped agent (count == 54)', () => {
 test('one Codex skill dir per skill (count == dynamic SKILL.md count == 19)', () => {
   const skillDirsOnDisk = listSkillDirs(REPO_ROOT);
   const dynamicCount = skillDirsOnDisk.length;
-  assert.equal(dynamicCount, 19, 'expected 19 SKILL.md skills on disk (README states 54/19)');
+  assert.equal(dynamicCount, 19, 'expected 19 SKILL.md skills on disk (README states 55/19)');
   assert.equal(result.skills.length, dynamicCount, 'rendered skill count must match disk');
 });
 

@@ -26,9 +26,9 @@ const REQUIRED_MATCH = ['README.md', 'plugin/README.md'];
 // check: authoring-only surfaces fixed elsewhere.
 const FLAG_ONLY = ['AGENTS.md'];
 
-// A count claim states a quantity-of-the-whole ("ships 54 agents", "(19 skills)",
-// "currently 54 agents, 19 skills"), so the noun closes the phrase. A bare
-// "<n> agents" that heads a prepositional phrase ("register the 54 agents into the
+// A count claim states a quantity-of-the-whole ("ships 55 agents", "(19 skills)",
+// "currently 55 agents, 19 skills"), so the noun closes the phrase. A bare
+// "<n> agents" that heads a prepositional phrase ("register the 55 agents into the
 // Codex agent store") is an instruction about the set, not a claim of its size; the
 // trailing negative lookahead drops those continuations so unrelated prose does not
 // false-fire the gate.

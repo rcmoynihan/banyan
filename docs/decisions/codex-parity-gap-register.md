@@ -101,12 +101,12 @@ The Claude Code `node --test` script spine is unaffected by this file and stays 
 
 - **Behavior:** Installing the plugin makes the delegating skills' agents available, so a skill
   that delegates to an agent finds it at runtime.
-- **Claude Code reality:** A single plugin install registers both skills and the 54 agents the
+- **Claude Code reality:** A single plugin install registers both skills and the 55 agents the
   skills delegate to; no second step.
 - **Codex reality:** Codex's **native plugin install registers skills only — NOT custom
   agents.** The marketplace registers via `codex plugin marketplace add <repo>` and the skills
   install through the `/plugins` TUI (the CLI exposes no install subcommand for an added
-  marketplace) (plan R20). Banyan ships 54 agents its skills delegate to; without a separate
+  marketplace) (plan R20). Banyan ships 55 agents its skills delegate to; without a separate
   agent-install step a delegating skill reports missing agents at runtime (CE README: native
   install "does not register custom agents yet"; "Without the agent step, delegating skills
   will report missing agents") (plan R25).

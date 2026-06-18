@@ -408,11 +408,11 @@ test("consultLoopWiring: the four host-neutral transcript/resume scripts are pre
   assert.match(w.classification, /FAITHFUL/);
 });
 
-test("real committed dist/codex/ is a GO package: 54 agents, 19 skills, R25 closure clean", () => {
+test("real committed dist/codex/ is a GO package: 55 agents, 19 skills, R25 closure clean", () => {
   const dist = join(REPO_ROOT, "dist", "codex");
   const build = join(REPO_ROOT, "scripts", "codex-build");
   const r = discoverabilityResult(dist, build);
-  assert.equal(r.pkg.agents, 54, "expected 54 installed agents");
+  assert.equal(r.pkg.agents, 55, "expected 55 installed agents");
   assert.equal(r.pkg.skills, 19, "expected 19 skills");
   assert.equal(r.gaps.missing.length, 0, `R25 gaps: ${r.gaps.missing.map((m) => m.chain.join(" -> ")).join("; ")}`);
   assert.ok(r.gaps.delegatingSkillCount > 0, "expected at least one delegating skill");

@@ -22,13 +22,13 @@ accepts going in.
 ## The install is two steps
 
 Codex's **native plugin install registers skills only — it does not register custom agents.**
-Banyan ships 54 agents its skills delegate to, so without a second step a delegating skill (for
+Banyan ships 55 agents its skills delegate to, so without a second step a delegating skill (for
 example `/bn-review`, which spawns its reviewer panel) reports a missing agent at runtime. The
 install is therefore:
 
 1. **Native skills install** — register the marketplace, then install the skills through the
    `/plugins` TUI.
-2. **Banyan agent-install step** — run a zero-dependency node installer that places the 54
+2. **Banyan agent-install step** — run a zero-dependency node installer that places the 55
    generated agent definitions into the Codex agent store.
 
 Both steps run against **one install root** (`CODEX_HOME`). Pick that root once and use it for
@@ -74,7 +74,7 @@ agents — that is Step 2.
 > shipped manifest to match — the manifest's contents (name, description, skills/agents locations,
 > the agent-install pointer) are the load-bearing part.
 
-### Step 2 — Banyan agent-install step (register the 54 agents)
+### Step 2 — Banyan agent-install step (register the 55 agents)
 
 After the skills install, register the agents. From a checkout of this repository:
 
@@ -83,7 +83,7 @@ After the skills install, register the agents. From a checkout of this repositor
 node scripts/codex-build/install-codex-agents.mjs --codex-home "$CODEX_HOME"
 ```
 
-This copies the 54 generated agent definitions from `dist/codex/agents/*.toml` into
+This copies the 55 generated agent definitions from `dist/codex/agents/*.toml` into
 `"$CODEX_HOME"/agents/`, the agent store Codex scans when a lead spawns a child. Preview the plan
 without writing:
 
@@ -198,10 +198,10 @@ A clean install passes when **both** halves landed:
    > use the steps in this section, not `/bn-doctor`. This is a documented Codex gap (see the
    > [parity-gap register](decisions/codex-parity-gap-register.md)).
 
-2. **Agents registered.** Confirm the 54 agent definitions landed in the store:
+2. **Agents registered.** Confirm the 55 agent definitions landed in the store:
 
    ```bash
-   ls "$CODEX_HOME"/agents/*.toml | wc -l   # expect 54
+   ls "$CODEX_HOME"/agents/*.toml | wc -l   # expect 55
    ```
 
 3. **A delegating skill finds its agent (the R25 check).** Invoke a skill that delegates to an

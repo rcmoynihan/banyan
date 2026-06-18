@@ -2,7 +2,7 @@
 // Banyan agent-install step for Codex (R25).
 //
 // Codex's native plugin install (marketplace + /plugins TUI) registers skills only; it does
-// not register custom agents. Banyan ships 54 agents its skills delegate to, so a delegating
+// not register custom agents. Banyan ships 55 agents its skills delegate to, so a delegating
 // skill reports a missing agent at runtime unless the agent definitions are installed into the
 // Codex agent store. This step copies the generated per-agent TOML from dist/codex/agents/ into
 // <CODEX_HOME>/agents/, the same agent store Codex reads at spawn time.

@@ -42,9 +42,9 @@ function syntheticRoot({ agents, skills, readme, pluginReadme, agentsMd }) {
   return root;
 }
 
-test('the real repo reports 54 agents and 19 skills with no count failures', () => {
+test('the real repo reports 55 agents and 19 skills with no count failures', () => {
   const counts = diskCounts(REPO_ROOT);
-  assert.equal(counts.agents, 54);
+  assert.equal(counts.agents, 55);
   assert.equal(counts.skills, 19);
   const report = check(REPO_ROOT);
   assert.deepEqual(
@@ -57,7 +57,7 @@ test('the real repo reports 54 agents and 19 skills with no count failures', () 
 test('the real repo AGENTS.md count bullet matches disk and is not flagged', () => {
   const report = check(REPO_ROOT);
   assert.ok(
-    !report.flags.some((f) => f.file === 'AGENTS.md' && f.kind === 'agents' && f.found !== 54),
+    !report.flags.some((f) => f.file === 'AGENTS.md' && f.kind === 'agents' && f.found !== 55),
     'expected no stale AGENTS.md agent-count bullet',
   );
   assert.ok(
@@ -211,7 +211,7 @@ test('the CLI exits 0 on the real repo (prose == disk)', () => {
   const out = execFileSync('node', [SCRIPT_PATH, '--root', REPO_ROOT], {
     encoding: 'utf8',
   });
-  assert.match(out, /54 agents, 19 skills/);
+  assert.match(out, /55 agents, 19 skills/);
   assert.match(out, /matches disk/);
 });
 

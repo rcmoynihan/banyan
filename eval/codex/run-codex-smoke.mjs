@@ -253,8 +253,8 @@ export function discoverabilityResult(distDir, buildDir) {
 
   const pkg = readPackage(distDir);
   note(
-    "54 agent TOMLs discoverable",
-    pkg.agentFileCount === 54 && pkg.installedAgents.size === 54,
+    "55 agent TOMLs discoverable",
+    pkg.agentFileCount === 55 && pkg.installedAgents.size === 55,
     `${pkg.agentFileCount} files / ${pkg.installedAgents.size} well-formed`,
   );
   note("19 skills discoverable (SKILL.md per skill)", pkg.skillDirCount === 19, `${pkg.skillDirCount} skills`);

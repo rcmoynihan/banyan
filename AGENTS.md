@@ -112,7 +112,7 @@ or `**/CLAUDE.md` in this repo returns decoys; filter against the list above.
   -Status`); `ported` files are Banyan-owned, and every substantive edit to one gets a
   one-line entry in its group's edit log under `vendor/edits/`.
 - **Component counts are stated in prose.** `README.md` and `plugin/README.md` both claim
-  agent/skill counts (currently 54 agents, 19 skills); adding or removing a component
+  agent/skill counts (currently 55 agents, 19 skills); adding or removing a component
   means updating both. The `node --test` count assertion
   (`plugin/skills/bn-conventions/scripts/check-counts.test.mjs`) guards the value against the
   `plugin/agents/*.md` and `plugin/skills/*/SKILL.md` files on disk.
@@ -149,7 +149,7 @@ generated from it; the two hosts are never hand-forked.
   `agent_type:"default"` spawns — no custom role name — and panel-fanning lead bodies carry
   the spawn-reap-respawn loop. `${CLAUDE_PLUGIN_ROOT}/...` references rewrite to the
   `~/.codex/skills/banyan/...` install root. The field map is `scripts/codex-build/mapping.md`.
-- **Counts.** The render covers all 54 agents and 19 skills; the count is asserted
+- **Counts.** The render covers all 55 agents and 19 skills; the count is asserted
   dynamically against `plugin/skills/*/SKILL.md` on disk, not hardcoded.
 - **Verification.** `node --test scripts/codex-build/render-codex.test.mjs` asserts the
   surface counts, the required TOML fields, the panel-lead reap-respawn loop, the absence of
@@ -169,7 +169,7 @@ generated from it; the two hosts are never hand-forked.
 - **The Codex install is two steps.** Codex's native plugin install registers skills only, not custom
   agents (shipped compound-engineering precedent). Banyan therefore installs in two steps — the native
   marketplace/TUI skills install, then `scripts/codex-build/install-codex-agents.mjs` to register the
-  54 agents into the Codex agent store — or a delegating skill reports missing agents. The flow,
+  55 agents into the Codex agent store — or a delegating skill reports missing agents. The flow,
   the load-bearing `[agents]` config contract (`max_depth=3`, `max_threads`, experimental multi-agent
   enabled), and the subscription-auth boundary (`~/.codex/auth.json`, `OPENAI_API_KEY` unset, config via
   `-c` overrides / project-local config, never the global `~/.codex/config.toml`) live in
