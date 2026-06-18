@@ -20,8 +20,10 @@ Before building anything, read the two reference files named in your envelope's 
 `inputs`:
 
 - `references/fidelity-doctrine.md` — the anti-real-machine prohibited-actions checklist, the
-  functional-over-pretty rule, the 2–3-scenario heuristic, and the invent-vs-block
-  decision tree (with the pricing-TBD worked example). **This is your hard wall.**
+  surface-coverage model (§1.5: one medium, a connected surface set with built-to-fidelity /
+  navigable-placeholder / omitted-with-rationale tiers), the legibility-floor rule (§2: the shared
+  baseline stylesheet + the persistent mock banner), the 2–3-scenario heuristic, and the
+  invent-vs-block decision tree (with the pricing-TBD worked example). **This is your hard wall.**
 - `references/mock-notes-schema.md` — the exact required headings for the mock-notes you must
   write, including the Mock Reality Boundary block.
 
@@ -66,17 +68,30 @@ cleanup — see `fidelity-doctrine.md` §Slug containment).
 
 ## What to build
 
-1. **Classify the primary surface and pick ONE medium.** Read the idea and choose the
-   single medium that best carries it: **GUI** (a static `index.html`), **CLI** (a `node`/`sh`
-   entry script), **API** (a `server.mjs` returning hardcoded JSON for listed routes), or
-   **agent-transcript** (a `transcript.md` of a faked agent session). For a mixed-surface idea,
-   build the one primary medium and **name the omitted surfaces** in the notes — do not
-   build several half-mocks.
+1. **Pick ONE medium, then cover its surface set.** Read the idea and choose the single medium
+   that best carries it: **GUI** (a static `index.html`), **CLI** (a `node`/`sh` entry script),
+   **API** (a `server.mjs` returning hardcoded JSON for listed routes), or **agent-transcript** (a
+   `transcript.md` of a faked agent session). "One medium" forbids building GUI + CLI + API as
+   parallel half-mocks — it does **not** mean one screen. Within the chosen medium, take a
+   **surface inventory** and classify each surface `built-to-fidelity` | `navigable-placeholder` |
+   `omitted-with-rationale` (`fidelity-doctrine.md` §1.5). Build the primary flow to fidelity and
+   make the app's control surfaces (onboarding, cold-start, auth, profile, billing, settings)
+   reachable **navigable-placeholders** from a nav shell so the whole app is legible — do not
+   collapse them to prose omissions, and do not build them as half-mocks. When
+   `inputs.surface_plan` is present (the trunk confirmed it in Step 3c), build that confirmed
+   inventory; otherwise derive it. Record the full inventory in the notes.
 
-2. **Build the structure + 2–3 telling scenarios.** Functional over polished; omit
-   styling unless the idea is about polish. Cover one happy path, one edge/empty/error state, and
-   one pressure case (unless the input clearly warrants otherwise). All data is hardcoded local
-   constants — no real backend.
+2. **Build the structure + 2–3 telling scenarios per built surface, to the legibility floor.**
+   Cover one happy path, one edge/empty/error state, and one pressure case **per built-to-fidelity
+   surface** (unless the input clearly warrants otherwise); navigable-placeholders are reachable
+   stub screens with no scenarios. All data is hardcoded local constants — no real backend. For a
+   GUI mock, build to the **legibility floor** (`fidelity-doctrine.md` §2): copy the shipped
+   baseline stylesheet from `~/.codex/skills/banyan/skills/bn-mock/assets/mock.css` into
+   `mock/<slug>/mock.css` and link it relatively (`<link rel="stylesheet" href="mock.css">`),
+   render the persistent **BANYAN MOCK** banner, and keep every unbuilt surface a **labeled
+   placeholder panel** (legible but unmistakably unfinished — never fake-real). Visual legibility
+   is encouraged; fake-real fidelity stays forbidden (an unbuilt chart is a labeled panel, not a
+   chart wired to fake data). For non-GUI media the floor is clean, readable output, not CSS.
 
 3. **Apply the invent-vs-block decision tree.** Reversible + mock-local unknown ⇒
    pick a default, build it, log the choice + alternatives. High-blast-radius unknown
@@ -97,16 +112,19 @@ cleanup — see `fidelity-doctrine.md` §Slug containment).
 5. **Write the self-describing README** at `mock/<slug>/README.md` with: a loud
    **disposable warning** ("This is a Banyan mock — fake by design, safe to delete"), the exact
    per-medium **run/open command** (see below), the supported scenarios, a **playtest
-   script** (2–3 concrete things to try, what to watch for, what is intentionally fake), a pointer
-   to the durable notes path, and **cleanup instructions** (the exact `rm -rf mock/<slug>/` line,
+   script** (2–3 concrete things to try, what to watch for, what is intentionally fake — call out
+   the persistent **BANYAN MOCK** banner and the labeled placeholder panels as the boundary's
+   visible markers), a pointer to the durable notes path, and **cleanup instructions** (the exact
+   `rm -rf mock/<slug>/` line,
    presented as the user's choice — you never run it). Only ever interpolate your
    regex-validated `<slug>` (validated before your first Write) into that `rm -rf` line; never emit
    an `rm -rf` line built from an unvalidated slug (rationale: `fidelity-doctrine.md`
    §Slug containment).
 
 6. **Write the schema-conformant mock-notes** at your `artifact_path`, following
-   `mock-notes-schema.md` exactly: input source, mock path, run command, chosen modality + omitted
-   surfaces, hardcoded scenarios + why, invented decisions + alternatives, unresolved questions,
+   `mock-notes-schema.md` exactly: input source, mock path, run command, chosen modality + surface
+   inventory (each surface tiered built-to-fidelity / navigable-placeholder / omitted-with-rationale),
+   hardcoded scenarios + why, invented decisions + alternatives, unresolved questions,
    the **Mock Reality Boundary** block (hardcoded / fake / unrepresented / must-not-be-inferred),
    planning impact, suggested requirements patches (proposals only — propose-never-patch), and a
    populated **disposition table** classifying each finding (plus the plan-impact column

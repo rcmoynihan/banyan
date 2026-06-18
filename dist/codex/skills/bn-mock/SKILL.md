@@ -7,9 +7,10 @@ argument-hint: "[idea | .banyan/brainstorms/*-requirements.md | .banyan/plans/*-
 # bn-mock
 
 You are the user-facing trunk for mocking. Keep this layer thin: resolve the input, open or reuse
-a run, run the overwrite-safety gate, spawn ONE `bn-mock-builder` leaf, read its mock-notes gate
-artifact (never its prose — invariant 3), print the run command, and run the propose-never-patch
-handoff. You do not build the mock yourself, and you never edit a protected artifact.
+a run, run the overwrite-safety gate, confirm the surface set with the user (a breadth checkpoint,
+not a permission cliff), spawn ONE `bn-mock-builder` leaf, read its mock-notes gate artifact (never
+its prose — invariant 3), print the run command, and run the propose-never-patch handoff. You do
+not build the mock yourself, and you never edit a protected artifact.
 
 Read `~/.codex/skills/banyan/AGENTS.md` (invariants 2, 3, 5, 6; §2.2 recovery; §5 protected
 artifacts), `~/.codex/skills/banyan/skills/bn-conventions/references/envelope.md`, and these
@@ -110,6 +111,24 @@ Bind the chosen path once as the **notes path**; pass it as the envelope's `arti
 **and** read it back at exactly that path (Step 5). The schema documents this suffix rule
 (`mock-notes-schema.md`); the trunk is what actually selects it.
 
+## Step 3c — Confirm the surface set (breadth alignment, NOT a permission cliff)
+
+Unlike `/bn-poc` Step 3b, this is **not** an execution-authority cliff — the mock builder runs no
+real code (anti-real-machine boundary), so nothing here grants execution power. It is a cheap
+breadth-alignment checkpoint that prevents the "only one surface got built" failure: the user sees
+what the mock will cover *before* it is built, and can widen or trim it.
+
+From the input, derive the **surface inventory** (`fidelity-doctrine.md` §1.5): name the primary
+flow (`built-to-fidelity`) and the app's control surfaces — onboarding, cold-start, auth, profile,
+billing, settings — as `navigable-placeholder` or `omitted-with-rationale`. Propose it via
+`AskUserQuestion` (the Claude Code tool) so the user can expand or trim before the build. In a
+runtime without that tool, surface the proposed inventory in chat.
+
+This step is **advisory**: if the user does not adjust, proceed with the trunk-proposed inventory —
+**never block the build on it**, and never treat a missing answer as a hard stop (it is not an
+execution cliff; do not copy `/bn-poc`'s "never spawned without a confirmed scope" language). Pass
+the resolved inventory into the Step 4 envelope as `inputs.surface_plan`.
+
 ## Step 4 — Spawn exactly one bn-mock-builder leaf
 
 Spawn ONE `bn-mock-builder` (`max_children: 0`, `depth_remaining: <caller − 1>`) with the resolved
@@ -120,7 +139,9 @@ envelope `boundaries`. Use the **validated** slug from Step 1 and the **notes pa
 ```
 === BANYAN ENVELOPE ===
 objective:       Build a deliberately-fake, semi-functional mock for this idea into mock/<slug>/
-                 and record the load-bearing mock-notes gate artifact.
+                 covering a legible surface set (one medium; primary flow built-to-fidelity,
+                 control surfaces as navigable-placeholders per fidelity-doctrine §1.5), and
+                 record the load-bearing mock-notes gate artifact.
 artifact_path:   <the notes path bound in Step 3a — briefs/mock-notes.md, or
                  briefs/mock-notes-<slug>.md on a reused run already holding another slug's notes>
 output_format:   The mock under mock/<slug>/ (manifest + README + playtest script + the medium's
@@ -133,6 +154,8 @@ inputs:
   run_id:          <run-id>
   iteration:       <the iteration number the trunk computed in Step 3 — 1 for a fresh build,
                    N+1 for an in-place iteration; the builder writes this value, does not increment>
+  surface_plan:    <the surface inventory confirmed in Step 3c — primary flow built-to-fidelity,
+                   control surfaces as navigable-placeholders/omitted per fidelity-doctrine §1.5>
 doctrine:        ~/.codex/skills/banyan/skills/bn-mock/references/fidelity-doctrine.md,
                  ~/.codex/skills/banyan/skills/bn-mock/references/mock-notes-schema.md,
                  ~/.codex/skills/banyan/AGENTS.md
@@ -143,7 +166,10 @@ boundaries:      ANTI-REAL-MACHINE: no installs, no credentials, no network/exte
                  (.banyan/brainstorms, .banyan/plans, .banyan/solutions, other runs' dirs). Do not
                  decide overwrites — the trunk already cleared the overwrite-safety gate.
 tool_guidance:   Read/Grep/Glob/Bash/Write inside mock/<slug>/ and your own artifact only. Read
-                 the doctrine paths first. Spawn nothing.
+                 the doctrine paths first. For a GUI mock, copy the baseline stylesheet from
+                 ~/.codex/skills/banyan/skills/bn-mock/assets/mock.css into mock/<slug>/mock.css
+                 (a Write inside the boundary, not an install — fidelity-doctrine §2.1). Spawn
+                 nothing.
 budget:
   max_children:    0
   depth_remaining: <caller − 1>
@@ -205,5 +231,8 @@ route is a dispatch into the owning skill, which writes (§5).
 - Verification is `/bn-doctor` Check 2 (the skill dir is well-formed and discoverable) plus the
   structural greps that confirm this skill's shipped doctrine is intact (the slug regex appears as a
   precondition; the `rm -rf` line is gated on a validated slug; the mock-notes schema's required
-  headings and the five disposition values are present). End-to-end mock behavior is **UNVERIFIED
-  (no test command)**, and the trunk re-running `/bn-mock` is the recovery owner.
+  headings — including `### Chosen modality + surface inventory` — the three surface tiers, and the
+  five disposition values are present; `assets/mock.css` exists and contains no `@import` or
+  external `url(`; Step 3c is present and worded as advisory, not a permission cliff). End-to-end
+  mock behavior is **UNVERIFIED (no test command)**, and the trunk re-running `/bn-mock` is the
+  recovery owner.

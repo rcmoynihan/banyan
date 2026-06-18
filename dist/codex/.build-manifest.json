@@ -116,7 +116,7 @@
     },
     "agents/bn-mock-builder.toml": {
       "source": "plugin/agents/bn-mock-builder.md",
-      "sha256": "5a0ec42c45fa5dbae6979aed2104f64a65a74325da4583b7c464c2050e24d4be"
+      "sha256": "78e999e56a0b7fa6ed6f3ff767ffc82f7b17bf5ee0e3b90708381bc4cca16d30"
     },
     "agents/bn-performance-reviewer.toml": {
       "source": "plugin/agents/bn-performance-reviewer.md",
@@ -476,11 +476,11 @@
     },
     "skills/bn-mock/SKILL.md": {
       "source": "plugin/skills/bn-mock/SKILL.md",
-      "sha256": "e733213759e9deeed73b00e3ad68f8cbf5498b06596c574d95b17db73cc36344"
+      "sha256": "5ba3c061a019e7f2f89c3581f34a4fbc131c7534e71bb3c1e4101649158364fe"
     },
     "skills/bn-mock/references/fidelity-doctrine.md": {
       "source": "plugin/skills/bn-mock/references/fidelity-doctrine.md",
-      "sha256": "7212ae845c4f9b2fa64f71156eae478cb337b28d3c385d27a7b0a18d3f98e85f"
+      "sha256": "8953101ce8847376c90da2e0478af4adb52116148b77fa2d4a823ec92f9e3632"
     },
     "skills/bn-mock/references/handoff.md": {
       "source": "plugin/skills/bn-mock/references/handoff.md",
@@ -488,7 +488,7 @@
     },
     "skills/bn-mock/references/mock-notes-schema.md": {
       "source": "plugin/skills/bn-mock/references/mock-notes-schema.md",
-      "sha256": "e513879327c68e34c05309b235bf28b92addc526d3ab3c61c1ca15c6b4c288f6"
+      "sha256": "032f81e2837b89a92c2ab2eb0cd589d5ca3533fa46b6d966228e8ee2222c94c2"
     },
     "skills/bn-mock/references/overwrite-safety.md": {
       "source": "plugin/skills/bn-mock/references/overwrite-safety.md",
