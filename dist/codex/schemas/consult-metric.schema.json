@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://banyan.dev/schemas/consult-metric.schema.json",
+  "title": "Consult metric (per logical unit, R29)",
+  "description": "Per-logical-unit consult signals derived MECHANICALLY from the U6/U8/U9 audit artifacts (answers, chain, aborts) — never from a separate logging path and never from transcripts. The roll-up (scripts/consult-metrics.mjs) computes these so metrics cannot diverge from the audit trail (reconstructable-from-disk, R23/R29).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "logical_unit",
+    "decision_changed",
+    "external_fetch",
+    "contradiction_caught",
+    "reopened_settled_decision",
+    "repeated_predecessor_exploration",
+    "consult_tokens",
+    "consult_latency_ms",
+    "human_interruption"
+  ],
+  "properties": {
+    "logical_unit": {
+      "type": "string",
+      "description": "The logical unit these signals roll up (one chain of physical children)."
+    },
+    "decision_changed": {
+      "type": "boolean",
+      "description": "True iff the answer differed from the asker's recommendation (the answer changed the call rather than rubber-stamping it). Derived: ask.recommendation != answer.answer for the acted-on answer."
+    },
+    "external_fetch": {
+      "type": "boolean",
+      "description": "True iff the answer's basis was after-reading-code or after-web (the lead did real external work, not answered-from-ask/assumed). Derived from answer.basis."
+    },
+    "contradiction_caught": {
+      "type": "boolean",
+      "description": "True iff an evidenced push-back was accepted (a contradiction was caught). Derived: a chain entry outcome=pushed-back whose subsequent answer revised rather than reaffirmed."
+    },
+    "reopened_settled_decision": {
+      "type": "boolean",
+      "description": "True iff a continuation re-opened an already-settled decision (a fresh-amnesia signal). Derived: a chain entry acting on an answer whose ask duplicates an earlier resolved ask in the same logical unit."
+    },
+    "repeated_predecessor_exploration": {
+      "type": "boolean",
+      "description": "True iff a continuation repeated its predecessor's exploration (fresh-amnesia, not fresh-witness). Derived from the U5 repeated-reread / no-progress signal carried in the abort/chain record."
+    },
+    "consult_tokens": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Cumulative tokens spent on this logical unit's consult chain (sum of per-child consult token counts where recorded; 0 when unrecorded)."
+    },
+    "consult_latency_ms": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Wall-clock latency of the consult chain in milliseconds (last answered_at minus the first ask created_at where timestamps exist; 0 when unrecorded)."
+    },
+    "human_interruption": {
+      "type": "boolean",
+      "description": "True iff this logical unit reached the human (an answer scope=human-level or an abort/residual that surfaced upward)."
+    }
+  }
+}

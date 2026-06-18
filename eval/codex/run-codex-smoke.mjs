@@ -243,7 +243,21 @@ export function discoverabilityResult(distDir, buildDir) {
   }
 
   note("agent-install step present (scripts/codex-build/install-codex-agents.mjs)", exists(installerPath), installerPath);
+  const unifiedInstallerPath = join(buildDir, "install-codex.mjs");
+  note("unified installer present (scripts/codex-build/install-codex.mjs)", exists(unifiedInstallerPath), unifiedInstallerPath);
   note("Codex doctrine present (AGENTS.md)", exists(doctrinePath), doctrinePath);
+
+  // The top-level static assets the render emits so install-root references resolve: the
+  // schemas/ tree (bn-runbook's drive-recipe.schema.json) and the plugin manifest the
+  // version-read skills consume. A render that dropped them installs a tree with dangling
+  // ${CLAUDE_PLUGIN_ROOT}/schemas/... and <plugin-root>/.claude-plugin/plugin.json references.
+  const schemaPath = join(distDir, "schemas", "drive-recipe.schema.json");
+  const manifestAssetPath = join(distDir, ".claude-plugin", "plugin.json");
+  note(
+    "render static assets present (schemas/ + .claude-plugin/plugin.json)",
+    exists(schemaPath) && exists(manifestAssetPath),
+    `${schemaPath} | ${manifestAssetPath}`,
+  );
 
   const dirsOk = exists(agentsDir) && exists(skillsDir);
   if (!dirsOk) {
@@ -286,7 +300,7 @@ function pkgSummary(pkg) {
 // codex-cli 0.139.0 + subscription drive; on a host with no codex-driven CI they are UNVERIFIED.
 export const LIVE_GO_CONDITIONS = [
   "Skills load: `/skills` lists the 19 Banyan skills.",
-  "Agents registered: `ls \"$CODEX_HOME\"/agents/*.toml | wc -l` == 54.",
+  "Agents registered: `ls \"$CODEX_HOME\"/agents/*.toml | wc -l` == 55.",
   "R25 delegating skill finds its agent: invoke `$bn-review`; its review lead spawns the reviewer panel with no missing-agent error.",
   "Depth-2 spawn returns an artifact: a lead spawns one child that writes its artifact path.",
   "Depth-3 chain returns an artifact: trunk -> lead -> unit-lead -> leaf, each spawn agent-decided, leaf writes its artifact (requires agents.max_depth=3).",

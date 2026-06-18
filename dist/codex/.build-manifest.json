@@ -6,6 +6,10 @@
     "skills": 19
   },
   "files": {
+    ".claude-plugin/plugin.json": {
+      "source": "plugin/.claude-plugin/plugin.json",
+      "sha256": "6cfc5fb766cb840e6572c7777bb317a68ba4fc751f291711d7d72d946d1c8a7b"
+    },
     "AGENTS.md": {
       "source": "plugin/AGENTS.md",
       "sha256": "e240d0d15c08a5d2412222388030c8ca6baa8dd2dee3330dce6ef06764743026"
@@ -230,6 +234,42 @@
       "source": "plugin/agents/bn-yagni-reviewer.md",
       "sha256": "4a0ec02e7c912d1028abefab1ca934589fac11d1e70f8104d25e3a9c989c6d1b"
     },
+    "schemas/consult-answer.schema.json": {
+      "source": "plugin/schemas/consult-answer.schema.json",
+      "sha256": "d0a2a513dafb979977a080554cefac53bd0ad7a9359b6402b1545ef8cd6bf4e0"
+    },
+    "schemas/consult-ask.schema.json": {
+      "source": "plugin/schemas/consult-ask.schema.json",
+      "sha256": "acb8a4e34edf5d1b24abe7eb8bfa9e9f51a21109a5d7038368cc1b219cefc660"
+    },
+    "schemas/consult-budget.schema.json": {
+      "source": "plugin/schemas/consult-budget.schema.json",
+      "sha256": "b5fb1dea2ad1e6518b1018cb0f12caab5d0e290d0bb4d1c443b9602e0ad94846"
+    },
+    "schemas/consult-chain.schema.json": {
+      "source": "plugin/schemas/consult-chain.schema.json",
+      "sha256": "634ec2f5525a08a085615ec151d3901df71b587d13f5944bc9e237bc3e07f522"
+    },
+    "schemas/consult-metric.schema.json": {
+      "source": "plugin/schemas/consult-metric.schema.json",
+      "sha256": "af741499881d5fb5db545c582af76e731bffc1a65d6aefd31330c69022d4b264"
+    },
+    "schemas/drive-recipe.schema.json": {
+      "source": "plugin/schemas/drive-recipe.schema.json",
+      "sha256": "ac11137f131aba52048043bee092dea2ddb376976d7fdc633ea4c1c91c5f8217"
+    },
+    "schemas/findings-schema.json": {
+      "source": "plugin/schemas/findings-schema.json",
+      "sha256": "cc1f1e5a7db21a0a844a86231d60287cae9a176384a3c7fefd9ac1d5be8bbc16"
+    },
+    "schemas/solution-frontmatter.yaml": {
+      "source": "plugin/schemas/solution-frontmatter.yaml",
+      "sha256": "d70dd318d60098c0db6c85c928d4f61a1b47daa4d4fa9e5dfe6ed1e2c074ec22"
+    },
+    "schemas/transcript-pointer.schema.json": {
+      "source": "plugin/schemas/transcript-pointer.schema.json",
+      "sha256": "df3219b5da211381791ec809c48c2b6673173e351ed77fbc40ad2df902a1cd03"
+    },
     "skills/bn-ask/SKILL.md": {
       "source": "plugin/skills/bn-ask/SKILL.md",
       "sha256": "ecd3ea8c623c0831884c6f07bbb4b586eeb8434b3e2bfaf2404f3406a000e4c6"
@@ -316,7 +356,7 @@
     },
     "skills/bn-conventions/scripts/check-codex-drift.mjs": {
       "source": "plugin/skills/bn-conventions/scripts/check-codex-drift.mjs",
-      "sha256": "cac11403bbb7fdee05eed570291efadd8899f81c589100078947f518069436be"
+      "sha256": "39e286a86d7f72e6e4fc43d38c1391c28b1338a58ecf8c8c7bb9f1c753a88cd5"
     },
     "skills/bn-conventions/scripts/check-codex-drift.test.mjs": {
       "source": "plugin/skills/bn-conventions/scripts/check-codex-drift.test.mjs",

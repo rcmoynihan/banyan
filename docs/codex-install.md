@@ -19,80 +19,68 @@ accepts going in.
   and should be unset for every Codex invocation.
 - Node.js (for the agent-install step — zero dependencies, `node:` builtins only).
 
-## The install is two steps
+## Install in one command
 
-Codex's **native plugin install registers skills only — it does not register custom agents.**
-Banyan ships 55 agents its skills delegate to, so without a second step a delegating skill (for
-example `/bn-review`, which spawns its reviewer panel) reports a missing agent at runtime. The
-install is therefore:
-
-1. **Native skills install** — register the marketplace, then install the skills through the
-   `/plugins` TUI.
-2. **Banyan agent-install step** — run a zero-dependency node installer that places the 55
-   generated agent definitions into the Codex agent store.
-
-Both steps run against **one install root** (`CODEX_HOME`). Pick that root once and use it for
-every command below.
-
-### Pick one install root (`CODEX_HOME`)
-
-`CODEX_HOME` defaults to `~/.codex`. To install Banyan into a non-default profile, export the
-same `CODEX_HOME` before **every** Codex command and the agent-install step, so the native
-skills install and the agent store land under one root:
+Banyan installs from its **Codex render** (`dist/codex/`) with a single zero-dependency node
+command:
 
 ```bash
-export CODEX_HOME="$HOME/.codex"   # or a dedicated profile dir; use the SAME value throughout
+# OPENAI_API_KEY stays unset; this writes only the Codex skills + agent stores, never config or auth.
+node scripts/codex-build/install-codex.mjs --codex-home "$HOME/.codex"
 ```
 
-Banyan's skills isolate under `"$CODEX_HOME"/skills/banyan/` and its agents under
-`"$CODEX_HOME"/agents/`.
+This does both halves of the install against one root:
 
-### Step 1 — native skills install (marketplace + `/plugins` TUI)
+- **Skills tree → `<CODEX_HOME>/skills/banyan/`** — `AGENTS.md`, the 19 skill directories,
+  `schemas/`, and the plugin manifest. This is the install root the render's rewritten
+  `~/.codex/skills/banyan/...` references resolve against.
+- **Agents → `<CODEX_HOME>/agents/`** — the 55 generated agent TOMLs, the store Codex scans when
+  a lead spawns a child.
 
-Register the Banyan marketplace from a checkout of this repository:
+Preview without writing, or install one half at a time:
 
 ```bash
-codex plugin marketplace add <path-to-this-repo>
+node scripts/codex-build/install-codex.mjs --codex-home "$HOME/.codex" --dry-run
+node scripts/codex-build/install-codex.mjs --codex-home "$HOME/.codex" --skills-only
+node scripts/codex-build/install-codex.mjs --codex-home "$HOME/.codex" --agents-only
 ```
 
-Then install the **skills** through the interactive `/plugins` TUI. codex-cli registers a
-marketplace but exposes **no plugin-install subcommand for an added marketplace**, so the skills
-half is a TUI action, not a one-liner:
+If `--codex-home` is omitted the installer falls back to `$CODEX_HOME`, then `~/.codex`. Reinstall
+is idempotent — the `skills/banyan/` root is replaced wholesale each run.
 
-1. Launch Codex: `codex`
-2. Open the plugins panel: `/plugins`
-3. Select the **banyan** marketplace entry and install it.
+> **Why not `codex plugin marketplace add`?** Codex's native plugin install registers **skills
+> only — never custom agents** (so a delegating skill like `/bn-review` would report a missing
+> agent), and it reads this repo's **Claude-format** `.claude-plugin/marketplace.json`, which points
+> at `plugin/` — the *Claude Code* tree (`.md` agents, `${CLAUDE_PLUGIN_ROOT}` references that do not
+> resolve on Codex), **not** the Codex render in `dist/codex/`. There is no Codex-native marketplace
+> pointing at `dist/codex/`, so the supported install is the direct copy above. (The render bakes
+> absolute `~/.codex/skills/banyan/...` paths into its references, which a marketplace install to a
+> different location would break regardless.)
 
-This installs the skills under `"$CODEX_HOME"/skills/banyan/`. It does **not** install the
-agents — that is Step 2.
+### Two-step equivalent
 
-> **Residual confirm-by (R20).** The packaging manifest ships as
-> `scripts/codex-build/codex-plugin.json` (hand-authored packaging tooling, kept out of the
-> render-owned `dist/codex/` tree). The exact native marketplace manifest **filename and schema**
-> Codex's `plugin marketplace add` expects is a confirm-by item against the current Codex
-> skills/marketplace docs; if Codex documents a different filename and location, copy or rename the
-> shipped manifest to match — the manifest's contents (name, description, skills/agents locations,
-> the agent-install pointer) are the load-bearing part.
-
-### Step 2 — Banyan agent-install step (register the 55 agents)
-
-After the skills install, register the agents. From a checkout of this repository:
+If you prefer to run the halves separately, `--skills-only` is step one and the standalone agent
+installer is step two (identical to the agent half of `install-codex.mjs`):
 
 ```bash
-# OPENAI_API_KEY stays unset; this step writes only the Codex agent store, never config or auth.
-node scripts/codex-build/install-codex-agents.mjs --codex-home "$CODEX_HOME"
+node scripts/codex-build/install-codex.mjs --codex-home "$HOME/.codex" --skills-only
+node scripts/codex-build/install-codex-agents.mjs --codex-home "$HOME/.codex"
 ```
 
-This copies the 55 generated agent definitions from `dist/codex/agents/*.toml` into
-`"$CODEX_HOME"/agents/`, the agent store Codex scans when a lead spawns a child. Preview the plan
-without writing:
+### Install root (`CODEX_HOME`)
+
+The installer writes under one root: `--codex-home`, then `$CODEX_HOME`, then `~/.codex`. To
+install into a non-default profile, pass the same `--codex-home` (or export `CODEX_HOME`) so the
+skills tree and the agent store land together:
 
 ```bash
-node scripts/codex-build/install-codex-agents.mjs --codex-home "$CODEX_HOME" --dry-run
+node scripts/codex-build/install-codex.mjs --codex-home "$HOME/.codex"
 ```
 
-If `--codex-home` is omitted the installer falls back to `$CODEX_HOME`, then `~/.codex` — keep it
-explicit when you used a non-default profile in Step 1.
+Banyan's skills isolate under `<CODEX_HOME>/skills/banyan/` and its agents under
+`<CODEX_HOME>/agents/`. Codex discovers the skills by their frontmatter `name` (it recurses into the
+nested `skills/banyan/skills/<skill>/SKILL.md` layout); the render's `schemas/` and
+`.claude-plugin/plugin.json` ship alongside so every `~/.codex/skills/banyan/...` reference resolves.
 
 ## The `[agents]` config contract
 
@@ -132,9 +120,9 @@ config untouched. Use whichever your workflow prefers; both deliver the same con
   user-authorized, flat-rate backend the port is proven against.
 - **`OPENAI_API_KEY` must be unset / not depended on.** If it is present in the shell it forces
   the API-key path; unset it for every Codex invocation so Codex uses the subscription auth.
-- The install touches **neither** `~/.codex/config.toml` **nor** `auth.json`. The agent-install
-  step writes only `"$CODEX_HOME"/agents/`; config is delivered via `-c` overrides or a
-  project-local file (above).
+- The install touches **neither** `~/.codex/config.toml` **nor** `auth.json`. `install-codex.mjs`
+  writes only `<CODEX_HOME>/skills/banyan/` and `<CODEX_HOME>/agents/`; config is delivered via `-c`
+  overrides or a project-local file (above).
 
 ## Accepted parity caveats (read before installing)
 
@@ -151,8 +139,9 @@ the load-bearing ones for the install path:
   **rejected** with an empty receiver — it is not transparently queued. Generated lead bodies that
   fan out wider than `max_threads` carry a spawn-reap-respawn loop (`wait` + `close_agent` to free
   a slot, then re-spawn).
-- **Agent registration is a separate step.** Native plugin install handles skills only; the
-  agent-install step (Step 2) is required, or delegating skills report missing agents.
+- **Agent registration is part of the install, not the native marketplace.** Codex's native plugin
+  install handles skills only; `install-codex.mjs` registers the 55 agents into
+  `<CODEX_HOME>/agents/` as its second half, or delegating skills report missing agents.
 - **The org-chart is instruction-injection, not name dispatch.** Custom agent role *names* are not
   callable as `agent_type` in 0.139.0; every spawn is an `agent_type:"default"` spawn carrying the
   role's instructions. The shipped agent definitions and lead bodies are generated for this model.
@@ -169,22 +158,25 @@ contract invents no prompts format and routes through skills until that surface 
 
 ## Verification
 
-> **UNVERIFIED (live Codex install).** The checks below need a live codex-cli 0.139.0 runtime and a
-> subscription login. They are documented as manual steps; this run does not drive a live install.
+> **Verified on codex-cli 0.139.0** (subscription login, `OPENAI_API_KEY` unset): the one-command
+> install lands all 19 skills + 55 agents, Codex discovers every `bn-*` skill, `multi_agent` is
+> stable + enabled, and `$bn-hello` reports the version from the install root. The full delegation
+> check (step 3, R25) is the remaining manual confirmation.
 
 A clean install passes when **both** halves landed:
 
-1. **Skills load.** In a Codex session, list skills:
+1. **Skills load.** List the discovered skills — non-interactively:
 
    ```bash
-   codex   # then in the TUI:
-   /skills
+   codex exec --sandbox read-only --skip-git-repo-check \
+     "List every skill available to you whose name starts with 'bn-'. Output only the names."
    ```
 
-   Expected: the Banyan skills appear — `bn-hello`, `bn-grow`, `bn-plan`, `bn-work`, `bn-review`,
-   `bn-debug`, `bn-ask`, `bn-brainstorm`, `bn-spec-stress`, `bn-onboard`, `bn-ship`,
-   `bn-resolve-pr`, `bn-learn`, `bn-evolve`, `bn-conventions`, `bn-doctor`, `bn-mock`, `bn-poc`,
-   `bn-runbook` (19 skills).
+   or in a session via the `/skills` TUI. Expected: the Banyan skills appear — `bn-hello`,
+   `bn-grow`, `bn-plan`, `bn-work`, `bn-review`, `bn-debug`, `bn-ask`, `bn-brainstorm`,
+   `bn-spec-stress`, `bn-onboard`, `bn-ship`, `bn-resolve-pr`, `bn-learn`, `bn-evolve`,
+   `bn-conventions`, `bn-doctor`, `bn-mock`, `bn-poc`, `bn-runbook` (19 skills). A second cheap
+   end-to-end check: `codex exec ... '$bn-hello'` should print `Banyan v<version> is installed.`
 
    > **`/bn-doctor` is a Claude-Code-host health check, not a Codex one.** `bn-doctor` ships in
    > the Codex render for completeness, but its checks are Claude-Code-host-specific and do **not**
@@ -207,7 +199,7 @@ A clean install passes when **both** halves landed:
 3. **A delegating skill finds its agent (the R25 check).** Invoke a skill that delegates to an
    agent and confirm it does **not** report a missing agent. For example invoke `$bn-review` (its
    review lead spawns the reviewer panel) and confirm the spawned agent resolves rather than
-   failing with a missing-agent error. This is the assertion that the agent-install step (Step 2)
+   failing with a missing-agent error. This is the assertion that the agent half of the install
    actually closed the native-install gap — a skill that loads but cannot find its delegate is a
    failed install.
 

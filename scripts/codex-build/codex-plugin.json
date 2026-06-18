@@ -5,11 +5,14 @@
   "host": "codex",
   "skills": "../../dist/codex/skills",
   "doctrine": "../../dist/codex/AGENTS.md",
+  "schemas": "../../dist/codex/schemas",
+  "manifest": "../../dist/codex/.claude-plugin/plugin.json",
   "agents": {
     "source": "../../dist/codex/agents",
-    "install": "node ./install-codex-agents.mjs",
-    "note": "Codex native plugin install registers skills only. Run the agent-install step above to register the 55 agent definitions into <CODEX_HOME>/agents/, or delegating skills report missing agents (see docs/codex-install.md)."
+    "install": "node ./install-codex.mjs --agents-only --codex-home <CODEX_HOME>"
   },
+  "install": "node ./install-codex.mjs --codex-home <CODEX_HOME>",
+  "install_note": "Banyan installs from the Codex render (dist/codex/) via a single node command. It copies the skills tree to <CODEX_HOME>/skills/banyan/ and the 55 agent TOMLs to <CODEX_HOME>/agents/. Codex's native plugin install registers skills only (never agents) and reads this repo's Claude-format marketplace pointing at plugin/, not the Codex render — so the direct copy is the supported path. See docs/codex-install.md.",
   "codex_cli_pin": "0.140.0",
-  "unverified": "Exact native marketplace manifest filename and schema are confirm-by against the current Codex skills/marketplace docs; see docs/codex-install.md."
+  "verified": "Install path verified on codex-cli 0.139.0: 19 skills discovered, 55 agents registered, multi_agent stable+enabled, $bn-hello reports the version. The full delegation (R25) check is the remaining manual confirmation."
 }

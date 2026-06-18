@@ -24,20 +24,27 @@ each. On top of that shared spine the Codex smoke has two arms.
 ### Arm 1 — discoverability (default, runs for real on any host)
 
 No codex CLI is required. This arm asserts the committed Codex package is discoverable and
-internally consistent. The render output (`agents/`, `skills/`, `AGENTS.md`) lives under
-`dist/codex/`; the packaging manifest and the agent-install step live under
-`scripts/codex-build/`. Its GO conditions:
+internally consistent. The render output (`agents/`, `skills/`, `AGENTS.md`, `schemas/`,
+`.claude-plugin/plugin.json`) lives under `dist/codex/`; the packaging manifest and the installers
+live under `scripts/codex-build/`. Its GO conditions:
 
 1. **Packaging manifest present and parseable** — `scripts/codex-build/codex-plugin.json` exists,
    is valid JSON, declares `host=codex`, and names the agent-install step
    (`agents.install`).
 2. **Agent-install step present** — `scripts/codex-build/install-codex-agents.mjs` exists (the
    step the manifest points at, plan R25/U8).
-3. **Codex doctrine present** — `dist/codex/AGENTS.md` exists.
-4. **55 agent TOMLs discoverable** — 55 `agents/*.toml`, each declaring a `name`.
-5. **19 skills discoverable** — 19 skill directories each with a `SKILL.md` (the count is
+3. **Unified installer present** — `scripts/codex-build/install-codex.mjs` exists (the one-command
+   install that copies the skills tree to `<CODEX_HOME>/skills/banyan/` and the agents to
+   `<CODEX_HOME>/agents/`).
+4. **Codex doctrine present** — `dist/codex/AGENTS.md` exists.
+5. **Render static assets present** — `dist/codex/schemas/drive-recipe.schema.json` and
+   `dist/codex/.claude-plugin/plugin.json` exist, so the install-root references in rendered
+   SKILL.md (`${CLAUDE_PLUGIN_ROOT}/schemas/...`) and the `bn-hello`/`bn-doctor` version read
+   resolve instead of ENOENT-ing.
+6. **55 agent TOMLs discoverable** — 55 `agents/*.toml`, each declaring a `name`.
+7. **19 skills discoverable** — 19 skill directories each with a `SKILL.md` (the count is
    asserted dynamically against what is on disk, not hardcoded into the package).
-6. **R25 — every delegating skill finds its agent.** This is the load-bearing condition, not a
+8. **R25 — every delegating skill finds its agent.** This is the load-bearing condition, not a
    bare "a skill invokes" check. For every *delegating* skill (one whose `SKILL.md` names a
    lead agent), walk the full delegation closure
 

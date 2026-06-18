@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Consult ask (the strong brief)",
+  "description": "A bounded ask an asking agent writes when it hits a goal/intent question it cannot resolve from its own context, or a hard blocker (R7/R14). It is the ONLY channel the question travels upward on: the asker returns a verdict and leaves its full transcript on disk; the answering lead answers from this ask ALONE and never reads the transcript (DI1/R11). The ask is deliberately a strong brief — it carries the asker's recommendation, the alternatives it weighed, evidence lines with concrete file/tool references, a classification proof that this is a goal/intent question (not a local-implementation choice), and what would change the recommendation — so a lead can reject a thin ask rather than answer on a weak record (R14). The transcript_pointer is the U2 capability naming the asker's own transcript for the continuation; it is opaque to the lead.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "ask_id",
+    "asker_agent_id",
+    "logical_unit",
+    "question",
+    "recommendation",
+    "alternatives",
+    "evidence",
+    "classification_proof",
+    "would_change",
+    "kind",
+    "transcript_pointer",
+    "created_at"
+  ],
+  "properties": {
+    "ask_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable id of this ask. Names the artifact file (consults/asks/<ask_id>.json) and is referenced by the answer (consult-answer.ask_id) and by the chain (entry.input_ask_id)."
+    },
+    "asker_agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Spawn-time agent id of the asker. Ties the ask to the chain entry that produced it and to the transcript_pointer that names the asker's own transcript."
+    },
+    "logical_unit": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The logical unit this ask belongs to. One logical unit is a chain of physical children (R23); every ask, answer, and chain entry for that unit shares this value so the unit is reconstructable from files alone."
+    },
+    "question": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The single blocking question, stated plainly. Not a status update — the one thing the asker needs decided to proceed."
+    },
+    "recommendation": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The asker's own recommended answer with its reasoning. A real recommendation, not a shrug: it is what the lead measures the answer against (the decision-changed signal, R29) and what makes a rubber-stamp visible."
+    },
+    "alternatives": {
+      "type": "array",
+      "description": "The alternatives the asker considered and why it did not pick them. May be empty only when there is genuinely one defensible option; an empty array on a real fork is a thin ask the lead should reject.",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Evidence lines grounding the question and recommendation, each tied to a concrete source. At least one line is required — an ask with no evidence is a thin ask (R14).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file_or_tool", "ref", "claim"],
+        "properties": {
+          "file_or_tool": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The file path or tool/command the evidence comes from (e.g. 'src/auth.ts' or 'npm test')."
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The precise locator within the source — a line range, a symbol name, a test name, a command's output marker."
+          },
+          "claim": {
+            "type": "string",
+            "minLength": 1,
+            "description": "What this evidence establishes, in one line — the inference the asker draws from it."
+          }
+        }
+      }
+    },
+    "classification_proof": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The argument that this is a GOAL/INTENT question eligible for the consult gate (R4), not a local-implementation choice the asker should make itself. Required: a lead rejects an ask that lacks it as reject-as-local (AE2). This is the gate that keeps the asker from over-asking."
+    },
+    "would_change": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What new information or counter-evidence would change the asker's recommendation. Names the decision's sensitivity so the lead knows what to weigh and so a later push-back's 'genuinely new evidence' is judged against a stated baseline (R6)."
+    },
+    "kind": {
+      "type": "string",
+      "enum": ["goal-intent", "hard-blocker"],
+      "description": "goal-intent: a question eligible for the consult gate (R4). hard-blocker: an ungated blocker that climbs via the existing blocked path (R2) — recorded as an ask for auditability, but it does not require the goal-recheck answer flow."
+    },
+    "transcript_pointer": {
+      "$ref": "transcript-pointer.schema.json",
+      "description": "The U2 structured-capability pointer naming the ASKER's own transcript, for the continuation to rehydrate from laterally (R15/R17). It is OPAQUE to the lead (R11): the lead passes it through unread into the continuation envelope and never reads the transcript it names."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp the ask was written. Orders asks within a logical unit for the chain and the thrash/budget meter (U5)."
+    }
+  }
+}

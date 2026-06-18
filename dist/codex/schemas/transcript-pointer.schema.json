@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Transcript Pointer (structured capability)",
+  "description": "A validated capability that names a predecessor's per-agent transcript and binds it to the integrity it had at spawn time. A pointer is opaque to any lead (R11): only a continuation peer or the disposable bn-consult-extractor ever reads the transcript it names, and only after validate(pointer, root) confirms shape + project-root-hash match + file existence + hash + size BEFORE any read (R18). The transcript itself is treated as opaque text (DI2/R15); nothing here describes the transcript's internal schema.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "agent_id",
+    "session_id",
+    "project_root_hash",
+    "spawn_timestamp",
+    "file_hash",
+    "byte_size"
+  ],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Spawn-time id of the predecessor agent. Becomes the agent-<id>.jsonl filename segment via locate-transcript resolution; must contain no path separators or traversal."
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Id of the Claude Code session the predecessor ran under. Carried for audit/attribution (R23); the resolved session path is supplied separately to validate()."
+    },
+    "project_root_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 of the absolute project root the predecessor ran against. Re-derived from the validating root and compared; a mismatch means the pointer was minted against a different repo/checkout and must be refused before any read."
+    },
+    "spawn_timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp at which the predecessor was spawned. Audit field (R23); not load-bearing for integrity (the file hash is)."
+    },
+    "file_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$",
+      "description": "SHA-256 of the transcript file's bytes as observed at spawn/handoff time. Re-computed at validation and compared; any drift means the transcript changed since the pointer was minted and the transcript is no longer authoritative (R18)."
+    },
+    "byte_size": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Byte size of the transcript file at spawn/handoff time. A cheap pre-hash integrity gate; a size mismatch fails the pointer with a precise reason before the file is hashed. Hashes are SHA-256 (the only supported algorithm)."
+    }
+  }
+}

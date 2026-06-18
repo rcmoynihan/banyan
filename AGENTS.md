@@ -145,10 +145,13 @@ generated from it; the two hosts are never hand-forked.
   to it.
 - **What it emits.** One Codex subagent TOML per agent (`name`, `description`,
   `model_reasoning_effort`, a literal-string `developer_instructions` body), one Codex skill
-  directory per skill, and a Codex `AGENTS.md`. The org-chart is instruction-injection into
-  `agent_type:"default"` spawns — no custom role name — and panel-fanning lead bodies carry
-  the spawn-reap-respawn loop. `${CLAUDE_PLUGIN_ROOT}/...` references rewrite to the
-  `~/.codex/skills/banyan/...` install root. The field map is `scripts/codex-build/mapping.md`.
+  directory per skill, a Codex `AGENTS.md`, and the top-level **static assets** referenced at the
+  install root (`schemas/` and `.claude-plugin/plugin.json`, so `${CLAUDE_PLUGIN_ROOT}/schemas/...`
+  and the `bn-hello`/`bn-doctor` version read resolve under `~/.codex/skills/banyan/`). The
+  org-chart is instruction-injection into `agent_type:"default"` spawns — no custom role name — and
+  panel-fanning lead bodies carry the spawn-reap-respawn loop. `${CLAUDE_PLUGIN_ROOT}/...`
+  references rewrite to the `~/.codex/skills/banyan/...` install root. The field map is
+  `scripts/codex-build/mapping.md`.
 - **Counts.** The render covers all 55 agents and 19 skills; the count is asserted
   dynamically against `plugin/skills/*/SKILL.md` on disk, not hardcoded.
 - **Verification.** `node --test scripts/codex-build/render-codex.test.mjs` asserts the
@@ -162,17 +165,19 @@ generated from it; the two hosts are never hand-forked.
   or a hand-edit of `dist/codex/`, fails the suite with the offending paths and the remediation line.
   Regenerate and commit `dist/codex/` whenever shared source changes.
 - **Authoring tooling ships to neither host.** `scripts/codex-build/` (the generator, the field map,
-  the fixtures, the agent-install step `install-codex-agents.mjs`, and the packaging manifest
-  `codex-plugin.json`) and `eval/codex/` are authoring context. Only `dist/codex/` is render output,
-  and it holds nothing hand-authored — install tooling and the packaging manifest live under
+  the fixtures, the installers `install-codex.mjs` + `install-codex-agents.mjs`, and the packaging
+  manifest `codex-plugin.json`) and `eval/codex/` are authoring context. Only `dist/codex/` is render
+  output, and it holds nothing hand-authored — install tooling and the packaging manifest live under
   `scripts/codex-build/`, not inside the render-owned tree.
-- **The Codex install is two steps.** Codex's native plugin install registers skills only, not custom
-  agents (shipped compound-engineering precedent). Banyan therefore installs in two steps — the native
-  marketplace/TUI skills install, then `scripts/codex-build/install-codex-agents.mjs` to register the
-  55 agents into the Codex agent store — or a delegating skill reports missing agents. The flow,
-  the load-bearing `[agents]` config contract (`max_depth=3`, `max_threads`; multi-agent is a
-  stable, default-enabled feature on current Codex), and the subscription-auth boundary (`~/.codex/auth.json`, `OPENAI_API_KEY` unset, config via
-  `-c` overrides / project-local config, never the global `~/.codex/config.toml`) live in
+- **The Codex install is one command over the render.** `node scripts/codex-build/install-codex.mjs
+  --codex-home <CODEX_HOME>` copies the render's skills tree to `<CODEX_HOME>/skills/banyan/` and the
+  55 agent TOMLs to `<CODEX_HOME>/agents/` (`--skills-only`/`--agents-only` split it; `install-codex-agents.mjs`
+  is the standalone agent half). Codex's native `plugin marketplace add` is **not** used: it registers
+  skills only (never agents) and reads this repo's Claude-format marketplace pointing at `plugin/`, not
+  the Codex render — so the direct copy is the supported path. The flow, the load-bearing `[agents]`
+  config contract (`max_depth=3`, `max_threads`; multi-agent is a stable, default-enabled feature on
+  current Codex), and the subscription-auth boundary (`~/.codex/auth.json`, `OPENAI_API_KEY` unset,
+  config via `-c` overrides / project-local config, never the global `~/.codex/config.toml`) live in
   `docs/codex-install.md`; the parity stance is `docs/decisions/codex-parity-gap-register.md`.
 - **CLI-absent verification falls back, like the Claude Code smoke.** `eval/codex/run-codex-smoke.mjs`
   drives the install + a thin invocation when the Codex CLI is present; absent it, it asserts manifest

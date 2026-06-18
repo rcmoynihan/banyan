@@ -255,6 +255,62 @@ function walkAssetDir(dirAbs, relPrefix, out) {
   }
 }
 
+// Top-level plugin/ assets that live OUTSIDE skills/ and agents/ but are referenced
+// at the install root and so must ship in the render or the reference ENOENTs:
+//   - schemas/      — rendered SKILL.md cite ${CLAUDE_PLUGIN_ROOT}/schemas/<file>
+//                     (rewritten to ~/.codex/skills/banyan/schemas/<file>); e.g.
+//                     bn-runbook's drive-recipe.schema.json.
+//   - .claude-plugin/plugin.json — bn-hello and bn-doctor read
+//                     <plugin-root>/.claude-plugin/plugin.json for the Banyan version.
+// Each is copied verbatim (path-rewritten, mode preserved) into dist/codex/ at the
+// same relative path it occupies under plugin/.
+const STATIC_ASSET_SOURCES = ['schemas', '.claude-plugin/plugin.json'];
+
+function collectStaticAssets(root) {
+  const pluginDir = path.join(root, 'plugin');
+  const assets = [];
+  for (const rel of STATIC_ASSET_SOURCES) {
+    const abs = path.join(pluginDir, rel);
+    if (!fs.existsSync(abs)) continue;
+    if (fs.statSync(abs).isDirectory()) {
+      walkStaticDir(abs, rel, assets);
+    } else {
+      addStaticAsset(abs, rel, assets);
+    }
+  }
+  assets.sort((a, b) => (a.relPath < b.relPath ? -1 : a.relPath > b.relPath ? 1 : 0));
+  return assets;
+}
+
+function walkStaticDir(dirAbs, relPrefix, out) {
+  for (const entry of fs.readdirSync(dirAbs, { withFileTypes: true }).sort((a, b) =>
+    a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+  )) {
+    const abs = path.join(dirAbs, entry.name);
+    const rel = `${relPrefix}/${entry.name}`;
+    if (entry.isDirectory()) {
+      walkStaticDir(abs, rel, out);
+    } else if (entry.isFile()) {
+      addStaticAsset(abs, rel, out);
+    }
+  }
+}
+
+function addStaticAsset(abs, rel, out) {
+  out.push({
+    relPath: rel,
+    content: rewritePaths(fs.readFileSync(abs, 'utf8')),
+    mode: fs.statSync(abs).mode,
+    source: `plugin/${rel}`,
+  });
+}
+
+// The set of top-level dist/codex/ entries the static assets occupy, so writeDist can
+// clear them before a fresh write and a source deletion does not leave a stale copy.
+function staticAssetTopLevels(staticAssets) {
+  return [...new Set(staticAssets.map((a) => a.relPath.split('/')[0]))];
+}
+
 function buildSkill(raw, dirName, skillDir) {
   const { frontmatter, body } = parseFrontmatter(raw);
   const name = unquote(frontmatter.name);
@@ -418,7 +474,9 @@ export function render(root = DEFAULT_ROOT) {
   const agentsMdRaw = fs.readFileSync(path.join(root, 'plugin', 'AGENTS.md'), 'utf8');
   const agentsMd = buildAgentsMd(agentsMdRaw);
 
-  return { agents, skills, agentsMd, skillsCatalogLength: skillsCatalog.length };
+  const staticAssets = collectStaticAssets(root);
+
+  return { agents, skills, agentsMd, staticAssets, skillsCatalogLength: skillsCatalog.length };
 }
 
 function writeDist(root, result) {
@@ -428,6 +486,9 @@ function writeDist(root, result) {
 
   fs.rmSync(agentsDir, { recursive: true, force: true });
   fs.rmSync(skillsDir, { recursive: true, force: true });
+  for (const top of staticAssetTopLevels(result.staticAssets)) {
+    fs.rmSync(path.join(distRoot, top), { recursive: true, force: true });
+  }
   fs.mkdirSync(agentsDir, { recursive: true });
   fs.mkdirSync(skillsDir, { recursive: true });
 
@@ -446,6 +507,12 @@ function writeDist(root, result) {
     }
   }
   fs.writeFileSync(path.join(distRoot, 'AGENTS.md'), result.agentsMd);
+  for (const asset of result.staticAssets) {
+    const assetPath = path.join(distRoot, ...asset.relPath.split('/'));
+    fs.mkdirSync(path.dirname(assetPath), { recursive: true });
+    fs.writeFileSync(assetPath, asset.content);
+    fs.chmodSync(assetPath, asset.mode);
+  }
 }
 
 function main() {
@@ -460,7 +527,8 @@ function main() {
   }
   writeDist(opts.root, result);
   process.stdout.write(
-    `rendered ${result.agents.length} agents + ${result.skills.length} skills + AGENTS.md to dist/codex/\n`,
+    `rendered ${result.agents.length} agents + ${result.skills.length} skills + AGENTS.md + ` +
+      `${result.staticAssets.length} static assets to dist/codex/\n`,
   );
 }
 
@@ -475,6 +543,7 @@ export {
   buildAgent,
   buildSkill,
   buildAgentsMd,
+  collectStaticAssets,
   listAgentFiles,
   listSkillDirs,
   CODEX_INSTALL_ROOT,

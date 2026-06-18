@@ -62,6 +62,24 @@ confirmed `UserPromptSubmit`-class hook surface, so the trunk-only consent remin
 `AGENTS.md` doctrine (prompt-level discipline), with native `AGENTS.md` auto-load as the
 additive trunk backstop.
 
+## Top-level static assets: `plugin/{schemas/**,.claude-plugin/plugin.json}` → `dist/codex/{…}`
+
+Plugin assets that live OUTSIDE `agents/` and `skills/` but are referenced at the install root
+are copied verbatim into the render at the same relative path (`STATIC_ASSET_SOURCES`), so the
+reference resolves under `~/.codex/skills/banyan/` instead of ENOENT-ing:
+
+- `plugin/schemas/**` → `dist/codex/schemas/**` — rendered SKILL.md cite
+  `${CLAUDE_PLUGIN_ROOT}/schemas/<file>` (e.g. `bn-runbook`'s `drive-recipe.schema.json`). The
+  whole `schemas/` tree ships, mirroring the Claude host where `${CLAUDE_PLUGIN_ROOT}/schemas/`
+  is the full directory.
+- `plugin/.claude-plugin/plugin.json` → `dist/codex/.claude-plugin/plugin.json` — `bn-hello` and
+  `bn-doctor` read `<plugin-root>/.claude-plugin/plugin.json` for the Banyan version; shipping it
+  lets that read resolve from the install root without a working-tree fallback.
+
+Each is text-rewritten (`${CLAUDE_PLUGIN_ROOT}`) in the copy and has its source mode preserved.
+`writeDist` clears each static asset's top-level dir before writing, so a deleted source does not
+leave a stale copy. The drift gate covers them like any other render output.
+
 ## Path rewrite classes (from the U4 rewrite map)
 
 Every `${CLAUDE_PLUGIN_ROOT}/<rest>` reference rewrites to `~/.codex/skills/banyan/<rest>` — the
@@ -73,4 +91,5 @@ untouched source.
 ## Not rendered
 
 `dist/codex/.build-manifest.json` is not written by this generator (it is the drift gate's
-file). The render's output is `agents/`, `skills/`, and `AGENTS.md`.
+file). The render's output is `agents/`, `skills/`, `AGENTS.md`, and the top-level static assets
+(`schemas/`, `.claude-plugin/plugin.json`).

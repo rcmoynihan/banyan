@@ -249,6 +249,47 @@ test('writeDist materializes the copied assets on disk after render', () => {
   );
 });
 
+// Top-level plugin/ assets referenced at the install root (schemas/ and the
+// .claude-plugin/plugin.json the version-read skills consume) ship in the render, so
+// ${CLAUDE_PLUGIN_ROOT}/schemas/... and <plugin-root>/.claude-plugin/plugin.json
+// resolve at ~/.codex/skills/banyan/ instead of ENOENT-ing post-install.
+test('render carries the schemas/ tree and the plugin manifest as static assets', () => {
+  const rel = new Set(result.staticAssets.map((a) => a.relPath));
+  assert.ok(
+    rel.has('schemas/drive-recipe.schema.json'),
+    'render missing schemas/drive-recipe.schema.json (bn-runbook recipe-block ENOENT)',
+  );
+  assert.ok(
+    rel.has('.claude-plugin/plugin.json'),
+    'render missing .claude-plugin/plugin.json (bn-hello/bn-doctor version read fails)',
+  );
+  // Every schema file under plugin/schemas/ is carried, not just the referenced one.
+  const schemaCount = result.staticAssets.filter((a) => a.relPath.startsWith('schemas/')).length;
+  assert.equal(schemaCount, 9, 'expected all 9 plugin/schemas/ files in the render');
+});
+
+test('the rendered plugin manifest reports name banyan with a version', () => {
+  const manifest = result.staticAssets.find((a) => a.relPath === '.claude-plugin/plugin.json');
+  assert.ok(manifest, '.claude-plugin/plugin.json not rendered');
+  const parsed = JSON.parse(manifest.content);
+  assert.equal(parsed.name, 'banyan', 'version-read skills require name == banyan');
+  assert.ok(typeof parsed.version === 'string' && parsed.version.length > 0, 'manifest needs a version');
+});
+
+test('static assets carry no residual ${CLAUDE_PLUGIN_ROOT} token', () => {
+  for (const asset of result.staticAssets) {
+    assert.ok(
+      !asset.content.includes(PLUGIN_ROOT_TOKEN),
+      `${asset.relPath}: leaked ${PLUGIN_ROOT_TOKEN}`,
+    );
+  }
+});
+
+// (Disk materialization of the static assets is covered by the drift gate, which compares the
+// committed dist/codex/ against a fresh render; a separate exec-render-into-REPO_ROOT test here
+// would only add another concurrent real-dist rewrite and race the install-agents default-source
+// test.)
+
 // (6) DI1 regression gate: running the generator does not modify any plugin/ file.
 test('DI1 gate: rendering does not modify any plugin/ file', () => {
   const scriptPath = path.join(SCRIPT_DIR, 'render-codex.mjs');

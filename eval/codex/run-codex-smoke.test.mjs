@@ -55,6 +55,17 @@ function buildPackage(spec) {
   }
   writeFileSync(join(distDir, "AGENTS.md"), "# doctrine\n");
   writeFileSync(join(buildDir, "install-codex-agents.mjs"), "// installer\n");
+  // The render's static assets and the unified installer, unless the spec opts out (to exercise
+  // the NO-GO path where the render dropped them).
+  if (spec.staticAssets !== false) {
+    mkdirSync(join(distDir, "schemas"), { recursive: true });
+    writeFileSync(join(distDir, "schemas", "drive-recipe.schema.json"), "{}\n");
+    mkdirSync(join(distDir, ".claude-plugin"), { recursive: true });
+    writeFileSync(join(distDir, ".claude-plugin", "plugin.json"), '{"name":"banyan","version":"0.0.0"}\n');
+  }
+  if (spec.unifiedInstaller !== false) {
+    writeFileSync(join(buildDir, "install-codex.mjs"), "// unified installer\n");
+  }
   return { root, distDir, buildDir };
 }
 
@@ -336,6 +347,42 @@ test("discoverabilityResult: GO on a complete fixture package", () => {
     assert.equal(byName["agent-install step present (scripts/codex-build/install-codex-agents.mjs)"], true);
     assert.equal(byName["R25: every delegating skill finds its agent (closure skill -> lead -> roster all installed)"], true);
     assert.equal(r.gaps.missing.length, 0);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("discoverabilityResult: NO-GO when the render dropped its static assets", () => {
+  // A render that emits agents/skills/AGENTS.md but not schemas/ + .claude-plugin/plugin.json
+  // installs a tree with dangling install-root references; the static-asset check must red it.
+  const { root, distDir, buildDir } = buildPackage({
+    agents: { "bn-plan-generator": null },
+    skills: { "bn-plan": "dispatch bn-plan-lead" },
+    staticAssets: false,
+  });
+  try {
+    const r = discoverabilityResult(distDir, buildDir);
+    const check = r.checks.find((c) => c.name.startsWith("render static assets present"));
+    assert.ok(check, "expected the static-asset check to be recorded");
+    assert.equal(check.pass, false);
+    assert.equal(r.go, false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("discoverabilityResult: NO-GO when the unified installer is absent", () => {
+  const { root, distDir, buildDir } = buildPackage({
+    agents: { "bn-plan-generator": null },
+    skills: { "bn-plan": "dispatch bn-plan-lead" },
+    unifiedInstaller: false,
+  });
+  try {
+    const r = discoverabilityResult(distDir, buildDir);
+    const check = r.checks.find((c) => c.name.startsWith("unified installer present"));
+    assert.ok(check, "expected the unified-installer check to be recorded");
+    assert.equal(check.pass, false);
+    assert.equal(r.go, false);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

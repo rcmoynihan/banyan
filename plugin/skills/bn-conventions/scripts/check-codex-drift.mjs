@@ -68,6 +68,12 @@ function expectedOutputs(result) {
     content: result.agentsMd,
     source: 'plugin/AGENTS.md',
   });
+  for (const asset of result.staticAssets) {
+    outputs.set(asset.relPath, {
+      content: asset.content,
+      source: asset.source,
+    });
+  }
   return outputs;
 }
 
