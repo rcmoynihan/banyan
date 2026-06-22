@@ -125,7 +125,12 @@ worse than omitting it.
   framing choices (defaults, scope narrowings, foundational technical picks)
   that constrain Requirements / Flows / Scope below. Each entry names the
   decision in bold with prose rationale. Sits high in the rendered doc so
-  readers encounter the framing choices before descending into detail.
+  readers encounter the framing choices before descending into detail. When a
+  greenfield product's **trajectory / intended reach** was established in the
+  dialogue (personal/local-only, internal team, multi-user product, or
+  commercial), record it here as a foundational framing choice — it constrains
+  who the product serves and how far the scope reaches. Record it as an
+  Assumption instead when the user was genuinely unsure.
 
 - **Actors** — include when the proposed thing has multi-party behavior
   (multiple humans, agents, or systems meaningfully involved). Skip for
@@ -181,7 +186,10 @@ worse than omitting it.
   positioning a product against adjacent ones the team could have built but
   is rejecting, split into "Deferred for later" (eventually but not v1) and
   "Outside this product's identity" (positioning decision). Otherwise, a
-  single list is fine.
+  single list is fine. For a commercial or multi-user trajectory, the
+  reach and value-capture answers from the dialogue feed this split; for a
+  personal/local-only trajectory, state that bounded reach as a scope boundary
+  so planning does not over-build for users who will never exist.
 
 - **Dependencies** — include when material upstream dependencies, external
   systems, source artifacts, team decisions, or repo facts affect what can
